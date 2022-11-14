@@ -1,0 +1,24 @@
+{
+  "name": "web32-bmnotion",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boostcampwm-2022/web32-bmNotion.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/boostcampwm-2022/web32-bmNotion/issues"
+  },
+  "homepage": "https://github.com/boostcampwm-2022/web32-bmNotion#readme",
+  "devDependencies": {
+    "eslint": "^8.27.0",
+    "prettier": "^2.7.1"
+  }
+}
