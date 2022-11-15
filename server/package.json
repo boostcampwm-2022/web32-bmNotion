@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint ./**/*.{ts,tsx,js,jsx}",
     "prettier": "prettier --write ./**/*.{ts,tsx}",
-    "start": "nodemon index.js"
+    "start": "nodemon src/index.js"
   },
   "keywords": [],
   "author": "",
