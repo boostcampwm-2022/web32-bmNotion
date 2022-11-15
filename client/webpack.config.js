@@ -27,6 +27,9 @@ const config = {
   },
 
   resolve: {
+    alias: {
+      '@': path.resolve(dirname, '../src'),
+    },
     extensions: ['.tsx', '.ts', '.js', '.jsx'],
   },
 
