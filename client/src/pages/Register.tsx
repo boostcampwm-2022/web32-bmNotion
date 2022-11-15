@@ -1,14 +1,18 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from "styled-components";
+import CameraIcon from "@/assets/icons/camera.png"
 
 export default function Register():ReactElement {
-  const [inputNickName, setInputNickName] = useState("")
-  const [inputID, setInputID] = useState("")
-  const [inputPassWord, setInputPassWord] = useState("")
-  const [inputCheckPassWord, setInputCheckPassWord] = useState("")
+  const [inputNickName, setInputNickName] = useState("");
+  const [inputID, setInputID] = useState("");
+  const [inputPassWord, setInputPassWord] = useState("");
+  const [inputCheckPassWord, setInputCheckPassWord] = useState("");
+
   const [nickNameValidation, setNickNameValidation] = useState(true);
   const [iDValidation, setIDValidation] = useState(true);
-  const [passWordValidation, setPassWordValidation] = useState(true);
+  const [passWordValidation, setPassWordValidation] = useState(false);
+
+  const [registerValidation, setRegisterValidation] = useState(false);
 
   const handleInputNickName = (event:React.FormEvent<HTMLInputElement>) => {
     const {
@@ -39,7 +43,11 @@ export default function Register():ReactElement {
   }
 
   const onClickRegisterBtn = () => {
-
+    if(registerValidation) {
+      console.log(inputNickName);
+      console.log(inputID);
+      console.log(inputPassWord);
+    }
   };
 
   useEffect(()=>{
@@ -51,6 +59,15 @@ export default function Register():ReactElement {
     }
   },[inputPassWord, inputCheckPassWord])
 
+  useEffect(()=>{
+    if(nickNameValidation&&iDValidation&&passWordValidation) {
+      setRegisterValidation(true);
+    }
+    else {
+      setRegisterValidation(false);
+    }
+  },[nickNameValidation,iDValidation,passWordValidation])
+
   return (
     <Wrapper>
       <Container>
@@ -61,7 +78,9 @@ export default function Register():ReactElement {
         </HeaderContainer>
         <ContainerBody>
           <ProfileImage>
-            <ProfileUpLoadButtton></ProfileUpLoadButtton>
+            <ProfileUpLoadButtton>
+              <img src="/assets/icons/camera.png"></img>
+            </ProfileUpLoadButtton>
           </ProfileImage>
           <InputContainer>
             <InputHeader>닉네임</InputHeader>
@@ -89,10 +108,12 @@ export default function Register():ReactElement {
             <InputHeader>Password</InputHeader>
             <InputPassWordContainer>
             <InputPassWord
+            type="password"
             placeholder="비밀번호"
             value={inputPassWord}
             onChange={handleInputPassWord}/>
             <InputPassWord
+            type="password"
             placeholder="비밀번호 확인"
             value={inputCheckPassWord}
             onChange={handleInputCheckPassWord}/>
@@ -102,7 +123,7 @@ export default function Register():ReactElement {
             {passWordValidation? (null) : (<Validation>비밀번호가 일치하지 않습니다</Validation>)}
           </ValidationContainer>
           <ButtonContainer>
-            <RegisterButton onClick={onClickRegisterBtn}>회원가입</RegisterButton>
+            <RegisterButton disabled={!registerValidation} onClick={onClickRegisterBtn}>회원가입</RegisterButton>
           </ButtonContainer>
         </ContainerBody>
       </Container>
@@ -160,10 +181,11 @@ const ProfileUpLoadButtton = styled.button`
   position:absolute;
   width: 30px;
   height: 30px;
-  background-color: red;
+  background: #ffffff;
   right:8px;
   bottom:8px;
   border-radius: 50%;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 `
 const InputContainer = styled.div`
   display: flex;
@@ -228,6 +250,18 @@ const RegisterButton = styled.button`
   font-weight: 350;
   font-size: 14px;
   line-height: 20px;
+  transition: all 0.1s linear;
+
+  &:disabled {
+    background-color:#ffffff;
+    border: 1px solid #545454;
+    color:#545454;
+  }
+
+  &:hover {
+    background-color: #545454;
+    color: #ffffff;
+  }
 `
 
 const ValidationContainer = styled.div`
