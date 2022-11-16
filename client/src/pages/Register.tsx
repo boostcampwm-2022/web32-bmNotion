@@ -1,6 +1,5 @@
-import React, { useState, ReactElement, useEffect } from 'react';
+import React, { useState, useRef, ReactElement, useEffect } from 'react';
 import styled from "styled-components";
-import CameraIcon from "@/assets/icons/camera.png"
 
 export default function Register():ReactElement {
   const [inputNickName, setInputNickName] = useState("");
@@ -14,28 +13,32 @@ export default function Register():ReactElement {
 
   const [registerValidation, setRegisterValidation] = useState(false);
 
-  const handleInputNickName = (event:React.FormEvent<HTMLInputElement>) => {
+  const [profileImage, setProfileImage] = useState("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png");
+
+  const fileInput = React.useRef<HTMLInputElement>(null);
+
+  const handleInputNickName = (event:React.ChangeEvent<HTMLInputElement>) => {
     const {
       currentTarget:{value},
     } = event;
     setInputNickName(value);
   }
 
-  const handleInputID = (event:React.FormEvent<HTMLInputElement>) => {
+  const handleInputID = (event:React.ChangeEvent<HTMLInputElement>) => {
     const {
       currentTarget:{value},
     } = event;
     setInputID(value);
   }
 
-  const handleInputPassWord = (event:React.FormEvent<HTMLInputElement>) => {
+  const handleInputPassWord = (event:React.ChangeEvent<HTMLInputElement>) => {
     const {
       currentTarget:{value},
     } = event;
     setInputPassWord(value);
   }
 
-  const handleInputCheckPassWord = (event:React.FormEvent<HTMLInputElement>) => {
+  const handleInputCheckPassWord = (event:React.ChangeEvent<HTMLInputElement>) => {
     const {
       currentTarget:{value},
     } = event;
@@ -66,7 +69,26 @@ export default function Register():ReactElement {
     else {
       setRegisterValidation(false);
     }
-  },[nickNameValidation,iDValidation,passWordValidation])
+  },[nickNameValidation,iDValidation,passWordValidation]);
+
+  const onClickFileInput = () => {
+    if(fileInput.current) {
+      fileInput.current.click();
+    }
+  }
+
+  const handleInputImage = (e:React.ChangeEvent<HTMLInputElement>) => {
+    if(e.target.files) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if(reader.readyState === 2) {
+          setProfileImage(reader.result as string);
+          console.log(reader.result);
+        }
+      }
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  }
 
   return (
     <Wrapper>
@@ -77,14 +99,23 @@ export default function Register():ReactElement {
           </HeaderText>
         </HeaderContainer>
         <ContainerBody>
-          <ProfileImage>
-            <ProfileUpLoadButtton>
+          <ProfileImage profileImage={profileImage}>
+            <ProfileUpLoadButtton onClick={onClickFileInput}>
               <img src="/assets/icons/camera.png"></img>
+              <input
+              type='file' 
+              style={{display:'none'}}
+              accept='image/jpg,impge/png,image/jpeg' 
+              name='profile_img'
+              ref={fileInput}
+              onChange={handleInputImage}
+              />
             </ProfileUpLoadButtton>
           </ProfileImage>
           <InputContainer>
             <InputHeader>닉네임</InputHeader>
             <Input
+            name="asd"
             placeholder="닉네임을 입력하세요"
             value={inputNickName}
             onChange={handleInputNickName}/>
@@ -141,7 +172,7 @@ const Wrapper = styled.div`
 
 const Container = styled.div`
   display:flex;
-  flex-direction: column;
+  flex-direction: column; 
   align-items: center;
   background: #FFFFFF;
   border: 2px solid rgba(15, 15, 15, 0.1);
@@ -169,13 +200,15 @@ const ContainerBody = styled.div`
   width:360px;
 `
 
-const ProfileImage = styled.div`
+const ProfileImage = styled.div<{profileImage:string}>`
   width: 132px;
   height: 132px;
   border: 2px solid #666666;
   border-radius:50%;
   position:relative;
   margin-bottom: 20px;
+  background-image: url(${(props) => props.profileImage});
+  background-size:cover;
 `
 const ProfileUpLoadButtton = styled.button`
   position:absolute;
