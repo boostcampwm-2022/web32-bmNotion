@@ -6,6 +6,8 @@ const apiRouter = require('./api/api.router');
 const port = process.env.PORT || '8080';
 const app = express();
 
+require('dotenv').config();
+
 app.use(express.static(path.resolve(__dirname, '..', 'client', 'dist')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -13,4 +15,6 @@ app.use(express.json());
 app.use('/', mainRouter);
 app.use('/api', apiRouter);
 
-app.listen(port, () => {});
+app.listen(port, () => {
+  console.log('연결 성공');
+});
