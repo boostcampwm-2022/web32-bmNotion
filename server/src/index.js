@@ -1,10 +1,12 @@
 const express = require('express');
 const path = require('path');
+const cors = require('cors');
 const mainRouter = require('./main/main.router');
 const apiRouter = require('./api/api.router');
 
 const port = process.env.PORT || '8080';
 const app = express();
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
 require('dotenv').config();
 
