@@ -13,7 +13,7 @@ export default function Register():ReactElement {
 
   const [registerValidation, setRegisterValidation] = useState(false);
 
-  const [profileImage, setProfileImage] = useState("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png");
+  const [profileImage, setProfileImage] = useState("/assets/icons/profileImage.png");
 
   const fileInput = React.useRef<HTMLInputElement>(null);
 
@@ -143,8 +143,9 @@ export default function Register():ReactElement {
     <Wrapper>
       <Container>
         <HeaderContainer>
+        <img src="/assets/logo/bmRegisterLogo.png" width="40px"/>
           <HeaderText>
-            회원가입
+          회원가입
           </HeaderText>
         </HeaderContainer>
         <ContainerBody>
@@ -176,7 +177,7 @@ export default function Register():ReactElement {
           <InputContainer>
             <InputHeader>ID</InputHeader>
             <Input
-            placeholder="Id를 입력하세요"
+            placeholder="ID를 입력하세요"
             value={inputId}
             onChange={handleInputId}/>
           </InputContainer>
@@ -231,6 +232,8 @@ const Container = styled.div`
 `
 
 const HeaderContainer = styled.div`
+display:flex;
+align-items: center;
   font-weight: 500;
   font-size: 18px;
   line-height: 26px;
@@ -239,7 +242,8 @@ const HeaderContainer = styled.div`
   padding: 0px 20px;
 `
 const HeaderText = styled.div`
-  
+  color: #666666;
+  margin-left: 6px;
 `
 
 const ContainerBody = styled.div`
@@ -256,7 +260,10 @@ const ProfileImage = styled.div<{profileImage:string}>`
   border-radius:50%;
   position:relative;
   margin-bottom: 20px;
+  background-color: #666666;
   background-image: url(${(props) => props.profileImage});
+  background-position: center;
+  background-repeat: no-repeat;
   background-size:cover;
 `
 const ProfileUpLoadButtton = styled.button`
@@ -290,9 +297,9 @@ const Input = styled.input`
   height: 40px;
   border: 1px solid rgba(15, 15, 15, 0.1);
   border-radius: 5px;
+  padding-left: 4px;
 
   &::placeholder{
-    padding-left: 4px;
 		color: #888888
 	}
 `
@@ -302,9 +309,9 @@ const InputPassWord = styled.input`
   height: 40px;
   border: 1px solid rgba(15, 15, 15, 0.1);
   border-radius: 5px;
+  padding-left: 4px;
 
   &::placeholder{
-    padding-left: 4px;
 		color: #888888
 	}
 `
