@@ -13,5 +13,6 @@ app.use(express.json());
 
 app.use('/', mainRouter);
 
-app.listen(port, () => { });
-
+app.listen(port, () => {
+  console.log('연결 성공');
+});
