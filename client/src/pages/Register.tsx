@@ -1,5 +1,6 @@
 import React, { useState, useRef, ReactElement, useEffect } from 'react';
 import styled from "styled-components";
+import axios from "axios";
 
 export default function Register():ReactElement {
   const [inputNickName, setInputNickName] = useState("");
@@ -52,6 +53,17 @@ export default function Register():ReactElement {
       console.log(inputNickName);
       console.log(inputId);
       console.log(inputPassWord);
+      formData.append('id', inputId);
+      formData.append('passWord', inputPassWord);
+      formData.append('nickName', inputNickName);
+      axios.post("http://localhost:8080/auth/sign-up",
+        formData,
+        {withCredentials: true}
+        )
+        .then((res) => {
+          console.log(res);
+        })
+        .catch();
     }
   };
 
@@ -80,7 +92,7 @@ export default function Register():ReactElement {
         }
       }
       reader.readAsDataURL(e.target.files[0]);
-      formData.append('file',e.target.files[0]);
+      formData.append('image',e.target.files[0]);
     }
   }
 
