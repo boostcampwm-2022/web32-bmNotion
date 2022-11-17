@@ -17,6 +17,8 @@ export default function Register():ReactElement {
 
   const fileInput = React.useRef<HTMLInputElement>(null);
 
+  const formData = new FormData();
+  
   const handleInputNickName = (event:React.ChangeEvent<HTMLInputElement>) => {
     const {
       currentTarget:{value},
@@ -75,10 +77,10 @@ export default function Register():ReactElement {
       reader.onload = () => {
         if(reader.readyState === 2) {
           setProfileImage(reader.result as string);
-          console.log(reader.result);
         }
       }
       reader.readAsDataURL(e.target.files[0]);
+      formData.append('file',e.target.files[0]);
     }
   }
 
