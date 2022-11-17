@@ -3,12 +3,12 @@ import styled from "styled-components";
 
 export default function Register():ReactElement {
   const [inputNickName, setInputNickName] = useState("");
-  const [inputID, setInputID] = useState("");
+  const [inputId, setInputId] = useState("");
   const [inputPassWord, setInputPassWord] = useState("");
   const [inputCheckPassWord, setInputCheckPassWord] = useState("");
 
   const [nickNameValidation, setNickNameValidation] = useState(true);
-  const [iDValidation, setIDValidation] = useState(true);
+  const [iDValidation, setIdValidation] = useState(true);
   const [passWordValidation, setPassWordValidation] = useState(false);
 
   const [registerValidation, setRegisterValidation] = useState(false);
@@ -24,11 +24,11 @@ export default function Register():ReactElement {
     setInputNickName(value);
   }
 
-  const handleInputID = (event:React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputId = (event:React.ChangeEvent<HTMLInputElement>) => {
     const {
       currentTarget:{value},
     } = event;
-    setInputID(value);
+    setInputId(value);
   }
 
   const handleInputPassWord = (event:React.ChangeEvent<HTMLInputElement>) => {
@@ -48,19 +48,11 @@ export default function Register():ReactElement {
   const onClickRegisterBtn = () => {
     if(registerValidation) {
       console.log(inputNickName);
-      console.log(inputID);
+      console.log(inputId);
       console.log(inputPassWord);
     }
   };
 
-  useEffect(()=>{
-    if(inputCheckPassWord && inputPassWord !== inputCheckPassWord) {
-      setPassWordValidation(false);
-    }
-    else {
-      setPassWordValidation(true);
-    }
-  },[inputPassWord, inputCheckPassWord])
 
   useEffect(()=>{
     if(nickNameValidation&&iDValidation&&passWordValidation) {
@@ -88,6 +80,63 @@ export default function Register():ReactElement {
       }
       reader.readAsDataURL(e.target.files[0]);
     }
+  }
+
+  const [nickNameValidateMessage, setNickNameValidateMessage] = useState("");
+  const [idValidateMessage, setIdValidateMessage] = useState("");
+  const [passWordValidateMessage, setpassWordValidateMessage] = useState("");
+
+  useEffect(()=>{
+    setPassWordValidation(isPassWordValidate(inputPassWord, inputCheckPassWord));
+  },[inputPassWord, inputCheckPassWord, passWordValidateMessage])
+  
+  const isPassWordValidate = (passWord:string, checkPassWord:string) => {
+    if(!passWord) {
+      setpassWordValidateMessage("");
+      return false;
+    }
+    if (!/^[\w!@#$%&*]{6,20}$/.test(passWord)) {
+      setpassWordValidateMessage("비밀번호는 6 ~ 20 글자여야 합니다.");
+      return false;
+    }
+    else if(passWord !== checkPassWord) {
+      setpassWordValidateMessage("비밀번호가 일치하지 않습니다.");
+      return false;
+    }
+    return true;
+  }
+
+  useEffect(()=>{
+    setNickNameValidation(isNickNameValidate(inputNickName));
+  },[inputNickName,nickNameValidateMessage])
+
+  const isNickNameValidate = (nickName:string) => {
+    if(!nickName) {
+      setNickNameValidateMessage("");
+      return false;
+    }
+      if(!/^[\w]{3,20}$/.test(nickName)) {
+        setNickNameValidateMessage("닉네임은 알파벳, 숫자 혹은 '_'로 이루어진 3 ~ 20 글자여야 합니다.")
+        return false;
+      }
+    return true;
+  }
+
+
+  useEffect(()=>{
+    setIdValidation(isIdValidate(inputId));
+  },[inputId])
+
+  const isIdValidate = (id:string) => {
+    if(!id) {
+      setIdValidateMessage("");
+      return false;
+    }
+      if(!/^[\w]{3,20}$/.test(id)) {
+        setIdValidateMessage("ID는 알파벳, 숫자 혹은 '_'로 이루어진 3 ~ 20이어야 합니다.")
+        return false;
+      }
+    return true;
   }
 
   return (
@@ -121,18 +170,18 @@ export default function Register():ReactElement {
             onChange={handleInputNickName}/>
           </InputContainer>
           <ValidationContainer>
-          {nickNameValidation? (null) : (<Validation>이미 사용중인 닉네임입니다</Validation>)}
+          {nickNameValidation? (null) : (<Validation>{nickNameValidateMessage}</Validation>)}
             
           </ValidationContainer>
           <InputContainer>
             <InputHeader>ID</InputHeader>
             <Input
-            placeholder="ID를 입력하세요"
-            value={inputID}
-            onChange={handleInputID}/>
+            placeholder="Id를 입력하세요"
+            value={inputId}
+            onChange={handleInputId}/>
           </InputContainer>
           <ValidationContainer>
-          {iDValidation? (null) : (<Validation>이미 사용중인 ID입니다</Validation>)}
+          {iDValidation? (null) : (<Validation>{idValidateMessage}</Validation>)}
             
           </ValidationContainer>
           <InputContainer>
@@ -151,7 +200,7 @@ export default function Register():ReactElement {
             </InputPassWordContainer>
           </InputContainer>
           <ValidationContainer>
-            {passWordValidation? (null) : (<Validation>비밀번호가 일치하지 않습니다</Validation>)}
+            {passWordValidation? (null) : (<Validation>{passWordValidateMessage}</Validation>)}
           </ValidationContainer>
           <ButtonContainer>
             <RegisterButton disabled={!registerValidation} onClick={onClickRegisterBtn}>회원가입</RegisterButton>
