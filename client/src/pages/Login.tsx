@@ -1,6 +1,6 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from "styled-components";
-import CameraIcon from "@/assets/icons/camera.png"
+import bmLogo from "@/assets/icons/BM_logo.png"
 import { Link } from 'react-router-dom';
 import { useNavigate } from "react-router-dom";
 
@@ -32,16 +32,8 @@ export default function Login():ReactElement {
   return (
     <Wrapper>
       <Container>
-        <HeaderContainer>
-          <HeaderText>
-            로그인
-          </HeaderText>
-        </HeaderContainer>
         <ContainerBody>
-          <div>
-            <img src="" alt="BM Nver Break Mind"/>
-            <p>BM NOTION</p>
-          </div>
+          <Logo />
           <InputDiv
             inputValue={inputID}
             name="id"
@@ -119,43 +111,14 @@ const Container = styled.div`
   height:600px;
 `
 
-const HeaderContainer = styled.div`
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 26px;
-  width:100%;
-  margin:20px 0px;
-  padding: 0px 20px;
-`
-const HeaderText = styled.div`
-  
-`
-
 const ContainerBody = styled.div`
+  margin-top: 120px;  
   display:flex;
   flex-direction: column;
   align-items: center;
   width:360px;
 `
 
-const ProfileImage = styled.div`
-  width: 132px;
-  height: 132px;
-  border: 2px solid #666666;
-  border-radius:50%;
-  position:relative;
-  margin-bottom: 20px;
-`
-const ProfileUpLoadButtton = styled.button`
-  position:absolute;
-  width: 30px;
-  height: 30px;
-  background: #ffffff;
-  right:8px;
-  bottom:8px;
-  border-radius: 50%;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-`
 const InputContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -163,14 +126,6 @@ const InputContainer = styled.div`
   margin-bottom:4px;
 `
 
-const InputHeader = styled.div`
-  font-style: normal;
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 23px;
-  color: #545454;
-  margin-bottom: 8px;
-`
 
 const Input = styled.input`
   width: 100%;
@@ -184,24 +139,6 @@ const Input = styled.input`
 	}
 `
 
-const InputPassWord = styled.input`
-  width: 176px;
-  height: 40px;
-  border: 1px solid rgba(15, 15, 15, 0.1);
-  border-radius: 5px;
-
-  &::placeholder{
-    padding-left: 4px;
-		color: #888888
-	}
-`
-
-const InputPassWordContainer = styled.div`
-  display:flex;
-  flex-direction: row;
-  width: 360px;
-  justify-content: space-between;
-`
 
 const ButtonContainer = styled.div`
   display:flex;
@@ -244,3 +181,35 @@ const Validation = styled.div`
   font-size: 10px;
   line-height: 14px;
 `
+
+const LogoDiv = styled.div`
+  width: 80px;
+  height: 80px;
+  overflow: hidden;
+`
+
+const LogoImg = styled.img`
+  width: 100%
+`
+
+const LogoTitle = styled.p`
+  font-size: 32px;
+`
+
+const LogoBox = styled.div`
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+`
+
+function Logo() {
+  return (
+    <LogoBox>
+      <LogoDiv>
+        <LogoImg src={"/assets/icons/BM_logo.png"} alt="BM Nver Break Mind"/>
+      </LogoDiv>
+      <LogoTitle>BM NOTION</LogoTitle>
+    </LogoBox>
+  )
+}
