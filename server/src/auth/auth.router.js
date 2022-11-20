@@ -1,10 +1,9 @@
 const { Router } = require('express');
-const signUpRouter = require('../sign-up/sign-up.router');
-const loginRouter = require('../login/login.router');
+const { signInController, signUpController } = require('./auth.controller');
 
 const router = Router();
 
-router.use('/login', loginRouter);
-router.use('/sign-up', signUpRouter);
+router.use('/signin', signInController.signIn);
+router.use('/sign-up', signUpController.readProfileImg, signUpController.signUp);
 
 module.exports = router;

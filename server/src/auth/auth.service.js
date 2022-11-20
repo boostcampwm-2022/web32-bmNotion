@@ -1,11 +1,13 @@
 const AWS = require('aws-sdk');
 const stream = require('node:stream');
+const jwt = require('jsonwebtoken');
 const { createDocument } = require('../db/db.crud');
 
 const region = 'kr-standard';
-const bucketName = 'bmnotion';
+const bucketName = `${process.env.BUCKET_NAME}`;
 const accessKey = `${process.env.ACCESS_KEY}`;
 const secretKey = `${process.env.SECRET_KEY}`;
+
 const S3 = new AWS.S3({
   endpoint: 'https://kr.object.ncloudstorage.com',
   region,
@@ -24,10 +26,25 @@ const uploadImg = async (objectName, file) => {
   }).promise();
 };
 
+const searchUserById = (id) => {
+  // todo
+  // search user by id
+  const user = [id];
+  return user;
+};
+
+const searchUserByNickName = (nickname) => {
+  // todo
+  // search user by nickname
+  const user = [nickname];
+  return user;
+};
+
 const searchUser = (id, nickname) => {
   // todo
   // search user by id or nickname
-  const user = [id, nickname];
+  let user = searchUserById(id);
+  user = user !== undefined ? searchUserByNickName(nickname) : user;
   return undefined;
 };
 
@@ -45,8 +62,6 @@ const encryptPassword = (password) => {
 };
 
 const saveUser = async (id, password, nickname, objectName) => {
-  // todo
-  // insert User info
   const encryptedPw = encryptPassword(password);
   const user = {
     id,
@@ -73,6 +88,10 @@ const createResponse = (message) => {
       response.code = 404;
       response.message = { nickname: '이미 사용중인 아이디입니다.' };
       break;
+    case 'fail':
+      response.code = 404;
+      response.message = '아이디나 비밀번호가 올바르지 않습니다.';
+      break;
     default:
       break;
   }
@@ -82,7 +101,7 @@ const createResponse = (message) => {
 const signUpPipeline = async (id, password, nickname, file) => {
   const user = searchUser(id, nickname);
   let message = '';
-  if (!user) {
+  if (user === undefined) {
     const objectName = `${id}.profile`;
     await uploadImg(objectName, file);
     await saveUser(id, password, nickname, objectName);
@@ -95,6 +114,25 @@ const signUpPipeline = async (id, password, nickname, file) => {
   return createResponse(message);
 };
 
-module.exports = {
-  signUpPipeline,
+const signInPipeline = (id, password) => {
+  const user = searchUserById(id);
+  const encrypted = encryptPassword(password);
+  if (encrypted === user.password) {
+    const accessToken = jwt.sign(
+      {
+        nickname: user.nickname,
+        id: user.id,
+      },
+      process.env.ACCESS_SECRET_KEY,
+      {
+        expiresIn: '1h',
+      },
+    );
+    const refreshToken = jwt.sign({}, process.env.REFRESH_SECRET_KEY, {
+      expiresIn: '24h',
+    });
+    return { accessToken, refreshToken, response: createResponse('sucess') };
+  }
+  return { response: createResponse('fail') };
 };
+module.exports = { signInPipeline, signUpPipeline };
