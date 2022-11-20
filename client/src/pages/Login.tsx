@@ -1,28 +1,28 @@
 import React, { useState, ReactElement, useEffect } from 'react';
-import styled from "styled-components";
-import bmLogo from "@/assets/icons/BM_logo.png"
+import styled from 'styled-components';
+import bmLogo from '@/assets/icons/BM_logo.png';
 import { Link } from 'react-router-dom';
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
-export default function Login():ReactElement {
-  const [inputID, setInputID] = useState("");
-  const [inputPassWord, setInputPassWord] = useState("");
-  
+export default function Login(): ReactElement {
+  const [inputID, setInputID] = useState('');
+  const [inputPassWord, setInputPassWord] = useState('');
+
   let navigate = useNavigate();
 
   const handleInputID = (event: React.ChangeEvent<HTMLInputElement>) => {
     const {
-      currentTarget:{value},
+      currentTarget: { value },
     } = event;
     setInputID(value);
-  }
+  };
 
   const handleInputPassWord = (event: React.ChangeEvent<HTMLInputElement>) => {
     const {
-      currentTarget:{value},
+      currentTarget: { value },
     } = event;
     setInputPassWord(value);
-  }
+  };
 
   const onClickRegisterBtn = () => {
     console.log(inputID);
@@ -50,82 +50,84 @@ export default function Login():ReactElement {
             alertMessage=""
             type="password"
           />
-          
+
           <ButtonContainer>
-            <NormalButton onClick={() => {navigate("/register")}} login={false}>
+            <NormalButton
+              onClick={() => {
+                navigate('/register');
+              }}
+              login={false}
+            >
               회원가입
             </NormalButton>
-            <NormalButton onClick={onClickRegisterBtn} login={true}>로그인</NormalButton>
+            <NormalButton onClick={onClickRegisterBtn} login={true}>
+              로그인
+            </NormalButton>
           </ButtonContainer>
-          
         </ContainerBody>
       </Container>
     </Wrapper>
   );
 }
 
-function InputDiv(
-  {inputValue, name, placeholder, onChange, alertMessage, type}:
-  {
-    inputValue: string,
-    name: string,
-    placeholder: string,
-    onChange: React.ChangeEventHandler<HTMLInputElement>,
-    alertMessage: string,
-    type: string,
-}
-  ) {
+function InputDiv({
+  inputValue,
+  name,
+  placeholder,
+  onChange,
+  alertMessage,
+  type,
+}: {
+  inputValue: string;
+  name: string;
+  placeholder: string;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+  alertMessage: string;
+  type: string;
+}) {
   return (
     <>
       <InputContainer>
-        <Input
-          type={type}
-          name={name}
-          placeholder={placeholder}
-          value={inputValue}
-          onChange={onChange}/>
+        <Input type={type} name={name} placeholder={placeholder} value={inputValue} onChange={onChange} />
       </InputContainer>
-      <ValidationContainer>
-          {alertMessage? (null) : (<Validation>{alertMessage}</Validation>)}
-      </ValidationContainer>
+      <ValidationContainer>{alertMessage ? null : <Validation>{alertMessage}</Validation>}</ValidationContainer>
     </>
-  ) 
+  );
 }
 
 const Wrapper = styled.div`
-  display:flex;
+  display: flex;
   justify-content: center;
   align-items: center;
-  width:100%;
+  width: 100%;
   height: 100vh;
-`
+`;
 
 const Container = styled.div`
-  display:flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  background: #FFFFFF;
+  background: #ffffff;
   border: 2px solid rgba(15, 15, 15, 0.1);
   border-radius: 10px;
-  width:520px;
-  height:600px;
-`
+  width: 520px;
+  height: 600px;
+`;
 
 const ContainerBody = styled.div`
-  margin-top: 120px;  
-  display:flex;
+  margin-top: 120px;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  width:360px;
-`
+  width: 360px;
+`;
 
 const InputContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin-bottom:4px;
-`
-
+  margin-bottom: 4px;
+`;
 
 const Input = styled.input`
   width: 100%;
@@ -133,29 +135,28 @@ const Input = styled.input`
   border: 1px solid rgba(15, 15, 15, 0.1);
   border-radius: 5px;
 
-  &::placeholder{
+  &::placeholder {
     padding-left: 4px;
-		color: #888888
-	}
-`
-
+    color: #888888;
+  }
+`;
 
 const ButtonContainer = styled.div`
-  display:flex;
+  display: flex;
   width: 100%;
   color: red;
   justify-content: space-between;
   margin-top: 10px;
-`
+`;
 
-const NormalButton = styled.button<{login: boolean}>`
+const NormalButton = styled.button<{ login: boolean }>`
   width: 80px;
   height: 30px;
 
   border-radius: 4px;
-  
-  background-color: ${props => props.login ? "#545454" : "#ffffff"};
-  color: ${props => props.login ? "#ffffff" : "#545454"};
+
+  background-color: ${(props) => (props.login ? '#545454' : '#ffffff')};
+  color: ${(props) => (props.login ? '#ffffff' : '#545454')};
 
   font-weight: 350;
   font-size: 14px;
@@ -165,51 +166,51 @@ const NormalButton = styled.button<{login: boolean}>`
   &:hover {
     background-color: #545454;
     color: #ffffff;
-  } 
-`
+  }
+`;
 
 const ValidationContainer = styled.div`
-  display:flex;
+  display: flex;
   width: 100%;
   height: 14px;
   justify-content: flex-end;
-`
+`;
 
 const Validation = styled.div`
-  color: #DB4455;
+  color: #db4455;
   font-weight: 350;
   font-size: 10px;
   line-height: 14px;
-`
+`;
 
 const LogoDiv = styled.div`
   width: 80px;
   height: 80px;
   overflow: hidden;
-`
+`;
 
 const LogoImg = styled.img`
-  width: 100%
-`
+  width: 100%;
+`;
 
 const LogoTitle = styled.p`
   font-size: 32px;
-`
+`;
 
 const LogoBox = styled.div`
-  display:flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
   margin-bottom: 20px;
-`
+`;
 
 function Logo() {
   return (
     <LogoBox>
       <LogoDiv>
-        <LogoImg src={"/assets/icons/BM_logo.png"} alt="BM Nver Break Mind"/>
+        <LogoImg src={'/assets/icons/BM_logo.png'} alt="BM Nver Break Mind" />
       </LogoDiv>
       <LogoTitle>BM NOTION</LogoTitle>
     </LogoBox>
-  )
+  );
 }

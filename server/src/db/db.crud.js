@@ -11,11 +11,10 @@ const createDocument = async (collectionName, object) => {
     const collection = db.collection(collectionName);
 
     await collection.insertOne(object);
-  }
-  finally {
+  } finally {
     mongoClient.close();
   }
-}
+};
 
 const readAllDocument = async (collectionName, queryCriteria) => {
   let mongoClient;
@@ -28,17 +27,16 @@ const readAllDocument = async (collectionName, queryCriteria) => {
     const collection = db.collection(collectionName);
 
     result = await findAllDocument(collection, queryCriteria);
-  }
-  finally {
+  } finally {
     mongoClient.close();
   }
 
   return result;
-}
+};
 
 const findAllDocument = async (collection, queryCriteria) => {
   return await collection.find(queryCriteria).toArray();
-}
+};
 
 const readOneDocument = async (collectionName, queryCriteria) => {
   let mongoClient;
@@ -51,17 +49,16 @@ const readOneDocument = async (collectionName, queryCriteria) => {
     const collection = db.collection(collectionName);
 
     result = await findOneDocument(collection, queryCriteria);
-  }
-  finally {
+  } finally {
     mongoClient.close();
   }
 
   return result;
-}
+};
 
 const findOneDocument = async (collection, queryCriteria) => {
   return await collection.findOne(queryCriteria);
-}
+};
 
 const deleteOneDocument = async (collectionName, queryCriteria) => {
   let mongoClient;
@@ -73,15 +70,14 @@ const deleteOneDocument = async (collectionName, queryCriteria) => {
     const collection = db.collection(collectionName);
 
     await collection.deleteOne(queryCriteria);
-  }
-  finally {
+  } finally {
     mongoClient.close();
   }
-}
+};
 
 module.exports = {
   createDocument,
   readAllDocument,
   readOneDocument,
-  deleteOneDocument
+  deleteOneDocument,
 };

@@ -1,13 +1,13 @@
 import React from 'react';
-import Register from "@/pages/Register";
-import Login from "@/pages/Login";
-import GlobalStyle from "@/styles/GlobalStyle";
+import Register from '@/pages/Register';
+import Login from '@/pages/Login';
+import GlobalStyle from '@/styles/GlobalStyle';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 export default function App() {
   return (
     <>
-      <GlobalStyle/>
+      <GlobalStyle />
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />}></Route>
@@ -16,5 +16,5 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </>
-  )
+  );
 }
