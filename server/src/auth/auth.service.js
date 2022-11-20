@@ -1,7 +1,7 @@
 const AWS = require('aws-sdk');
 const stream = require('node:stream');
 const jwt = require('jsonwebtoken');
-const { createDocument } = require('../db/db.crud');
+const { createDocument, findOneDocument } = require('../db/db.crud');
 
 const region = 'kr-standard';
 const bucketName = `${process.env.BUCKET_NAME}`;
@@ -26,26 +26,20 @@ const uploadImg = async (objectName, file) => {
   }).promise();
 };
 
-const searchUserById = (id) => {
-  // todo
-  // search user by id
-  const user = [id];
+const searchUserById = async (id) => {
+  const user = await findOneDocument('user', { id });
   return user;
 };
 
-const searchUserByNickName = (nickname) => {
-  // todo
-  // search user by nickname
-  const user = [nickname];
+const searchUserByNickName = async (nickname) => {
+  const user = await findOneDocument('user', { nickname });
   return user;
 };
 
-const searchUser = (id, nickname) => {
-  // todo
-  // search user by id or nickname
-  let user = searchUserById(id);
-  user = user !== undefined ? searchUserByNickName(nickname) : user;
-  return undefined;
+const searchUser = async (id, nickname) => {
+  let user = await searchUserById(id);
+  user = user !== undefined ? await searchUserByNickName(nickname) : user;
+  return user;
 };
 
 const createObjectUrl = (objectName) => {
