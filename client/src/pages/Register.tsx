@@ -66,7 +66,18 @@ export default function Register(): ReactElement {
           alert('회원가입이 완료되었습니다.');
           navigate('/');
         })
-        .catch();
+        .catch(error => {
+          if (error.response?.message) {
+            if (error.response.message.id) {
+              setIdValidateMessage(error.response.message.id)
+              setIdValidation(false)
+            }
+            if (error.response.message.nickname) {
+              setNickNameValidateMessage(error.response.message.nickname)
+              setNickNameValidation(false)
+            }
+          }
+        });
     }
   };
 
