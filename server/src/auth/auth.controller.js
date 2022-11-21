@@ -1,10 +1,16 @@
 const multer = require('multer');
-const { signInPipeline, signUpPipeline, isValidAccesstoken, isValidRefreshtoken, createNewAccesstokenByRefreshtoken } = require('./auth.service');
+const {
+  signInPipeline,
+  signUpPipeline,
+  isValidAccesstoken,
+  isValidRefreshtoken,
+  createNewAccesstokenByRefreshtoken,
+} = require('./auth.service');
 
 const signInController = {
-  signIn: (req, res) => {
+  signIn: async (req, res) => {
     const { id, password } = req.body;
-    const token = signInPipeline(id, password);
+    const token = await signInPipeline(id, password);
     if (token.response.code === 202) {
       const { accessToken, refreshToken } = token;
       res.cookie('refreshToken', refreshToken);
@@ -15,18 +21,18 @@ const signInController = {
 };
 
 const signUpController = {
-  readProfileImg: multer({ storage: multer.memoryStorage() }).single('image'),
+  readProfileImg: multer({ storage: multer.memoryStorage() }).single('profileimage'),
   signUp: async (req, res) => {
     const { file, body } = req;
-    const { id, passWord, nickName } = body;
-    const resJson = await signUpPipeline(id, passWord, nickName, file);
+    const { id, password, nickname } = body;
+    const resJson = await signUpPipeline(id, password, nickname, file);
     res.json(resJson);
   },
 };
 
 const authController = {
   verifyAccesstoken: (req, res, next) => {
-    const bearerHeader = req.headers['Authorization'];
+    const bearerHeader = req.headers.Authorization;
     const accessToken = bearerHeader.replace('Bearer', '').trim();
 
     res.local.verifyAccessTokenMessage = isValidAccesstoken(accessToken);
@@ -53,8 +59,7 @@ const authController = {
 
     switch (res.local.verifyRefreshTokenMessage) {
       case 'success':
-        const accessToken = await createNewAccesstokenByRefreshtoken(req.cookies.refreshToken);
-        return res.json(accessToken);
+        return res.json(await createNewAccesstokenByRefreshtoken(req.cookies.refreshToken));
       default:
         return res.json({ auth: 'fail' });
     }

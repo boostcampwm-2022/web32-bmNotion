@@ -8,7 +8,7 @@ import axios from 'axios';
 export default function Login(): ReactElement {
   const [inputID, setInputID] = useState('');
   const [inputPassWord, setInputPassWord] = useState('');
-  const [alertMessage, setAlertMessage] = useState("");
+  const [alertMessage, setAlertMessage] = useState('');
 
   let navigate = useNavigate();
 
@@ -28,23 +28,28 @@ export default function Login(): ReactElement {
 
   useEffect(() => {
     if (alertMessage) {
-      setAlertMessage("");
+      setAlertMessage('');
     }
-  }, [inputID, inputPassWord])
+  }, [inputID, inputPassWord]);
 
   const onClickRegisterBtn = () => {
     const formData = new FormData();
     formData.append('id', inputID);
     formData.append('password', inputPassWord);
     axios
-    .post('http://localhost:8080/auth/signin', formData, { withCredentials: true })
-    .then((res) => {
-      alert('로그인 되었습니다.');
-      navigate('/mainpage');
-    })
-    .catch(error => {
-      setAlertMessage(error.response?.message || '아이디나 패스워드가 올바르지 않습니다.');
-    });
+      .post('http://localhost:8080/auth/signin', formData, { withCredentials: true })
+      .then((res) => {
+        if (res.data.code === 404) {
+          setAlertMessage(res.data.message || '아이디나 패스워드가 올바르지 않습니다.');
+        } else {
+          // res.data.authorize 가  토큰
+          alert('로그인 되었습니다.');
+          navigate('/mainpage');
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   return (
@@ -108,7 +113,7 @@ function InputDiv({
       <InputContainer>
         <Input type={type} name={name} placeholder={placeholder} value={inputValue} onChange={onChange} />
       </InputContainer>
-      <ValidationContainer>{alertMessage === "" ? null : <Validation>{alertMessage}</Validation>}</ValidationContainer>
+      <ValidationContainer>{alertMessage === '' ? null : <Validation>{alertMessage}</Validation>}</ValidationContainer>
     </>
   );
 }

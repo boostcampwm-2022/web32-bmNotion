@@ -1,9 +1,8 @@
 const AWS = require('aws-sdk');
 const stream = require('node:stream');
 const jwt = require('jsonwebtoken');
-const { createDocument, findOneDocument } = require('../db/db.crud');
+const { createDocument, readOneDocument } = require('../db/db.crud');
 const dbConfig = require('../db.config.json');
-const { networkInterfaces } = require('node:os');
 
 const region = 'kr-standard';
 const bucketName = `${process.env.BUCKET_NAME}`;
@@ -29,18 +28,18 @@ const uploadImg = async (objectName, file) => {
 };
 
 const searchUserById = async (id) => {
-  const user = await findOneDocument('user', { id });
+  const user = await readOneDocument('user', { id });
   return user;
 };
 
 const searchUserByNickName = async (nickname) => {
-  const user = await findOneDocument('user', { nickname });
+  const user = await readOneDocument('user', { nickname });
   return user;
 };
 
 const searchUser = async (id, nickname) => {
   let user = await searchUserById(id);
-  user = user !== undefined ? await searchUserByNickName(nickname) : user;
+  user = user !== null ? await searchUserByNickName(nickname) : user;
   return user;
 };
 
@@ -82,7 +81,7 @@ const createResponse = (message) => {
       break;
     case 'exist id':
       response.code = 404;
-      response.message = { nickname: '이미 사용중인 아이디입니다.' };
+      response.message = { id: '이미 사용중인 아이디입니다.' };
       break;
     case 'fail':
       response.code = 404;
@@ -97,8 +96,8 @@ const createResponse = (message) => {
 const createNewAccesstoken = (id, nickname) => {
   const accessToken = jwt.sign(
     {
-      nickname: user.nickname,
-      id: user.id,
+      nickname,
+      id,
     },
     process.env.ACCESS_SECRET_KEY,
     {
@@ -118,9 +117,9 @@ const createNewRefreshtoken = () => {
 };
 
 const signUpPipeline = async (id, password, nickname, file) => {
-  const user = searchUser(id, nickname);
+  const user = await searchUser(id, nickname);
   let message = '';
-  if (user === undefined) {
+  if (user === null) {
     const objectName = `${id}.profile`;
     await uploadImg(objectName, file);
     await saveUser(id, password, nickname, objectName);
@@ -146,7 +145,7 @@ const signInPipeline = async (id, password) => {
     };
 
     await createDocument(dbConfig.COLLECTION_TOKEN, newDocument);
-    return { accessToken, refreshToken, response: createResponse('sucess') };
+    return { accessToken, refreshToken, response: createResponse('success') };
   }
   return { response: createResponse('fail') };
 };
@@ -170,7 +169,7 @@ const isValidRefreshtoken = (refreshToken) => {
 };
 
 const createNewAccesstokenByRefreshtoken = async (refreshToken) => {
-  const { id, nickname } = await findOneDocument(dbConfig.COLLECTION_TOKEN, { refreshToken });
+  const { id, nickname } = await readOneDocument(dbConfig.COLLECTION_TOKEN, { refreshToken });
 
   const accessToken = createNewAccesstoken(id, nickname);
 
@@ -183,4 +182,5 @@ module.exports = {
   isValidAccesstoken,
   isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
+  createObjectUrl,
 };

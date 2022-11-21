@@ -12,7 +12,7 @@ export default function Register(): ReactElement {
   const [nickNameValidation, setNickNameValidation] = useState(true);
   const [iDValidation, setIdValidation] = useState(true);
   const [passWordValidation, setPassWordValidation] = useState(false);
-  
+
   const [registerValidation, setRegisterValidation] = useState(false);
 
   const basicImage = '/assets/icons/profileImage.png';
@@ -59,29 +59,25 @@ export default function Register(): ReactElement {
       if (selectedFile) {
         formData.append('profileimage', selectedFile);
       }
-      console.log(selectedFile);
-      console.log(formData.get('id'));
-      console.log(formData.get('password'));
-      console.log(formData.get('nickname'));
-      console.log(formData.get('profileimage'));
       axios
         .post('http://localhost:8080/auth/signup', formData)
         .then((res) => {
-          console.log(res);
-          alert('회원가입이 완료되었습니다.');
-          navigate('/');
-        })
-        .catch(error => {
-          if (error.response?.message) {
-            if (error.response.message.id) {
-              setIdValidateMessage(error.response.message.id)
-              setIdValidation(false)
+          if (res.data.code === 404) {
+            if (res.data.message.id) {
+              setIdValidateMessage(res.data.message.id);
+              setIdValidation(false);
             }
-            if (error.response.message.nickname) {
-              setNickNameValidateMessage(error.response.message.nickname)
-              setNickNameValidation(false)
+            if (res.data.message.nickname) {
+              setNickNameValidateMessage(res.data.message.nickname);
+              setNickNameValidation(false);
             }
+          } else {
+            alert('회원가입이 완료되었습니다.');
+            navigate('/');
           }
+        })
+        .catch((error) => {
+          console.log(error);
         });
     }
   };

@@ -1,4 +1,4 @@
-const connectToCluster = require('./db.server.js');
+const connectToCluster = require('./db.server');
 require('dotenv').config();
 
 const createDocument = async (collectionName, object) => {
@@ -14,6 +14,10 @@ const createDocument = async (collectionName, object) => {
   } finally {
     mongoClient.close();
   }
+};
+
+const findAllDocument = async (collection, queryCriteria) => {
+  return await collection.find(queryCriteria).toArray();
 };
 
 const readAllDocument = async (collectionName, queryCriteria) => {
@@ -34,8 +38,8 @@ const readAllDocument = async (collectionName, queryCriteria) => {
   return result;
 };
 
-const findAllDocument = async (collection, queryCriteria) => {
-  return await collection.find(queryCriteria).toArray();
+const findOneDocument = async (collection, queryCriteria) => {
+  return await collection.findOne(queryCriteria);
 };
 
 const readOneDocument = async (collectionName, queryCriteria) => {
@@ -54,10 +58,6 @@ const readOneDocument = async (collectionName, queryCriteria) => {
   }
 
   return result;
-};
-
-const findOneDocument = async (collection, queryCriteria) => {
-  return await collection.findOne(queryCriteria);
 };
 
 const deleteOneDocument = async (collectionName, queryCriteria) => {
