@@ -12,7 +12,7 @@ export default function Register(): ReactElement {
   const [nickNameValidation, setNickNameValidation] = useState(true);
   const [iDValidation, setIdValidation] = useState(true);
   const [passWordValidation, setPassWordValidation] = useState(false);
-
+  
   const [registerValidation, setRegisterValidation] = useState(false);
 
   const basicImage = '/assets/icons/profileImage.png';
@@ -54,13 +54,18 @@ export default function Register(): ReactElement {
     const formData = new FormData();
     if (registerValidation) {
       formData.append('id', inputId);
-      formData.append('passWord', inputPassWord);
-      formData.append('nickName', inputNickName);
+      formData.append('password', inputPassWord);
+      formData.append('nickname', inputNickName);
       if (selectedFile) {
         formData.append('profileimage', selectedFile);
       }
+      console.log(selectedFile);
+      console.log(formData.get('id'));
+      console.log(formData.get('password'));
+      console.log(formData.get('nickname'));
+      console.log(formData.get('profileimage'));
       axios
-        .post('http://localhost:8080/auth/signup', formData, { withCredentials: true })
+        .post('http://localhost:8080/auth/signup', formData)
         .then((res) => {
           console.log(res);
           alert('회원가입이 완료되었습니다.');
@@ -133,7 +138,7 @@ export default function Register(): ReactElement {
 
   useEffect(() => {
     setNickNameValidation(isNickNameValidate(inputNickName));
-  }, [inputNickName, nickNameValidateMessage]);
+  }, [inputNickName]);
 
   const isNickNameValidate = (nickName: string) => {
     if (!nickName) {
