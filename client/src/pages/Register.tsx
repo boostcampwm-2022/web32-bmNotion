@@ -1,5 +1,6 @@
 import React, { useState, useRef, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function Register(): ReactElement {
@@ -14,11 +15,12 @@ export default function Register(): ReactElement {
 
   const [registerValidation, setRegisterValidation] = useState(false);
 
-  const [profileImage, setProfileImage] = useState('/assets/icons/profileImage.png');
+  const basicImage = '/assets/icons/profileImage.png';
+  const [profileImage, setProfileImage] = useState(basicImage);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const fileInput = React.useRef<HTMLInputElement>(null);
-
-  const formData = new FormData();
+  let navigate = useNavigate();
 
   const handleInputNickName = (event: React.ChangeEvent<HTMLInputElement>) => {
     const {
@@ -49,17 +51,20 @@ export default function Register(): ReactElement {
   };
 
   const onClickRegisterBtn = () => {
+    const formData = new FormData();
     if (registerValidation) {
-      console.log(inputNickName);
-      console.log(inputId);
-      console.log(inputPassWord);
       formData.append('id', inputId);
       formData.append('passWord', inputPassWord);
       formData.append('nickName', inputNickName);
+      if (selectedFile) {
+        formData.append('profileimage', selectedFile);
+      }
       axios
-        .post('http://localhost:8080/auth/sign-up', formData, { withCredentials: true })
+        .post('http://localhost:8080/auth/signup', formData, { withCredentials: true })
         .then((res) => {
           console.log(res);
+          alert('회원가입이 완료되었습니다.');
+          navigate('/');
         })
         .catch();
     }
@@ -88,7 +93,7 @@ export default function Register(): ReactElement {
         }
       };
       reader.readAsDataURL(e.target.files[0]);
-      formData.append('image', e.target.files[0]);
+      setSelectedFile(e.target.files[0] as File);
     }
   };
 
