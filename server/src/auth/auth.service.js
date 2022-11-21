@@ -2,6 +2,8 @@ const AWS = require('aws-sdk');
 const stream = require('node:stream');
 const jwt = require('jsonwebtoken');
 const { createDocument, findOneDocument } = require('../db/db.crud');
+const dbConfig = require('../db.config.json');
+const { networkInterfaces } = require('node:os');
 
 const region = 'kr-standard';
 const bucketName = `${process.env.BUCKET_NAME}`;
@@ -92,6 +94,29 @@ const createResponse = (message) => {
   return response;
 };
 
+const createNewAccesstoken = (id, nickname) => {
+  const accessToken = jwt.sign(
+    {
+      nickname: user.nickname,
+      id: user.id,
+    },
+    process.env.ACCESS_SECRET_KEY,
+    {
+      expiresIn: '1h',
+    },
+  );
+
+  return accessToken;
+};
+
+const createNewRefreshtoken = () => {
+  const refreshToken = jwt.sign({}, process.env.REFRESH_SECRET_KEY, {
+    expiresIn: '24h',
+  });
+
+  return refreshToken;
+};
+
 const signUpPipeline = async (id, password, nickname, file) => {
   const user = searchUser(id, nickname);
   let message = '';
@@ -108,25 +133,54 @@ const signUpPipeline = async (id, password, nickname, file) => {
   return createResponse(message);
 };
 
-const signInPipeline = (id, password) => {
+const signInPipeline = async (id, password) => {
   const user = searchUserById(id);
   const encrypted = encryptPassword(password);
   if (encrypted === user.password) {
-    const accessToken = jwt.sign(
-      {
-        nickname: user.nickname,
-        id: user.id,
-      },
-      process.env.ACCESS_SECRET_KEY,
-      {
-        expiresIn: '1h',
-      },
-    );
-    const refreshToken = jwt.sign({}, process.env.REFRESH_SECRET_KEY, {
-      expiresIn: '24h',
-    });
+    const accessToken = createNewAccesstoken(user.id, user.nickname);
+    const refreshToken = createNewRefreshtoken();
+    const newDocument = {
+      refreshToken,
+      id: user.id,
+      nickname: user.nickname,
+    };
+
+    await createDocument(dbConfig.COLLECTION_TOKEN, newDocument);
     return { accessToken, refreshToken, response: createResponse('sucess') };
   }
   return { response: createResponse('fail') };
 };
-module.exports = { signInPipeline, signUpPipeline };
+
+const isValidAccesstoken = (accessToken) => {
+  try {
+    jwt.verify(accessToken, process.env.ACCESS_SECRET_KEY);
+    return 'success';
+  } catch (error) {
+    return error.name;
+  }
+};
+
+const isValidRefreshtoken = (refreshToken) => {
+  try {
+    jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY);
+    return 'success';
+  } catch (error) {
+    return error.name;
+  }
+};
+
+const createNewAccesstokenByRefreshtoken = async (refreshToken) => {
+  const { id, nickname } = await findOneDocument(dbConfig.COLLECTION_TOKEN, { refreshToken });
+
+  const accessToken = createNewAccesstoken(id, nickname);
+
+  return accessToken;
+};
+
+module.exports = {
+  signInPipeline,
+  signUpPipeline,
+  isValidAccesstoken,
+  isValidRefreshtoken,
+  createNewAccesstokenByRefreshtoken,
+};
