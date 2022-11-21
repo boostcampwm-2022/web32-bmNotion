@@ -3,10 +3,12 @@ import styled from 'styled-components';
 import bmLogo from '@/assets/icons/BM_logo.png';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function Login(): ReactElement {
   const [inputID, setInputID] = useState('');
   const [inputPassWord, setInputPassWord] = useState('');
+  const [alertMessage, setAlertMessage] = useState("");
 
   let navigate = useNavigate();
 
@@ -24,9 +26,25 @@ export default function Login(): ReactElement {
     setInputPassWord(value);
   };
 
+  useEffect(() => {
+    if (alertMessage) {
+      setAlertMessage("");
+    }
+  }, [inputID, inputPassWord])
+
   const onClickRegisterBtn = () => {
-    console.log(inputID);
-    console.log(inputPassWord);
+    const formData = new FormData();
+    formData.append('id', inputID);
+    formData.append('password', inputPassWord);
+    axios
+    .post('http://localhost:8080/auth/signin', formData, { withCredentials: true })
+    .then((res) => {
+      alert('로그인 되었습니다.');
+      navigate('/mainpage');
+    })
+    .catch(error => {
+      setAlertMessage(error.response?.message || '아이디나 패스워드가 올바르지 않습니다.');
+    });
   };
 
   return (
@@ -47,7 +65,7 @@ export default function Login(): ReactElement {
             name="pw"
             placeholder="비밀번호를 입력하세요"
             onChange={handleInputPassWord}
-            alertMessage=""
+            alertMessage={alertMessage}
             type="password"
           />
 
@@ -90,7 +108,7 @@ function InputDiv({
       <InputContainer>
         <Input type={type} name={name} placeholder={placeholder} value={inputValue} onChange={onChange} />
       </InputContainer>
-      <ValidationContainer>{alertMessage ? null : <Validation>{alertMessage}</Validation>}</ValidationContainer>
+      <ValidationContainer>{alertMessage === "" ? null : <Validation>{alertMessage}</Validation>}</ValidationContainer>
     </>
   );
 }
