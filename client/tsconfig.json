@@ -16,7 +16,10 @@
     "allowSyntheticDefaultImports": true,
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+
+    "baseUrl": "./",
+    "paths": { "@/*": ["src/*"] }
   },
-  "include": ["src"]
+  "include": ["src", "./src/types/index.d.ts"]
 }
