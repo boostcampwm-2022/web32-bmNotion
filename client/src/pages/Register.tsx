@@ -1,5 +1,6 @@
 import React, { useState, useRef, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function Register(): ReactElement {
@@ -11,14 +12,15 @@ export default function Register(): ReactElement {
   const [nickNameValidation, setNickNameValidation] = useState(true);
   const [iDValidation, setIdValidation] = useState(true);
   const [passWordValidation, setPassWordValidation] = useState(false);
-
+  
   const [registerValidation, setRegisterValidation] = useState(false);
 
-  const [profileImage, setProfileImage] = useState('/assets/icons/profileImage.png');
+  const basicImage = '/assets/icons/profileImage.png';
+  const [profileImage, setProfileImage] = useState(basicImage);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const fileInput = React.useRef<HTMLInputElement>(null);
-
-  const formData = new FormData();
+  let navigate = useNavigate();
 
   const handleInputNickName = (event: React.ChangeEvent<HTMLInputElement>) => {
     const {
@@ -49,19 +51,38 @@ export default function Register(): ReactElement {
   };
 
   const onClickRegisterBtn = () => {
+    const formData = new FormData();
     if (registerValidation) {
-      console.log(inputNickName);
-      console.log(inputId);
-      console.log(inputPassWord);
       formData.append('id', inputId);
-      formData.append('passWord', inputPassWord);
-      formData.append('nickName', inputNickName);
+      formData.append('password', inputPassWord);
+      formData.append('nickname', inputNickName);
+      if (selectedFile) {
+        formData.append('profileimage', selectedFile);
+      }
+      console.log(selectedFile);
+      console.log(formData.get('id'));
+      console.log(formData.get('password'));
+      console.log(formData.get('nickname'));
+      console.log(formData.get('profileimage'));
       axios
-        .post('http://localhost:8080/auth/sign-up', formData, { withCredentials: true })
+        .post('http://localhost:8080/auth/signup', formData)
         .then((res) => {
           console.log(res);
+          alert('회원가입이 완료되었습니다.');
+          navigate('/');
         })
-        .catch();
+        .catch(error => {
+          if (error.response?.message) {
+            if (error.response.message.id) {
+              setIdValidateMessage(error.response.message.id)
+              setIdValidation(false)
+            }
+            if (error.response.message.nickname) {
+              setNickNameValidateMessage(error.response.message.nickname)
+              setNickNameValidation(false)
+            }
+          }
+        });
     }
   };
 
@@ -88,7 +109,7 @@ export default function Register(): ReactElement {
         }
       };
       reader.readAsDataURL(e.target.files[0]);
-      formData.append('image', e.target.files[0]);
+      setSelectedFile(e.target.files[0] as File);
     }
   };
 
@@ -117,7 +138,7 @@ export default function Register(): ReactElement {
 
   useEffect(() => {
     setNickNameValidation(isNickNameValidate(inputNickName));
-  }, [inputNickName, nickNameValidateMessage]);
+  }, [inputNickName]);
 
   const isNickNameValidate = (nickName: string) => {
     if (!nickName) {
