@@ -42,6 +42,7 @@ export default function BlockContent({ children, blockId }: BlockContentProps): 
     }
     console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
+  
   const handleOnKeyDown = (e: any) => {
     if (e.keyCode === 13) {
       handleOnEnter(e);
@@ -62,14 +63,6 @@ export default function BlockContent({ children, blockId }: BlockContentProps): 
 const BlockContentBox = styled.div.attrs({
   placeholder: 'hello',
 })<BlockContentBoxProps>`
-  &:empty::before {
-    content: attr(placeholder);
-    margin: 0 10px;
-    color: #9b9a97;
-  }
-  &:empty:focus::before {
-    content: '';
-  }
   background-color: lightgray;
   margin: 3px 2px;
   caret-color: red; // 커서 색깔,요하면 원하는 색깔로 바꾸기
@@ -78,6 +71,16 @@ const BlockContentBox = styled.div.attrs({
     outline: none;
   }
 
+  &:empty::before {
+    content: attr(placeholder);
+    margin: 0 10px;
+    color: #9b9a97;
+  }
+
+  &:empty:focus::before {
+    content: '';
+  }
+  
   white-space: pre-wrap;
   word-break: break-word;
 `;

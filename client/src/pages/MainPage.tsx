@@ -22,10 +22,14 @@ export default function MainPage(): ReactElement {
   const [sideBarButton, setSideBarButton] = useState('/assets/icons/hamburger.png');
   const [sideBarHoverButton, setSideBarHoverButton] = useState('/assets/icons/doubleArrow.png');
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
+  const [isReaderMode, setIsReaderMode] = useState(false);
   const moveNextBlock = () => {};
   const sideBarButtonClick = () => {
     setSideBarButtonClicked(!sideBarButtonClicked);
   };
+  const readerModeButtonClick = () => {
+    setIsReaderMode(!isReaderMode);
+  }
   return (
     <Wrapper>
       <SideBar isClicked={sideBarButtonClicked} sideBarHoverButton={reverseDoubleArrowButton}>
@@ -50,9 +54,12 @@ export default function MainPage(): ReactElement {
               onClick={sideBarButtonClick}
             ></SideBarButton>
           </TopBarLeft>
-          <TopBarRight>오</TopBarRight>
+          <TopBarRight onClick={readerModeButtonClick}>오</TopBarRight>
         </TopBar>
         <MainContainerBody>
+          <PageContainer maxWidth={isReaderMode?"100%":"900px"}>
+          <PageTitle>제목</PageTitle>
+          <PageBody>
           <BlockContent blockId={1} moveNextBlock={moveNextBlock}>
             123
           </BlockContent>
@@ -62,6 +69,8 @@ export default function MainPage(): ReactElement {
           <BlockContent blockId={3} moveNextBlock={moveNextBlock}>
             789
           </BlockContent>
+          </PageBody>
+          </PageContainer>
         </MainContainerBody>
       </MainContainer>
     </Wrapper>
@@ -103,7 +112,11 @@ const TopBarRight = styled.div`
 const MainContainerBody = styled.div`
   width: 100%;
   flex: 1;
+  display:flex;
+  flex-direction:column;
+  align-items: center;
   margin-top: 45px;
+  padding: 0px 96px;
 `;
 
 const SideBarButton = styled.button<SideBarButtonProps>`
@@ -159,3 +172,28 @@ const SideBarHeader = styled.div`
 `;
 
 const SideBarBody = styled.div``;
+
+const PageContainer = styled.div<{maxWidth: string}>`
+  display:flex;
+  flex-direction:column;
+  align-items: center;
+  max-width: ${props => props.maxWidth}; //900px보다 작으면 width 100%;
+  min-width: 0px;
+  width:100%; 
+  //버튼 클릭하면 max-width: 100% 
+  transition: all 0.1s linear;
+`
+const PageTitle = styled.div`
+  width: 100%;
+  margin-top: 100px;
+  color: rgb(55, 53, 47);
+    font-weight: 700;
+    line-height: 1.2;
+    font-size: 40px;
+
+`;
+
+const PageBody = styled.div`
+  width: 100%;
+  margin-top:10px;
+`;
