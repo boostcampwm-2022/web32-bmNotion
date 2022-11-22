@@ -10,7 +10,7 @@ const connectToCluster = async () => {
 
     return mongoClient;
   } catch (error) {
-    process.exit();
+    return process.exit();
   }
 };
 
