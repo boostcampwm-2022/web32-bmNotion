@@ -5,6 +5,7 @@ const {
   isValidAccesstoken,
   isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
+  createAuthResponse,
 } = require('./auth.service');
 
 const signInController = {
@@ -33,10 +34,9 @@ const signUpController = {
 const authController = {
   verifyAccesstoken: (req, res, next) => {
     const bearerHeader = req.headers.Authorization;
+    if (bearerHeader === undefined) return res.json(createAuthResponse('tokenUndefined'));
     const accessToken = bearerHeader.replace('Bearer', '').trim();
-
     res.local.verifyAccessTokenMessage = isValidAccesstoken(accessToken);
-
     return next();
   },
 
@@ -50,7 +50,7 @@ const authController = {
         return next();
 
       default:
-        return res.json({ auth: 'fail' });
+        return res.json(createAuthResponse('tokenError'));
     }
   },
 
@@ -61,7 +61,7 @@ const authController = {
       case 'success':
         return res.json(await createNewAccesstokenByRefreshtoken(req.cookies.refreshToken));
       default:
-        return res.json({ auth: 'fail' });
+        return res.json(createAuthResponse('tokenError'));
     }
   },
 };
