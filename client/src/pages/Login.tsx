@@ -4,6 +4,7 @@ import bmLogo from '@/assets/icons/BM_logo.png';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import jwt from 'jsonwebtoken';
 
 export default function Login(): ReactElement {
   const [inputID, setInputID] = useState('');
@@ -33,16 +34,17 @@ export default function Login(): ReactElement {
   }, [inputID, inputPassWord]);
 
   const onClickRegisterBtn = () => {
-    const formData = new FormData();
-    formData.append('id', inputID);
-    formData.append('password', inputPassWord);
+    // const formData = new FormData();
+    // formData.append('id', inputID);
+    // formData.append('password', inputPassWord);
     axios
-      .post('http://localhost:8080/auth/signin', formData, { withCredentials: true })
+      .post('http://localhost:8080/auth/signin', { id: inputID, password: inputPassWord }, { withCredentials: true })
       .then((res) => {
         if (res.data.code === 404) {
           setAlertMessage(res.data.message || '아이디나 패스워드가 올바르지 않습니다.');
         } else {
-          // res.data.authorize 가  토큰
+          localStorage.setItem('jwt', res.data.authorize);
+          console.log(jwt.decode(res.data.authorize));
           alert('로그인 되었습니다.');
           navigate('/mainpage');
         }

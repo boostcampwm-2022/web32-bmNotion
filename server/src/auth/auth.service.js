@@ -28,18 +28,18 @@ const uploadImg = async (objectName, file) => {
 };
 
 const searchUserById = async (id) => {
-  const user = await readOneDocument('user', { id });
+  const user = await readOneDocument(dbConfig.COLLECTION_USER, { id });
   return user;
 };
 
 const searchUserByNickName = async (nickname) => {
-  const user = await readOneDocument('user', { nickname });
+  const user = await readOneDocument(dbConfig.COLLECTION_USER, { nickname });
   return user;
 };
 
 const searchUser = async (id, nickname) => {
   let user = await searchUserById(id);
-  user = user !== null ? await searchUserByNickName(nickname) : user;
+  user = user !== null ? user : await searchUserByNickName(nickname);
   return user;
 };
 
@@ -133,9 +133,9 @@ const signUpPipeline = async (id, password, nickname, file) => {
 };
 
 const signInPipeline = async (id, password) => {
-  const user = searchUserById(id);
+  const user = await searchUser(id, '');
   const encrypted = encryptPassword(password);
-  if (encrypted === user.password) {
+  if (user !== null && encrypted === user.encryptedPw) {
     const accessToken = createNewAccesstoken(user.id, user.nickname);
     const refreshToken = createNewRefreshtoken();
     const newDocument = {
