@@ -176,6 +176,20 @@ const createNewAccesstokenByRefreshtoken = async (refreshToken) => {
   return accessToken;
 };
 
+const createAuthResponse = (message) => {
+  const response = { code: '404', message };
+  switch (message) {
+    case 'tokenUndefined':
+      response.message = 'NeedSignInError';
+      break;
+    case 'tokenError':
+      response.message = 'UnauthorizedUserError';
+      break;
+    default:
+      break;
+  }
+};
+
 module.exports = {
   signInPipeline,
   signUpPipeline,
@@ -183,4 +197,5 @@ module.exports = {
   isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
   createObjectUrl,
+  createAuthResponse,
 };

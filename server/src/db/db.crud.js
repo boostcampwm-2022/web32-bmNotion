@@ -60,6 +60,21 @@ const readOneDocument = async (collectionName, queryCriteria) => {
   return result;
 };
 
+const updateOneDocument = async (collectionName, queryCriteria, queryInDocument) => {
+  let mongoClient;
+
+  try {
+    mongoClient = await connectToCluster();
+
+    const db = mongoClient.db(process.env.DB_NAME);
+    const collection = db.collection(collectionName);
+
+    await collection.updateOne(queryCriteria, queryInDocument);
+  } finally {
+    mongoClient.close();
+  }
+};
+
 const deleteOneDocument = async (collectionName, queryCriteria) => {
   let mongoClient;
 
@@ -80,4 +95,5 @@ module.exports = {
   readAllDocument,
   readOneDocument,
   deleteOneDocument,
+  updateOneDocument,
 };

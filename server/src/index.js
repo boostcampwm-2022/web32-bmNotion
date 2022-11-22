@@ -3,6 +3,7 @@ const path = require('path');
 const cors = require('cors');
 const mainRouter = require('./main/main.router');
 const authRouter = require('./auth/auth.router');
+const editRouter = require('./edit/edit.router');
 
 const port = process.env.PORT || '8080';
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.json());
 
 app.use('/', mainRouter);
 app.use('/auth', authRouter);
+app.use('/edit', editRouter);
 
 app.listen(port, () => {
   console.log('연결 성공');
