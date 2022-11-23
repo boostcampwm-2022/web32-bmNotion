@@ -42,7 +42,7 @@ export default function BlockContent({ children, blockId }: BlockContentProps): 
     }
     console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
-  
+
   const handleOnKeyDown = (e: any) => {
     if (e.keyCode === 13) {
       handleOnEnter(e);
@@ -80,7 +80,7 @@ const BlockContentBox = styled.div.attrs({
   &:empty:focus::before {
     content: '';
   }
-  
+
   white-space: pre-wrap;
   word-break: break-word;
 `;
