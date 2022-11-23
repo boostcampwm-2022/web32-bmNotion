@@ -1,4 +1,5 @@
-const { createDocument } = require('../db/db.crud');
+const { createDocument, updateOneDocument } = require('../db/db.crud');
+const dbconfig = require('../db.config.json');
 
 const createResponse = (message) => {
   const response = { code: '500', message: '' };
@@ -7,28 +8,15 @@ const createResponse = (message) => {
       response.code = '202';
       response.message = 'success';
       break;
-    case 'unauthorized user':
-      response.code = '404';
-      response.message = 'UnauthorizedUserError';
-      break;
-    case 'invalid pageid':
-      response.code = '404';
-      response.message = 'NonExistentPageError';
-      break;
     default:
       break;
   }
   return response;
 };
 
-const getPageById = async (pageid) => {
-  const page = await readOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid });
-  return page;
-};
-
 const createPage = async (userid) => {
   const now = new Date().toUTCString();
-  const result = await createDocument('page', {
+  const page = {
     deleted: 'false',
     owner: userid,
     participants: [userid],
@@ -37,30 +25,19 @@ const createPage = async (userid) => {
     blocks: [],
     pages: [],
     font: 'default',
-  });
+  };
+
+  const result = await createDocument(dbconfig.COLLECTION_PAGE, page);
   return result;
 };
 
 const addPagePipeline = async (userid) => {
   const result = await createPage(userid);
+  await updateOneDocument(dbconfig.COLLECTION_WORKSPACE, { owner: userid }, { $addToSet: { pages: result.insertedId } });
+
   const response = createResponse('success');
   response.pageid = result.insertedId;
   return response;
 };
 
-const loadPagePipeline = async (userid, pageid) => {
-  const page = getPageById(pageid);
-  if (page !== null) {
-    const authority = page.owner === userid || page.participant.includes(userid);
-    if (authority) {
-      const response = createResponse('success');
-      response.title = page.title;
-      response.blocks = page.blocks;
-      return response;
-    }
-    return createResponse('UnauthorizedUserError');
-  }
-  return createResponse('NonExistentPageError');
-};
-
-module.exports = { addPagePipeline, loadPagePipeline };
+module.exports = { addPagePipeline };
