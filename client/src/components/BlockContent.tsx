@@ -12,6 +12,35 @@ interface BlockContentBoxProps {
   placeholder: string;
 }
 
+interface MarkdownGrammers {
+  [index: string]: MarkdownGrammer;
+}
+
+interface MarkdownGrammer {
+  regExp: RegExp;
+  getType: (text: string) => string;
+}
+const markdownGrammer: MarkdownGrammers = {
+  HEADER: {
+    regExp: /^#{1,3}$/,
+    getType: (text: string) => 'H' + `${text.length}`
+  },
+  UNORDEREDLIST: {
+    regExp: /^-$/,
+    getType: (text: string) => 'UL'
+  },
+  ORDEREDLIST: {
+    regExp: /^[0-9]+.$/,
+    getType: (text: string) => 'OL' + text.slice(0, text.length - 1)
+  },
+}
+
+const checkMarkDownGrammer = (text: string) => {
+  const matched = Object.values(markdownGrammer).find(
+    (({ regExp }) => regExp.test(text)))
+  return matched === undefined ? '' : matched.getType(text);
+};
+
 export default function BlockContent({ children, blockId }: BlockContentProps): ReactElement {
   // const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
   const handleOnEnter = (e: any) => {
