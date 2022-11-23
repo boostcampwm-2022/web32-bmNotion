@@ -1,6 +1,6 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
-import BlockContent from '@/components/BlockContent';
+import PageComponent from '@/components/PageComponent';
 
 interface SideBarButtonProps {
   isClicked: boolean;
@@ -22,7 +22,6 @@ export default function MainPage(): ReactElement {
   const [sideBarButton, setSideBarButton] = useState('/assets/icons/hamburger.png');
   const [sideBarHoverButton, setSideBarHoverButton] = useState('/assets/icons/doubleArrow.png');
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
-  const moveNextBlock = () => {};
   const sideBarButtonClick = () => {
     setSideBarButtonClicked(!sideBarButtonClicked);
   };
@@ -52,17 +51,7 @@ export default function MainPage(): ReactElement {
           </TopBarLeft>
           <TopBarRight>오</TopBarRight>
         </TopBar>
-        <MainContainerBody>
-          <BlockContent blockId={1} moveNextBlock={moveNextBlock}>
-            123
-          </BlockContent>
-          <BlockContent blockId={2} moveNextBlock={moveNextBlock}>
-            456
-          </BlockContent>
-          <BlockContent blockId={3} moveNextBlock={moveNextBlock}>
-            789
-          </BlockContent>
-        </MainContainerBody>
+        <PageComponent />
       </MainContainer>
     </Wrapper>
   );
