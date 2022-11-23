@@ -1,7 +1,12 @@
-const { createDocument, readOneDocument } = require('../db/db.crud');
+const { createDocument, updateOneDocument, readOneDocument } = require('../db/db.crud');
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
 const dbConfig = require('../db.config.json');
+
+const getPageById = async (pageid) => {
+  const page = await readOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid });
+  return page;
+};
 
 const createPage = async (userid) => {
   const now = new Date().toUTCString();
@@ -17,14 +22,14 @@ const createPage = async (userid) => {
     font: 'default',
   };
 
-  const result = await createDocument(dbconfig.COLLECTION_PAGE, page);
+  const result = await createDocument(dbConfig.COLLECTION_PAGE, page);
   return result;
 };
 
 const addPagePipeline = async (userid) => {
   const result = await createPage(userid);
   await updateOneDocument(
-    dbconfig.COLLECTION_WORKSPACE,
+    dbConfig.COLLECTION_WORKSPACE,
     { owner: userid },
     { $addToSet: { pages: result.insertedId } },
   );
@@ -34,12 +39,11 @@ const addPagePipeline = async (userid) => {
   return response;
 };
 
-
 const readPages = async (userid) => {
-  const result = await readOneDocument(dbconfig.COLLECTION_WORKSPACE, { owner: userid });
+  const result = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, { owner: userid });
   const pageList = await Promise.all(
     result.pages.map((pageId) => {
-      const { title } = readOneDocument(dbconfig.COLLECTION_PAGE, { pageid: pageId });
+      const { title } = readOneDocument(dbConfig.COLLECTION_PAGE, { pageid: pageId });
       return {
         pageid: pageId,
         title,

@@ -38,7 +38,11 @@ export default function Login(): ReactElement {
     // formData.append('id', inputID);
     // formData.append('password', inputPassWord);
     axios
-      .post('http://localhost:8080/auth/signin', { id: inputID, password: inputPassWord }, { withCredentials: true })
+      .post(
+        'http://localhost:8080/auth/signin',
+        { id: inputID, password: inputPassWord },
+        { withCredentials: true },
+      )
       .then((res) => {
         if (res.data.code === 404) {
           setAlertMessage(res.data.message || '아이디나 패스워드가 올바르지 않습니다.');
@@ -46,7 +50,7 @@ export default function Login(): ReactElement {
           localStorage.setItem('jwt', res.data.authorize);
           console.log(jwt.decode(res.data.authorize));
           alert('로그인 되었습니다.');
-          navigate('/mainpage');
+          navigate(`/page/${res.data.pageid}`);
         }
       })
       .catch((error) => {
@@ -113,9 +117,17 @@ function InputDiv({
   return (
     <>
       <InputContainer>
-        <Input type={type} name={name} placeholder={placeholder} value={inputValue} onChange={onChange} />
+        <Input
+          type={type}
+          name={name}
+          placeholder={placeholder}
+          value={inputValue}
+          onChange={onChange}
+        />
       </InputContainer>
-      <ValidationContainer>{alertMessage === '' ? null : <Validation>{alertMessage}</Validation>}</ValidationContainer>
+      <ValidationContainer>
+        {alertMessage === '' ? null : <Validation>{alertMessage}</Validation>}
+      </ValidationContainer>
     </>
   );
 }
