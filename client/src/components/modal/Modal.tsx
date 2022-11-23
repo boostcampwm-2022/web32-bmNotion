@@ -5,12 +5,13 @@ interface ModalProps {
   children?: ReactElement;
   width: string;
   height: string;
+  position: string[];
 }
 
-export default function Modal({ children, width, height }: ModalProps): ReactElement {
+export default function Modal({ children, width, height, position }: ModalProps): ReactElement {
   return (
     <ModalContainer>
-      <ModalBox width={width} height={height}>
+      <ModalBox width={width} height={height} position={position}>
         {children}
       </ModalBox>
     </ModalContainer>
@@ -25,5 +26,10 @@ const ModalBox = styled.div<ModalProps>`
   height: ${(props) => props.height};
   position: absolute;
   box-shadow: rgb(15 15 15 / 5%) 0px 0px 0px 1px, rgb(15 15 15 / 10%) 0px 3px 6px, rgb(15 15 15 / 20%) 0px 9px 24px;
-  right: 12px;
+  min-width: 180px;
+  top: ${(props) => props.position[0]};
+  right: ${(props) => props.position[1]};
+  bottom: ${(props) => props.position[2]};
+  left: ${(props) => props.position[3]};
+  z-index: 2;
 `;

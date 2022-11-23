@@ -1,5 +1,7 @@
 import React, { Dispatch, ReactElement, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
+import Modal from '@/components/modal/Modal';
+import BlockodalContent from '@/components/modal/BlockodalContent';
 
 interface BlockContentProps {
   blockId: number;
@@ -13,6 +15,10 @@ interface BlockContentBoxProps {
 }
 
 export default function BlockContent({ children, blockId }: BlockContentProps): ReactElement {
+  const [blockModalOpen, setBlockModalOpen] = useState(false);
+  const handleBlockBarModal = () => {
+    setBlockModalOpen(!blockModalOpen);
+  };
   // const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
   const handleOnEnter = (e: any) => {
     if (e.shiftKey) {
@@ -54,7 +60,7 @@ export default function BlockContent({ children, blockId }: BlockContentProps): 
   return (
     <BlockContainer>
       <BlockButtonBox>
-        <BlockPlusButton />
+        <BlockPlusButton onClick={handleBlockBarModal} />
         <BlockOptionButton />
       </BlockButtonBox>
       <BlockContentBox
@@ -62,6 +68,12 @@ export default function BlockContent({ children, blockId }: BlockContentProps): 
         contentEditable
         onKeyDown={handleOnKeyDown}
       ></BlockContentBox>
+
+      {blockModalOpen && (
+        <Modal width={'324px'} height={'336px'} position={['30px', '', '', '44px']}>
+          <BlockodalContent />
+        </Modal>
+      )}
     </BlockContainer>
   );
 }
@@ -123,6 +135,7 @@ const BlockContainer = styled.div`
   display: flex;
   width: 100%;
   align-items: center;
+  position: relative;
 
   &:hover {
     ${BlockButtonBox} {

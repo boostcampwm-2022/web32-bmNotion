@@ -67,7 +67,7 @@ export default function MainPage(): ReactElement {
           <TopBarRight>
             <TopBarOptionButton onClick={handleTopBarModal}></TopBarOptionButton>
             {topBarModalOpen && (
-              <Modal width={'230px'} height={'500px'}>
+              <Modal width={'230px'} height={'500px'} position={['', '12px', '', '']}>
                 <TopBarModalContent readerMode={readerModeButtonClick} isReaderMode={isReaderMode} />
               </Modal>
             )}
