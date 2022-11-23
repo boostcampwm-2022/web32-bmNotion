@@ -23,21 +23,20 @@ interface MarkdownGrammer {
 const markdownGrammer: MarkdownGrammers = {
   HEADER: {
     regExp: /^#{1,3}$/,
-    getType: (text: string) => 'H' + `${text.length}`
+    getType: (text: string) => 'H' + `${text.length}`,
   },
   UNORDEREDLIST: {
     regExp: /^-$/,
-    getType: (text: string) => 'UL'
+    getType: (text: string) => 'UL',
   },
   ORDEREDLIST: {
     regExp: /^[0-9]+.$/,
-    getType: (text: string) => 'OL' + text.slice(0, text.length - 1)
+    getType: (text: string) => 'OL' + text.slice(0, text.length - 1),
   },
-}
+};
 
 const checkMarkDownGrammer = (text: string) => {
-  const matched = Object.values(markdownGrammer).find(
-    (({ regExp }) => regExp.test(text)))
+  const matched = Object.values(markdownGrammer).find(({ regExp }) => regExp.test(text));
   return matched === undefined ? '' : matched.getType(text);
 };
 
@@ -66,7 +65,7 @@ export default function BlockContent({ children, blockId }: BlockContentProps): 
       /* toType으로 타입변경 */
       elem.textContent = postText;
       e.preventDefault();
-      console.log(`toType => ${toType}`);/* TODO toType으로 타입변경하는 함수로 변경 필요 */
+      console.log(`toType => ${toType}`); /* TODO toType으로 타입변경하는 함수로 변경 필요 */
     }
     // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
