@@ -73,12 +73,11 @@ const createWorkspace = async (id) => {
     owner: id,
     members: [],
     pages: [],
-    teshcan: []
+    teshcan: [],
   };
 
   await createDocument(dbConfig.COLLECTION_WORKSPACE, workspace);
-}
-
+};
 
 const createResponse = (message) => {
   const response = { code: '500', message: '' };

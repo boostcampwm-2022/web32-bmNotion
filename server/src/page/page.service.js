@@ -1,4 +1,5 @@
-const { createDocument } = require('../db/db.crud');
+const { createDocument, readOneDocument } = require('../db/db.crud');
+const dbConfig = require('../db.config.json');
 
 const createResponse = (message) => {
   const response = { code: '500', message: '' };
@@ -28,8 +29,9 @@ const getPageById = async (pageid) => {
 
 const createPage = async (userid) => {
   const now = new Date().toUTCString();
-  const result = await createDocument('page', {
+  const result = await createDocument(dbConfig.COLLECTION_PAGE, {
     deleted: 'false',
+    title: '제목없음',
     owner: userid,
     participants: [userid],
     createdtime: now,
