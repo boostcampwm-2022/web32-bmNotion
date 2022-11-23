@@ -10,6 +10,7 @@ router.use(
   authController.verifyRefreshtoken,
   authController.requestAccessToken,
 );
-router.use('/addpage', pageController.addPage);
+router.post('/addpage', pageController.addPage);
+router.get('/:pageid', pageController.loadPage);
 
 module.exports = router;
