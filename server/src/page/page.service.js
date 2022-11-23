@@ -1,4 +1,4 @@
-const { createDocument, updateOneDocument } = require('../db/db.crud');
+const { createDocument, updateOneDocument, readOneDocument } = require('../db/db.crud');
 const dbconfig = require('../db.config.json');
 
 const createResponse = (message) => {
@@ -33,11 +33,30 @@ const createPage = async (userid) => {
 
 const addPagePipeline = async (userid) => {
   const result = await createPage(userid);
-  await updateOneDocument(dbconfig.COLLECTION_WORKSPACE, { owner: userid }, { $addToSet: { pages: result.insertedId } });
+  await updateOneDocument(
+    dbconfig.COLLECTION_WORKSPACE,
+    { owner: userid },
+    { $addToSet: { pages: result.insertedId } },
+  );
 
   const response = createResponse('success');
   response.pageid = result.insertedId;
   return response;
 };
 
-module.exports = { addPagePipeline };
+const readPages = async (userid) => {
+  const result = await readOneDocument(dbconfig.COLLECTION_WORKSPACE, { owner: userid });
+  const pageList = await Promise.all(
+    result.pages.map((pageId) => {
+      const { title } = readOneDocument(dbconfig.COLLECTION_PAGE, { pageid: pageId });
+      return {
+        pageid: pageId,
+        title,
+      };
+    }),
+  );
+
+  return pageList;
+};
+
+module.exports = { addPagePipeline, readPages };
