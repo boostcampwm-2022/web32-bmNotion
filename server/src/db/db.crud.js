@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const createDocument = async (collectionName, object) => {
   let mongoClient;
+  let result;
 
   try {
     mongoClient = await connectToCluster();
@@ -10,10 +11,12 @@ const createDocument = async (collectionName, object) => {
     const db = mongoClient.db(process.env.DB_NAME);
     const collection = db.collection(collectionName);
 
-    await collection.insertOne(object);
+    result = await collection.insertOne(object);
   } finally {
     mongoClient.close();
   }
+
+  return result;
 };
 
 const findAllDocument = async (collection, queryCriteria) => {
