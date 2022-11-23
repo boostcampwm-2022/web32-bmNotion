@@ -15,7 +15,7 @@ export default function App() {
           <Route path="/signin" element={<Login />}></Route>
           <Route path="/register" element={<Register />}></Route>
           <Route path="*" element={<div>404 Not Found Page</div>}></Route>
-          <Route path="/mainpage" element={<MainPage />}></Route>
+          <Route path="/page/:pageid" element={<MainPage />}></Route>
         </Routes>
       </BrowserRouter>
     </>

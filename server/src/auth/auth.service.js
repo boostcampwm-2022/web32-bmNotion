@@ -5,6 +5,7 @@ const { createDocument, readOneDocument } = require('../db/db.crud');
 const dbConfig = require('../db.config.json');
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
+const { addPagePipeline } = require('../page/page.service');
 
 const region = 'kr-standard';
 const bucketName = `${process.env.BUCKET_NAME}`;
@@ -168,6 +169,25 @@ const createNewAccesstokenByRefreshtoken = async (refreshToken) => {
   return accessToken;
 };
 
+const getCurrentPageid = (pages) => pages.reduce((pre, cur) => {
+  const { _id: pageid, lasteditedtime } = cur;
+  const curTime = Date.parse(lasteditedtime);
+  if (pre === undefined) return { pageid, time: curTime };
+  return pre.time > curTime ? pre : { pageid, time: curTime };
+}, undefined).pageid;
+
+const getPageid = async (userid) => {
+  const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, { owner: userid });
+  if (workspace.pages && workspace.pages.length >= 1) {
+    const pages = await Promise.all(
+      workspace.pages.map((pageid) => readOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid })),
+    );
+    return getCurrentPageid(pages);
+  }
+  const { pageid } = await addPagePipeline(userid);
+  return pageid;
+};
+
 module.exports = {
   signInPipeline,
   signUpPipeline,
@@ -175,4 +195,5 @@ module.exports = {
   isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
   createObjectUrl,
+  getPageid,
 };
