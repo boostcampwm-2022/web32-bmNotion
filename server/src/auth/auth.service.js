@@ -3,6 +3,8 @@ const stream = require('node:stream');
 const jwt = require('jsonwebtoken');
 const { createDocument, readOneDocument } = require('../db/db.crud');
 const dbConfig = require('../db.config.json');
+const createResponse = require('../utils/response.util');
+const responseMessage = require('../response.message.json');
 
 const region = 'kr-standard';
 const bucketName = `${process.env.BUCKET_NAME}`;
@@ -79,31 +81,6 @@ const createWorkspace = async (id) => {
   await createDocument(dbConfig.COLLECTION_WORKSPACE, workspace);
 };
 
-const createResponse = (message) => {
-  const response = { code: '500', message: '' };
-  switch (message) {
-    case 'success':
-      response.code = 202;
-      response.message = 'Success';
-      break;
-    case 'exist nickname':
-      response.code = 404;
-      response.message = { nickname: '이미 사용중인 닉네임입니다.' };
-      break;
-    case 'exist id':
-      response.code = 404;
-      response.message = { id: '이미 사용중인 아이디입니다.' };
-      break;
-    case 'fail':
-      response.code = 404;
-      response.message = '아이디나 비밀번호가 올바르지 않습니다.';
-      break;
-    default:
-      break;
-  }
-  return response;
-};
-
 const createNewAccesstoken = (id, nickname) => {
   const accessToken = jwt.sign(
     {
@@ -135,18 +112,20 @@ const signUpPipeline = async (id, password, nickname, file) => {
     await uploadImg(objectName, file);
     await saveUser(id, password, nickname, objectName);
     await createWorkspace(id);
-    message = 'success';
+    message = responseMessage.PROCESS_SUCCESS;
   } else if (user.nickname === nickname) {
-    message = 'exist nickname';
+    message = responseMessage.EXIST_NICKNAME;
   } else if (user.id === id) {
-    message = 'exist id';
+    message = responseMessage.EXIST_ID;
   }
   return createResponse(message);
 };
 
 const signInPipeline = async (id, password) => {
-  const user = await searchUser(id, '');
+  const user = await searchUserById(id);
   const encrypted = encryptPassword(password);
+  let message = responseMessage.SIGNIN_FAIL;
+  let tokens;
   if (user !== null && encrypted === user.encryptedPw) {
     const accessToken = createNewAccesstoken(user.id, user.nickname);
     const refreshToken = createNewRefreshtoken();
@@ -157,9 +136,10 @@ const signInPipeline = async (id, password) => {
     };
 
     await createDocument(dbConfig.COLLECTION_TOKEN, newDocument);
-    return { accessToken, refreshToken, response: createResponse('success') };
+    tokens = { accessToken, refreshToken };
+    message = responseMessage.PROCESS_SUCCESS;
   }
-  return { response: createResponse('fail') };
+  return { tokens, response: createResponse(message) };
 };
 
 const isValidAccesstoken = (accessToken) => {
@@ -188,20 +168,6 @@ const createNewAccesstokenByRefreshtoken = async (refreshToken) => {
   return accessToken;
 };
 
-const createAuthResponse = (message) => {
-  const response = { code: '404', message };
-  switch (message) {
-    case 'tokenUndefined':
-      response.message = 'NeedSignInError';
-      break;
-    case 'tokenError':
-      response.message = 'UnauthorizedUserError';
-      break;
-    default:
-      break;
-  }
-};
-
 module.exports = {
   signInPipeline,
   signUpPipeline,
@@ -209,5 +175,4 @@ module.exports = {
   isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
   createObjectUrl,
-  createAuthResponse,
 };

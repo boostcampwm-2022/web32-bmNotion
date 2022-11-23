@@ -5,19 +5,20 @@ const {
   isValidAccesstoken,
   isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
-  createAuthResponse,
 } = require('./auth.service');
+const createResponse = require('../utils/response.util');
+const responseMessage = require('../response.message.json');
 
 const signInController = {
   signIn: async (req, res) => {
     const { id, password } = req.body;
-    const token = await signInPipeline(id, password);
-    if (token.response.code === 202) {
-      const { accessToken, refreshToken } = token;
+    const { tokens, response: resJson } = await signInPipeline(id, password);
+    if (resJson.code === 202) {
+      const { accessToken, refreshToken } = tokens;
       res.cookie('refreshToken', refreshToken);
-      token.response.authorize = accessToken;
+      resJson.authorize = accessToken;
     }
-    res.json(token.response);
+    res.json(resJson);
   },
 };
 
@@ -34,7 +35,7 @@ const signUpController = {
 const authController = {
   verifyAccesstoken: (req, res, next) => {
     const bearerHeader = req.headers.Authorization;
-    if (bearerHeader === undefined) return res.json(createAuthResponse('tokenUndefined'));
+    if (bearerHeader === undefined) return res.json(createResponse(responseMessage.NEED_SIGNIN));
     const accessToken = bearerHeader.replace('Bearer', '').trim();
     res.local.verifyAccessTokenMessage = isValidAccesstoken(accessToken);
     return next();
@@ -50,19 +51,19 @@ const authController = {
         return next();
 
       default:
-        return res.json(createAuthResponse('tokenError'));
+        return res.json(createResponse(responseMessage.AUTH_FAIL));
     }
   },
 
   requestAccessToken: async (req, res, next) => {
     if (res.local.verifyAccessTokenMessage === 'success') return next();
 
-    switch (res.local.verifyRefreshTokenMessage) {
-      case 'success':
-        return res.json(await createNewAccesstokenByRefreshtoken(req.cookies.refreshToken));
-      default:
-        return res.json(createAuthResponse('tokenError'));
+    if (res.local.verifyRefreshTokenMessage === 'success') {
+      const resJson = createResponse(responseMessage.RENEWAL_TOKEN);
+      resJson.accessToken = await createNewAccesstokenByRefreshtoken(req.cookies.refreshToken);
+      return res.json(resJson);
     }
+    return res.json(createResponse(responseMessage.AUTH_FAIL));
   },
 };
 

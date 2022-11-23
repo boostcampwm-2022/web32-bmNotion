@@ -1,23 +1,13 @@
-const { createDocument, updateOneDocument, readOneDocument } = require('../db/db.crud');
-const dbconfig = require('../db.config.json');
-
-const createResponse = (message) => {
-  const response = { code: '500', message: '' };
-  switch (message) {
-    case 'success':
-      response.code = '202';
-      response.message = 'success';
-      break;
-    default:
-      break;
-  }
-  return response;
-};
+const { createDocument, readOneDocument } = require('../db/db.crud');
+const createResponse = require('../utils/response.util');
+const responseMessage = require('../response.message.json');
+const dbConfig = require('../db.config.json');
 
 const createPage = async (userid) => {
   const now = new Date().toUTCString();
   const page = {
     deleted: 'false',
+    title: '제목없음',
     owner: userid,
     participants: [userid],
     createdtime: now,
@@ -39,10 +29,11 @@ const addPagePipeline = async (userid) => {
     { $addToSet: { pages: result.insertedId } },
   );
 
-  const response = createResponse('success');
+  const response = createResponse(responseMessage.PROCESS_SUCCESS);
   response.pageid = result.insertedId;
   return response;
 };
+
 
 const readPages = async (userid) => {
   const result = await readOneDocument(dbconfig.COLLECTION_WORKSPACE, { owner: userid });
@@ -59,4 +50,19 @@ const readPages = async (userid) => {
   return pageList;
 };
 
-module.exports = { addPagePipeline, readPages };
+const loadPagePipeline = async (userid, pageid) => {
+  const page = getPageById(pageid);
+  if (page !== null) {
+    const authority = page.owner === userid || page.participant.includes(userid);
+    if (authority) {
+      const response = createResponse(responseMessage.PROCESS_SUCCESS);
+      response.title = page.title;
+      response.blocks = page.blocks;
+      return response;
+    }
+    return createResponse(responseMessage.AUTH_FAIL);
+  }
+  return createResponse(responseMessage.PAGE_NOT_FOUND);
+};
+
+module.exports = { addPagePipeline, loadPagePipeline, readPages };
