@@ -68,6 +68,18 @@ const saveUser = async (id, password, nickname, objectName) => {
   return user;
 };
 
+const createWorkspace = async (id) => {
+  const workspace = {
+    owner: id,
+    members: [],
+    pages: [],
+    teshcan: []
+  };
+
+  await createDocument(dbConfig.COLLECTION_WORKSPACE, workspace);
+}
+
+
 const createResponse = (message) => {
   const response = { code: '500', message: '' };
   switch (message) {
@@ -123,6 +135,7 @@ const signUpPipeline = async (id, password, nickname, file) => {
     const objectName = `${id}.profile`;
     await uploadImg(objectName, file);
     await saveUser(id, password, nickname, objectName);
+    await createWorkspace(id);
     message = 'success';
   } else if (user.nickname === nickname) {
     message = 'exist nickname';
