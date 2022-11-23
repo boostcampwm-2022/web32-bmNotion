@@ -43,19 +43,15 @@ const checkMarkDownGrammer = (text: string) => {
 
 export default function BlockContent({ children, blockId }: BlockContentProps): ReactElement {
   // const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-  const handleOnEnter = (e: any) => {
+  const handleOnEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.shiftKey) {
       /* 블록 내에서 줄바꿈 반영 */
-      // e.preventDefault() => 요게 있으면 줄이 바뀌는 현상이 일어나지 않는다.
       e.stopPropagation();
-      var ev = new Event('keydown') as any;
-      ev.keyCode = 13;
-      ev.which = e.keyCode;
-      (e as any).dispatchEvent(ev);
     } else {
+      /* 하단에 새로운 블록 생성 */
       e.preventDefault();
+      /* TODO: 새로운 블록 생성하는 로직추가 */
     }
-    return;
   };
   const handleOnSpace = (e: any) => {
     const offset = (window.getSelection() as Selection).focusOffset;
