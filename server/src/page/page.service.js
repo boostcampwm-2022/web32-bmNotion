@@ -7,10 +7,23 @@ const createResponse = (message) => {
       response.code = '202';
       response.message = 'success';
       break;
+    case 'unauthorized user':
+      response.code = '404';
+      response.message = 'UnauthorizedUserError';
+      break;
+    case 'invalid pageid':
+      response.code = '404';
+      response.message = 'NonExistentPageError';
+      break;
     default:
       break;
   }
   return response;
+};
+
+const getPageById = async (pageid) => {
+  const page = await readOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid });
+  return page;
 };
 
 const createPage = async (userid) => {
@@ -35,4 +48,19 @@ const addPagePipeline = async (userid) => {
   return response;
 };
 
-module.exports = { addPagePipeline };
+const loadPagePipeline = async (userid, pageid) => {
+  const page = getPageById(pageid);
+  if (page !== null) {
+    const authority = page.owner === userid || page.participant.includes(userid);
+    if (authority) {
+      const response = createResponse('success');
+      response.title = page.title;
+      response.blocks = page.blocks;
+      return response;
+    }
+    return createResponse('UnauthorizedUserError');
+  }
+  return createResponse('NonExistentPageError');
+};
+
+module.exports = { addPagePipeline, loadPagePipeline };
