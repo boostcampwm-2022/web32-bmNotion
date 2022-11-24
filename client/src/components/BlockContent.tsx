@@ -49,16 +49,24 @@ const markdownGrammer: MarkdownGrammers = {
 };
 
 const decisionNewBlockType = (prevType: string) => {
-  if (["UL", "OL"].includes(prevType)) return prevType;
-  return "TEXT"
-}
+  if (['UL', 'OL'].includes(prevType)) return prevType;
+  return 'TEXT';
+};
 
 const checkMarkDownGrammer = (text: string) => {
   const matched = Object.values(markdownGrammer).find(({ regExp }) => regExp.test(text));
   return matched === undefined ? '' : matched.getType(text);
 };
 
-export default function BlockContent({ children, blockId, newBlock, changeBlock, index, ref, type }: BlockContentProps): ReactElement {
+export default function BlockContent({
+  children,
+  blockId,
+  newBlock,
+  changeBlock,
+  index,
+  ref,
+  type,
+}: BlockContentProps): ReactElement {
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const handleBlockBarModal = () => {
     setBlockModalOpen(!blockModalOpen);
@@ -72,7 +80,7 @@ export default function BlockContent({ children, blockId, newBlock, changeBlock,
       /* 하단에 새로운 블록 생성 */
       e.preventDefault();
       /* TODO: 새로운 블록 생성하는 로직추가 */
-      newBlock({ type: decisionNewBlockType(type), content: "", index: index + 1 })
+      newBlock({ type: decisionNewBlockType(type), content: '', index: index + 1 });
     }
   };
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -89,7 +97,7 @@ export default function BlockContent({ children, blockId, newBlock, changeBlock,
       elem.textContent = postText;
       e.preventDefault();
       console.log(`toType => ${toType}`); /* TODO toType으로 타입변경하는 함수로 변경 필요 */
-      changeBlock({ blockId, type: toType, content: postText })
+      changeBlock({ blockId, type: toType, content: postText });
     }
     // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
@@ -112,7 +120,6 @@ export default function BlockContent({ children, blockId, newBlock, changeBlock,
         contentEditable
         onKeyDown={handleOnKeyDown}
       ></BlockContentBox>
-
       {blockModalOpen && (
         <Modal width={'324px'} height={'336px'} position={['30px', '', '', '44px']}>
           <BlockodalContent />
@@ -145,6 +152,7 @@ const BlockButtonBox = styled.div`
   display: flex;
   width: 42px;
   height: 24px;
+  margin: 3px 0px;
 `;
 const BlockPlusButton = styled.button`
   background-image: url('/assets/icons/plusButton.png');
@@ -175,10 +183,9 @@ const BlockOptionButton = styled.button`
 `;
 
 const BlockContainer = styled.div`
-  margin-left: -42px;
   display: flex;
+  margin-left: -42px;
   width: 100%;
-  align-items: center;
   position: relative;
 
   &:hover {
@@ -192,7 +199,7 @@ const BlockContainer = styled.div`
 const BlockContentBox = styled.div.attrs({
   placeholder: 'hello',
 })<BlockContentBoxProps>`
-  height: 24px;
+  height: auto;
   flex: 1;
   background-color: lightgray;
   margin: 3px 2px;
@@ -203,7 +210,7 @@ const BlockContentBox = styled.div.attrs({
   }
 
   &:empty::before {
-    content: ${props => props.placeholder || ''};
+    content: ${(props) => props.placeholder || ''};
     margin: 0 10px;
     color: #9b9a97;
   }

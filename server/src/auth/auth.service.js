@@ -169,12 +169,13 @@ const createNewAccesstokenByRefreshtoken = async (refreshToken) => {
   return accessToken;
 };
 
-const getCurrentPageid = (pages) => pages.reduce((pre, cur) => {
-  const { _id: pageid, lasteditedtime } = cur;
-  const curTime = Date.parse(lasteditedtime);
-  if (pre === undefined) return { pageid, time: curTime };
-  return pre.time > curTime ? pre : { pageid, time: curTime };
-}, undefined).pageid;
+const getCurrentPageid = (pages) =>
+  pages.reduce((pre, cur) => {
+    const { _id: pageid, lasteditedtime } = cur;
+    const curTime = Date.parse(lasteditedtime);
+    if (pre === undefined) return { pageid, time: curTime };
+    return pre.time > curTime ? pre : { pageid, time: curTime };
+  }, undefined).pageid;
 
 const getPageid = async (userid) => {
   const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, { owner: userid });
