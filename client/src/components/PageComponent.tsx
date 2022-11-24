@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import styled from 'styled-components';
 import BlockContent from '@/components/BlockContent';
 
@@ -25,25 +25,65 @@ const samplePageInfo: PageInfo = {
 
 export default function PageComponent(): React.ReactElement {
   const [pageInfo, setPageInfo] = useState(samplePageInfo);
+  const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
 
-  const sortedByIndex = (a: BlockInfo, b: BlockInfo) => a.index - b.index;
-  const addBlock = ({ type, content, index }: { type: string; content: string; index: number }) => {
+  const onFocus = (targetBlockId: string) => {
+    const contents = document.querySelectorAll('div.content');
+    const target = [...contents].find((el) => el.getAttribute('data-blockid') === targetBlockId);
+    if (target) {
+      (target as any).tabIndex = -1;
+      (target as any).focus();
+    }
+  };
+
+  const updateIndex = (block: BlockInfo): BlockInfo => ({ ...block, index: block.index + 1 });
+  const addBlock = ({
+    blockId,
+    type,
+    content,
+    index,
+  }: {
+    blockId: number;
+    type: string;
+    content: string;
+    index: number;
+  }) => {
     console.log('addblock');
-    const updateIndex = (prevIndex: number) => prevIndex + Number(prevIndex >= index);
     setPageInfo((prev) => ({
       ...prev,
-      blocks: [...prev.blocks, { content, type, index, blockId: prev.nextId }]
-        .map((block) => ({ ...block, index: updateIndex(block.index) }))
-        .sort(sortedByIndex),
+      blocks: [
+        ...prev.blocks.slice(0, index - 1),
+        { content, type, index, blockId: prev.nextId },
+        ...prev.blocks.slice(index - 1).map(updateIndex),
+      ],
       nextId: prev.nextId + 1,
     }));
+    setFocusBlockId(pageInfo.nextId);
   };
-  const changeBlock = ({ blockId, type, content }: { blockId: number; type: string; content: string }) => {
+
+  const changeBlock = ({
+    blockId,
+    type,
+    content,
+    index,
+  }: {
+    blockId: number;
+    type: string;
+    content: string;
+    index: number;
+  }) => {
     setPageInfo((prev) => ({
       ...prev,
-      blocks: prev.blocks.map((block) => (block.blockId === blockId ? { ...block, type, content } : block)),
+      blocks: prev.blocks.map((block) =>
+        block.blockId === blockId ? { ...block, type, content, ref: true } : block,
+      ),
     }));
+    setFocusBlockId(blockId);
   };
+
+  useLayoutEffect(() => {
+    focusBlockId && onFocus(String(focusBlockId));
+  }, [focusBlockId]);
 
   return (
     <PageBox>
