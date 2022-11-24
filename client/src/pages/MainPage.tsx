@@ -1,6 +1,7 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
 import BlockContent from '@/components/BlockContent';
+import PageComponent from '@/components/PageComponent';
 import Modal from '@/components/modal/Modal';
 import TopBarModalContent from '@/components/modal/TopBarModalContent';
 
@@ -76,7 +77,7 @@ export default function MainPage(): ReactElement {
         <MainContainerBody>
           <PageContainer maxWidth={isReaderMode ? '100%' : '900px'}>
             <PageTitle>제목</PageTitle>
-            <PageBody></PageBody>
+            <PageComponent></PageComponent>
           </PageContainer>
         </MainContainerBody>
       </MainContainer>

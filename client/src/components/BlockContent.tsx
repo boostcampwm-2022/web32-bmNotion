@@ -120,9 +120,8 @@ export default function BlockContent({
         contentEditable
         onKeyDown={handleOnKeyDown}
       ></BlockContentBox>
-
       {blockModalOpen && (
-        <Modal width={'324px'} height={'336px'} position={['30px', '', '', '44px']}>
+        <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
           <BlockodalContent />
         </Modal>
       )}
@@ -153,6 +152,7 @@ const BlockButtonBox = styled.div`
   display: flex;
   width: 42px;
   height: 24px;
+  margin: 3px 0px;
 `;
 const BlockPlusButton = styled.button`
   background-image: url('/assets/icons/plusButton.png');
@@ -183,10 +183,9 @@ const BlockOptionButton = styled.button`
 `;
 
 const BlockContainer = styled.div`
-  margin-left: -42px;
   display: flex;
+  margin-left: -42px;
   width: 100%;
-  align-items: center;
   position: relative;
 
   &:hover {
@@ -200,7 +199,7 @@ const BlockContainer = styled.div`
 const BlockContentBox = styled.div.attrs({
   placeholder: 'hello',
 })<BlockContentBoxProps>`
-  height: 24px;
+  height: auto;
   flex: 1;
   background-color: lightgray;
   margin: 3px 2px;
