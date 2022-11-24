@@ -77,15 +77,6 @@ export default function MainPage(): ReactElement {
           <PageContainer maxWidth={isReaderMode ? '100%' : '900px'}>
             <PageTitle>제목</PageTitle>
             <PageBody>
-              <BlockContent blockId={1} moveNextBlock={moveNextBlock}>
-                123
-              </BlockContent>
-              <BlockContent blockId={2} moveNextBlock={moveNextBlock}>
-                456
-              </BlockContent>
-              <BlockContent blockId={3} moveNextBlock={moveNextBlock}>
-                789
-              </BlockContent>
             </PageBody>
           </PageContainer>
         </MainContainerBody>

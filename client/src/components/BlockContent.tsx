@@ -5,54 +5,98 @@ import BlockodalContent from '@/components/modal/BlockodalContent';
 
 interface BlockContentProps {
   blockId: number;
+  newBlock: Function;
+  changeBlock: Function;
+  index: number;
   content?: string;
   children?: any;
-  moveNextBlock: Function;
+  ref?: any;
+  type: string;
 }
 
 interface BlockContentBoxProps {
   placeholder: string;
 }
 
-export default function BlockContent({ children, blockId }: BlockContentProps): ReactElement {
+interface MarkdownGrammers {
+  [index: string]: MarkdownGrammer;
+}
+
+interface MarkdownGrammer {
+  regExp: RegExp;
+  getType: (text: string) => string;
+}
+
+interface BlockInfo {
+  blockId: number;
+  content: string;
+  index: number;
+}
+
+const markdownGrammer: MarkdownGrammers = {
+  HEADER: {
+    regExp: /^#{1,3}$/,
+    getType: (text: string) => 'H' + `${text.length}`,
+  },
+  UNORDEREDLIST: {
+    regExp: /^-$/,
+    getType: (text: string) => 'UL',
+  },
+  ORDEREDLIST: {
+    regExp: /^[0-9]+.$/,
+    getType: (text: string) => 'OL' + text.slice(0, text.length - 1),
+  },
+};
+
+const decisionNewBlockType = (prevType: string) => {
+  if (["UL", "OL"].includes(prevType)) return prevType;
+  return "TEXT"
+}
+
+const checkMarkDownGrammer = (text: string) => {
+  const matched = Object.values(markdownGrammer).find(({ regExp }) => regExp.test(text));
+  return matched === undefined ? '' : matched.getType(text);
+};
+
+export default function BlockContent({ children, blockId, newBlock, changeBlock, index, ref, type }: BlockContentProps): ReactElement {
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const handleBlockBarModal = () => {
     setBlockModalOpen(!blockModalOpen);
   };
   // const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-  const handleOnEnter = (e: any) => {
+  const handleOnEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.shiftKey) {
       /* 블록 내에서 줄바꿈 반영 */
-      // e.preventDefault() => 요게 있으면 줄이 바뀌는 현상이 일어나지 않는다.
       e.stopPropagation();
-      var ev = new Event('keydown') as any;
-      ev.keyCode = 13;
-      ev.which = e.keyCode;
-      (e as any).dispatchEvent(ev);
     } else {
+      /* 하단에 새로운 블록 생성 */
       e.preventDefault();
+      /* TODO: 새로운 블록 생성하는 로직추가 */
+      newBlock({ type: decisionNewBlockType(type), content: "", index: index + 1 })
     }
-    return;
   };
-  const handleOnSpace = (e: any) => {
+  const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    /* 현재 카렛 위치 기준으로 text 분리 */
+    const elem = e.target as HTMLElement;
+    const content = elem.textContent || '';
     const offset = (window.getSelection() as Selection).focusOffset;
-    const preText = e.target.textContent.slice(0, offset);
-    const afterText = e.target.textContent.slice(offset);
+    const [preText, postText] = [content.slice(0, offset), content.slice(offset)];
 
-    if (/^#{1,3}$/.test(preText)) {
-      console.log(`H${preText.length}`, '로 타입을 변경하도록 합니다.');
-      e.target.textContent = afterText;
+    /* 마크다운 문법과 일치 => 해당 타입으로 변경 */
+    const toType = checkMarkDownGrammer(preText);
+    if (toType !== '') {
+      /* toType으로 타입변경 */
+      elem.textContent = postText;
       e.preventDefault();
-    } else {
-      console.log('아무일도 없었습니다.');
+      console.log(`toType => ${toType}`); /* TODO toType으로 타입변경하는 함수로 변경 필요 */
+      changeBlock({ blockId, type: toType, content: postText })
     }
-    console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
+    // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
-
-  const handleOnKeyDown = (e: any) => {
-    if (e.keyCode === 13) {
+  const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.code === 'Enter') {
       handleOnEnter(e);
-    } else if (e.keyCode === 32) {
+    } else if (e.code === 'Space') {
       handleOnSpace(e);
     }
   };
@@ -159,7 +203,7 @@ const BlockContentBox = styled.div.attrs({
   }
 
   &:empty::before {
-    content: attr(placeholder);
+    content: ${props => props.placeholder || ''};
     margin: 0 10px;
     color: #9b9a97;
   }
