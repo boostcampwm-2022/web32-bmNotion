@@ -7,18 +7,17 @@ interface TypeProps {
   contents: string;
 }
 
-export default function BlockModalContentType({image, title, contents}:TypeProps): ReactElement {
+export default function BlockModalContentType({ image, title, contents }: TypeProps): ReactElement {
   return (
-      <TypeContainer>
-        <TypeImage image={image}/>
-        <TypeTextContainer>
-          <TypeTextTitle>{title}</TypeTextTitle>
-          <TypeTextContents>{contents}</TypeTextContents>
-        </TypeTextContainer>
-      </TypeContainer>
+    <TypeContainer>
+      <TypeImage image={image} />
+      <TypeTextContainer>
+        <TypeTextTitle>{title}</TypeTextTitle>
+        <TypeTextContents>{contents}</TypeTextContents>
+      </TypeTextContainer>
+    </TypeContainer>
   );
 }
-
 
 const TypeContainer = styled.div`
   display: flex;
@@ -32,11 +31,11 @@ const TypeContainer = styled.div`
   }
 `;
 
-const TypeImage = styled.div<{image: string}>`
+const TypeImage = styled.div<{ image: string }>`
   width: 46px;
   height: 46px;
   border-radius: 3px;
-  background-image: url(${(props)=>props.image});
+  background-image: url(${(props) => props.image});
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
