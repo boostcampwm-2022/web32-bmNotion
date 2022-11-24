@@ -244,3 +244,15 @@ const H1BlockContentBox = styled.div`
   font-size: 1.875em;
   line-height: 1.3;
 `;
+
+const H2BlockContentBox = styled.div`
+  max-width: 100%;
+  width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+  caret-color: rgb(55, 53, 47);
+  padding: 3px 2px;
+  font-weight: 600;
+  font-size: 1.5em;
+  line-height: 1.3;
+`;
