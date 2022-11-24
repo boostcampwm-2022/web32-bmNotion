@@ -1,7 +1,7 @@
 import React, { Dispatch, ReactElement, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import Modal from '@/components/modal/Modal';
-import BlockodalContent from '@/components/modal/BlockModalContent';
+import BlockModalContent from '@/components/modal/BlockModalContent';
 import { render } from 'react-dom';
 
 interface BlockContentProps {
@@ -111,6 +111,11 @@ export default function BlockContent({
       handleOnSpace(e);
     }
   };
+  const handleType = (type: string) => {
+    console.log('aa');
+    setNowType(type);
+    setBlockModalOpen(false);
+  };
 
   const renderTypeBlock = () => {
     if (nowType === 'H1') {
@@ -128,7 +133,7 @@ export default function BlockContent({
             ></BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockodalContent />
+                <BlockModalContent handleType={handleType} />
               </Modal>
             )}
           </BlockContainer>
@@ -149,7 +154,7 @@ export default function BlockContent({
             ></BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockodalContent />
+                <BlockModalContent handleType={handleType} />
               </Modal>
             )}
           </BlockContainer>
@@ -170,7 +175,7 @@ export default function BlockContent({
             ></BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockodalContent />
+                <BlockModalContent handleType={handleType} />
               </Modal>
             )}
           </BlockContainer>
@@ -191,7 +196,7 @@ export default function BlockContent({
             ></BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockodalContent />
+                <BlockModalContent handleType={handleType} />
               </Modal>
             )}
           </BlockContainer>

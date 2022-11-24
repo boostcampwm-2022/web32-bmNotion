@@ -2,27 +2,31 @@ import React, { useState, ReactElement, useEffect } from 'react';
 import BlockModalContentType from './BlockModalContentType';
 import styled from 'styled-components';
 
-export default function BlockModalContent(): ReactElement {
+export default function BlockModalContent({ handleType }: { handleType: Function }): ReactElement {
   const contentTypeArr = [
     {
       title: '텍스트',
       contents: '일반 텍스트를 사용해 쓰기를 시작하세요.',
       image: '/assets/typeImages/text.png',
+      type: 'TEXT',
     },
     {
       title: '제목1',
       contents: '섹션 제목(대)',
       image: '/assets/typeImages/h1.png',
+      type: 'H1',
     },
     {
       title: '제목2',
       contents: '섹션 제목(중)',
       image: '/assets/typeImages/h2.png',
+      type: 'H2',
     },
     {
       title: '제목3',
       contents: '섹션 제목(소)',
       image: '/assets/typeImages/h3.png',
+      type: 'H3',
     },
   ];
 
@@ -30,7 +34,15 @@ export default function BlockModalContent(): ReactElement {
     return (
       <>
         {contentTypeArr.map((e) => {
-          return <BlockModalContentType title={e.title} contents={e.contents} image={e.image} />;
+          return (
+            <BlockModalContentType
+              title={e.title}
+              contents={e.contents}
+              image={e.image}
+              handleType={handleType}
+              type={e.type}
+            />
+          );
         })}
       </>
     );
