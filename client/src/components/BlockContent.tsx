@@ -3,9 +3,13 @@ import styled from 'styled-components';
 
 interface BlockContentProps {
   blockId: number;
+  newBlock: Function;
+  changeBlock: Function;
+  index: number;
   content?: string;
   children?: any;
-  moveNextBlock: Function;
+  ref?: any;
+  type: string;
 }
 
 interface BlockContentBoxProps {
@@ -20,6 +24,13 @@ interface MarkdownGrammer {
   regExp: RegExp;
   getType: (text: string) => string;
 }
+
+interface BlockInfo {
+  blockId: number;
+  content: string;
+  index: number;
+}
+
 const markdownGrammer: MarkdownGrammers = {
   HEADER: {
     regExp: /^#{1,3}$/,
@@ -35,12 +46,17 @@ const markdownGrammer: MarkdownGrammers = {
   },
 };
 
+const decisionNewBlockType = (prevType: string) => {
+  if (["UL", "OL"].includes(prevType)) return prevType;
+  return "TEXT"
+}
+
 const checkMarkDownGrammer = (text: string) => {
   const matched = Object.values(markdownGrammer).find(({ regExp }) => regExp.test(text));
   return matched === undefined ? '' : matched.getType(text);
 };
 
-export default function BlockContent({ children, blockId }: BlockContentProps): ReactElement {
+export default function BlockContent({ children, blockId, newBlock, changeBlock, index, ref, type }: BlockContentProps): ReactElement {
   // const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
   const handleOnEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.shiftKey) {
@@ -50,6 +66,7 @@ export default function BlockContent({ children, blockId }: BlockContentProps): 
       /* 하단에 새로운 블록 생성 */
       e.preventDefault();
       /* TODO: 새로운 블록 생성하는 로직추가 */
+      newBlock({ type: decisionNewBlockType(type), content: "", index: index + 1 })
     }
   };
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -66,6 +83,7 @@ export default function BlockContent({ children, blockId }: BlockContentProps): 
       elem.textContent = postText;
       e.preventDefault();
       console.log(`toType => ${toType}`); /* TODO toType으로 타입변경하는 함수로 변경 필요 */
+      changeBlock({ blockId, type: toType, content: postText })
     }
     // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
@@ -82,18 +100,20 @@ export default function BlockContent({ children, blockId }: BlockContentProps): 
       // type => css
       contentEditable
       onKeyDown={handleOnKeyDown}
-      onInput={(e) => {
+      onInput={(e: any) => {
         /* 디버깅용 */ console.log(`|${(e.target as Node).textContent}|`);
       }}
+      // ref={ref}
+      placeholder=''
+      type={type}
     ></BlockContentBox>
   );
 }
 
-const BlockContentBox = styled.div.attrs({
-  placeholder: 'hello',
+const BlockContentBox = styled.div.attrs(props => {
 }) <BlockContentBoxProps>`
   &:empty::before {
-    content: attr(placeholder);
+    content: ${props => props.placeholder || ''};
     margin: 0 10px;
     color: #9b9a97;
   }
