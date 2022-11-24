@@ -1,6 +1,8 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
 import BlockContent from '@/components/BlockContent';
+import Modal from '@/components/modal/Modal';
+import TopBarModalContent from '@/components/modal/TopBarModalContent';
 
 interface SideBarButtonProps {
   isClicked: boolean;
@@ -13,6 +15,7 @@ interface SideBarProps {
   sideBarHoverButton: string;
 }
 
+const threePointButton = '/assets/icons/threePoint.png';
 const hamburgerButton = '/assets/icons/hamburger.png';
 const doubleArrowButton = '/assets/icons/doubleArrow.png';
 const reverseDoubleArrowButton = '/assets/icons/reverseDoubleArrow.png';
@@ -23,9 +26,16 @@ export default function MainPage(): ReactElement {
   const [sideBarHoverButton, setSideBarHoverButton] = useState('/assets/icons/doubleArrow.png');
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
   const [isReaderMode, setIsReaderMode] = useState(false);
+
+  const [topBarModalOpen, setTopBarModalOpen] = useState(false);
+
   const moveNextBlock = () => {};
   const sideBarButtonClick = () => {
     setSideBarButtonClicked(!sideBarButtonClicked);
+  };
+
+  const handleTopBarModal = () => {
+    setTopBarModalOpen(!topBarModalOpen);
   };
   const readerModeButtonClick = () => {
     setIsReaderMode(!isReaderMode);
@@ -54,7 +64,14 @@ export default function MainPage(): ReactElement {
               onClick={sideBarButtonClick}
             ></SideBarButton>
           </TopBarLeft>
-          <TopBarRight onClick={readerModeButtonClick}>오</TopBarRight>
+          <TopBarRight>
+            <TopBarOptionButton onClick={handleTopBarModal}></TopBarOptionButton>
+            {topBarModalOpen && (
+              <Modal width={'230px'} height={'500px'} position={['', '12px', '', '']}>
+                <TopBarModalContent readerMode={readerModeButtonClick} isReaderMode={isReaderMode} />
+              </Modal>
+            )}
+          </TopBarRight>
         </TopBar>
         <MainContainerBody>
           <PageContainer maxWidth={isReaderMode ? '100%' : '900px'}>
@@ -107,6 +124,16 @@ const TopBarLeft = styled.div`
 
 const TopBarRight = styled.div`
   padding: 12px;
+  position: relative;
+`;
+
+const TopBarOptionButton = styled.button`
+  background-image: url('/assets/icons/threePoint.png');
+  background-repeat: no-repeat;
+  background-size: 16px 4.15px;
+  background-position: center;
+  width: 24px;
+  height: 24px;
 `;
 
 const MainContainerBody = styled.div`
