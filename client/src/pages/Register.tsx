@@ -62,7 +62,7 @@ export default function Register(): ReactElement {
       axios
         .post('http://localhost:8080/auth/signup', formData)
         .then((res) => {
-          if (res.data.code === 404) {
+          if (res.data.code === '404') {
             if (res.data.message.id) {
               setIdValidateMessage(res.data.message.id);
               setIdValidation(false);

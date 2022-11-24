@@ -40,13 +40,13 @@ export default function Login(): ReactElement {
     axios
       .post('http://localhost:8080/auth/signin', { id: inputID, password: inputPassWord }, { withCredentials: true })
       .then((res) => {
-        if (res.data.code === 404) {
-          setAlertMessage(res.data.message || '아이디나 패스워드가 올바르지 않습니다.');
-        } else {
+        if (res.data.code === '202') {
           localStorage.setItem('jwt', res.data.authorize);
           console.log(jwt.decode(res.data.authorize));
           alert('로그인 되었습니다.');
           navigate(`/page/${res.data.pageid}`);
+        } else {
+          setAlertMessage(res.data.message || '아이디나 패스워드가 올바르지 않습니다.');
         }
       })
       .catch((error) => {

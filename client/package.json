@@ -42,5 +42,6 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.4.3",
     "styled-components": "^5.3.6"
-  }
+  },
+  "proxy": "http://localhost:8080"
 }
