@@ -80,8 +80,10 @@ export default function BlockContent({
     } else {
       /* 하단에 새로운 블록 생성 */
       e.preventDefault();
-      /* TODO: 새로운 블록 생성하는 로직추가 */
-      newBlock({ blockId, type: decisionNewBlockType(type), content: '', index: index + 1 });
+      if (!e.nativeEvent.isComposing) {
+        /* 한글 입력시 isComposing이 false일때만 실행 */
+        newBlock({ blockId, type: decisionNewBlockType(type), content: '', index: index + 1 });
+      }
     }
   };
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
