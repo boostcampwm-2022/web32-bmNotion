@@ -12,7 +12,8 @@ app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
 require('dotenv').config();
 
-app.use(express.static(path.resolve(__dirname, '..', 'client', 'dist')));
+app.use(express.static(path.resolve(__dirname, '..', '..', 'client', 'dist')));
+app.use('/page', express.static(path.resolve(__dirname, '..', '..', 'client', 'dist')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
