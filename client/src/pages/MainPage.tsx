@@ -1,6 +1,8 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
-import PageComponent from '@/components/PageComponent';
+import BlockContent from '@/components/BlockContent';
+import Modal from '@/components/modal/Modal';
+import TopBarModalContent from '@/components/modal/TopBarModalContent';
 
 interface SideBarButtonProps {
   isClicked: boolean;
@@ -13,6 +15,7 @@ interface SideBarProps {
   sideBarHoverButton: string;
 }
 
+const threePointButton = '/assets/icons/threePoint.png';
 const hamburgerButton = '/assets/icons/hamburger.png';
 const doubleArrowButton = '/assets/icons/doubleArrow.png';
 const reverseDoubleArrowButton = '/assets/icons/reverseDoubleArrow.png';
@@ -22,8 +25,20 @@ export default function MainPage(): ReactElement {
   const [sideBarButton, setSideBarButton] = useState('/assets/icons/hamburger.png');
   const [sideBarHoverButton, setSideBarHoverButton] = useState('/assets/icons/doubleArrow.png');
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
+  const [isReaderMode, setIsReaderMode] = useState(false);
+
+  const [topBarModalOpen, setTopBarModalOpen] = useState(false);
+
+  const moveNextBlock = () => {};
   const sideBarButtonClick = () => {
     setSideBarButtonClicked(!sideBarButtonClicked);
+  };
+
+  const handleTopBarModal = () => {
+    setTopBarModalOpen(!topBarModalOpen);
+  };
+  const readerModeButtonClick = () => {
+    setIsReaderMode(!isReaderMode);
   };
   return (
     <Wrapper>
@@ -49,9 +64,22 @@ export default function MainPage(): ReactElement {
               onClick={sideBarButtonClick}
             ></SideBarButton>
           </TopBarLeft>
-          <TopBarRight>오</TopBarRight>
+          <TopBarRight>
+            <TopBarOptionButton onClick={handleTopBarModal}></TopBarOptionButton>
+            {topBarModalOpen && (
+              <Modal width={'230px'} height={'500px'} position={['', '12px', '', '']}>
+                <TopBarModalContent readerMode={readerModeButtonClick} isReaderMode={isReaderMode} />
+              </Modal>
+            )}
+          </TopBarRight>
         </TopBar>
-        <PageComponent />
+        <MainContainerBody>
+          <PageContainer maxWidth={isReaderMode ? '100%' : '900px'}>
+            <PageTitle>제목</PageTitle>
+            <PageBody>
+            </PageBody>
+          </PageContainer>
+        </MainContainerBody>
       </MainContainer>
     </Wrapper>
   );
@@ -87,12 +115,26 @@ const TopBarLeft = styled.div`
 
 const TopBarRight = styled.div`
   padding: 12px;
+  position: relative;
+`;
+
+const TopBarOptionButton = styled.button`
+  background-image: url('/assets/icons/threePoint.png');
+  background-repeat: no-repeat;
+  background-size: 16px 4.15px;
+  background-position: center;
+  width: 24px;
+  height: 24px;
 `;
 
 const MainContainerBody = styled.div`
   width: 100%;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-top: 45px;
+  padding: 0px 96px;
 `;
 
 const SideBarButton = styled.button<SideBarButtonProps>`
@@ -148,3 +190,27 @@ const SideBarHeader = styled.div`
 `;
 
 const SideBarBody = styled.div``;
+
+const PageContainer = styled.div<{ maxWidth: string }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: ${(props) => props.maxWidth}; //900px보다 작으면 width 100%;
+  min-width: 0px;
+  width: 100%;
+  //버튼 클릭하면 max-width: 100%
+  transition: all 0.1s linear;
+`;
+const PageTitle = styled.div`
+  width: 100%;
+  margin-top: 100px;
+  color: rgb(55, 53, 47);
+  font-weight: 700;
+  line-height: 1.2;
+  font-size: 40px;
+`;
+
+const PageBody = styled.div`
+  width: 100%;
+  margin-top: 10px;
+`;

@@ -1,22 +1,18 @@
-const { createDocument } = require('../db/db.crud');
+const { createDocument, updateOneDocument, readOneDocument } = require('../db/db.crud');
+const createResponse = require('../utils/response.util');
+const responseMessage = require('../response.message.json');
+const dbConfig = require('../db.config.json');
 
-const createResponse = (message) => {
-  const response = { code: '500', message: '' };
-  switch (message) {
-    case 'success':
-      response.code = '202';
-      response.message = 'success';
-      break;
-    default:
-      break;
-  }
-  return response;
+const getPageById = async (pageid) => {
+  const page = await readOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid });
+  return page;
 };
 
 const createPage = async (userid) => {
   const now = new Date().toUTCString();
-  const result = await createDocument('page', {
+  const page = {
     deleted: 'false',
+    title: '제목없음',
     owner: userid,
     participants: [userid],
     createdtime: now,
@@ -24,15 +20,53 @@ const createPage = async (userid) => {
     blocks: [],
     pages: [],
     font: 'default',
-  });
+  };
+
+  const result = await createDocument(dbConfig.COLLECTION_PAGE, page);
   return result;
 };
 
 const addPagePipeline = async (userid) => {
   const result = await createPage(userid);
-  const response = createResponse('success');
+  await updateOneDocument(
+    dbConfig.COLLECTION_WORKSPACE,
+    { owner: userid },
+    { $addToSet: { pages: result.insertedId } },
+  );
+
+  const response = createResponse(responseMessage.PROCESS_SUCCESS);
   response.pageid = result.insertedId;
   return response;
 };
 
-module.exports = { addPagePipeline };
+const readPages = async (userid) => {
+  const result = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, { owner: userid });
+  const pageList = await Promise.all(
+    result.pages.map((pageId) => {
+      const { title } = readOneDocument(dbConfig.COLLECTION_PAGE, { pageid: pageId });
+      return {
+        pageid: pageId,
+        title,
+      };
+    }),
+  );
+
+  return pageList;
+};
+
+const loadPagePipeline = async (userid, pageid) => {
+  const page = getPageById(pageid);
+  if (page !== null) {
+    const authority = page.owner === userid || page.participant.includes(userid);
+    if (authority) {
+      const response = createResponse(responseMessage.PROCESS_SUCCESS);
+      response.title = page.title;
+      response.blocks = page.blocks;
+      return response;
+    }
+    return createResponse(responseMessage.AUTH_FAIL);
+  }
+  return createResponse(responseMessage.PAGE_NOT_FOUND);
+};
+
+module.exports = { addPagePipeline, loadPagePipeline, readPages };

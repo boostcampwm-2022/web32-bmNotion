@@ -3,6 +3,9 @@ const stream = require('node:stream');
 const jwt = require('jsonwebtoken');
 const { createDocument, readOneDocument } = require('../db/db.crud');
 const dbConfig = require('../db.config.json');
+const createResponse = require('../utils/response.util');
+const responseMessage = require('../response.message.json');
+const { addPagePipeline } = require('../page/page.service');
 
 const region = 'kr-standard';
 const bucketName = `${process.env.BUCKET_NAME}`;
@@ -68,29 +71,15 @@ const saveUser = async (id, password, nickname, objectName) => {
   return user;
 };
 
-const createResponse = (message) => {
-  const response = { code: '500', message: '' };
-  switch (message) {
-    case 'success':
-      response.code = 202;
-      response.message = 'Success';
-      break;
-    case 'exist nickname':
-      response.code = 404;
-      response.message = { nickname: '이미 사용중인 닉네임입니다.' };
-      break;
-    case 'exist id':
-      response.code = 404;
-      response.message = { id: '이미 사용중인 아이디입니다.' };
-      break;
-    case 'fail':
-      response.code = 404;
-      response.message = '아이디나 비밀번호가 올바르지 않습니다.';
-      break;
-    default:
-      break;
-  }
-  return response;
+const createWorkspace = async (id) => {
+  const workspace = {
+    owner: id,
+    members: [],
+    pages: [],
+    teshcan: [],
+  };
+
+  await createDocument(dbConfig.COLLECTION_WORKSPACE, workspace);
 };
 
 const createNewAccesstoken = (id, nickname) => {
@@ -123,18 +112,21 @@ const signUpPipeline = async (id, password, nickname, file) => {
     const objectName = `${id}.profile`;
     await uploadImg(objectName, file);
     await saveUser(id, password, nickname, objectName);
-    message = 'success';
+    await createWorkspace(id);
+    message = responseMessage.PROCESS_SUCCESS;
   } else if (user.nickname === nickname) {
-    message = 'exist nickname';
+    message = responseMessage.EXIST_NICKNAME;
   } else if (user.id === id) {
-    message = 'exist id';
+    message = responseMessage.EXIST_ID;
   }
   return createResponse(message);
 };
 
 const signInPipeline = async (id, password) => {
-  const user = await searchUser(id, '');
+  const user = await searchUserById(id);
   const encrypted = encryptPassword(password);
+  let message = responseMessage.SIGNIN_FAIL;
+  let tokens;
   if (user !== null && encrypted === user.encryptedPw) {
     const accessToken = createNewAccesstoken(user.id, user.nickname);
     const refreshToken = createNewRefreshtoken();
@@ -145,9 +137,10 @@ const signInPipeline = async (id, password) => {
     };
 
     await createDocument(dbConfig.COLLECTION_TOKEN, newDocument);
-    return { accessToken, refreshToken, response: createResponse('success') };
+    tokens = { accessToken, refreshToken };
+    message = responseMessage.PROCESS_SUCCESS;
   }
-  return { response: createResponse('fail') };
+  return { tokens, response: createResponse(message) };
 };
 
 const isValidAccesstoken = (accessToken) => {
@@ -176,18 +169,23 @@ const createNewAccesstokenByRefreshtoken = async (refreshToken) => {
   return accessToken;
 };
 
-const createAuthResponse = (message) => {
-  const response = { code: '404', message };
-  switch (message) {
-    case 'tokenUndefined':
-      response.message = 'NeedSignInError';
-      break;
-    case 'tokenError':
-      response.message = 'UnauthorizedUserError';
-      break;
-    default:
-      break;
+const getCurrentPageid = (pages) => pages.reduce((pre, cur) => {
+  const { _id: pageid, lasteditedtime } = cur;
+  const curTime = Date.parse(lasteditedtime);
+  if (pre === undefined) return { pageid, time: curTime };
+  return pre.time > curTime ? pre : { pageid, time: curTime };
+}, undefined).pageid;
+
+const getPageid = async (userid) => {
+  const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, { owner: userid });
+  if (workspace.pages && workspace.pages.length >= 1) {
+    const pages = await Promise.all(
+      workspace.pages.map((pageid) => readOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid })),
+    );
+    return getCurrentPageid(pages);
   }
+  const { pageid } = await addPagePipeline(userid);
+  return pageid;
 };
 
 module.exports = {
@@ -197,5 +195,5 @@ module.exports = {
   isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
   createObjectUrl,
-  createAuthResponse,
+  getPageid,
 };
