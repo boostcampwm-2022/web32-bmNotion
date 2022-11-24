@@ -49,16 +49,24 @@ const markdownGrammer: MarkdownGrammers = {
 };
 
 const decisionNewBlockType = (prevType: string) => {
-  if (["UL", "OL"].includes(prevType)) return prevType;
-  return "TEXT"
-}
+  if (['UL', 'OL'].includes(prevType)) return prevType;
+  return 'TEXT';
+};
 
 const checkMarkDownGrammer = (text: string) => {
   const matched = Object.values(markdownGrammer).find(({ regExp }) => regExp.test(text));
   return matched === undefined ? '' : matched.getType(text);
 };
 
-export default function BlockContent({ children, blockId, newBlock, changeBlock, index, ref, type }: BlockContentProps): ReactElement {
+export default function BlockContent({
+  children,
+  blockId,
+  newBlock,
+  changeBlock,
+  index,
+  ref,
+  type,
+}: BlockContentProps): ReactElement {
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const handleBlockBarModal = () => {
     setBlockModalOpen(!blockModalOpen);
@@ -72,7 +80,7 @@ export default function BlockContent({ children, blockId, newBlock, changeBlock,
       /* 하단에 새로운 블록 생성 */
       e.preventDefault();
       /* TODO: 새로운 블록 생성하는 로직추가 */
-      newBlock({ type: decisionNewBlockType(type), content: "", index: index + 1 })
+      newBlock({ type: decisionNewBlockType(type), content: '', index: index + 1 });
     }
   };
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -89,7 +97,7 @@ export default function BlockContent({ children, blockId, newBlock, changeBlock,
       elem.textContent = postText;
       e.preventDefault();
       console.log(`toType => ${toType}`); /* TODO toType으로 타입변경하는 함수로 변경 필요 */
-      changeBlock({ blockId, type: toType, content: postText })
+      changeBlock({ blockId, type: toType, content: postText });
     }
     // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
@@ -203,7 +211,7 @@ const BlockContentBox = styled.div.attrs({
   }
 
   &:empty::before {
-    content: ${props => props.placeholder || ''};
+    content: ${(props) => props.placeholder || ''};
     margin: 0 10px;
     color: #9b9a97;
   }
@@ -214,4 +222,13 @@ const BlockContentBox = styled.div.attrs({
 
   white-space: pre-wrap;
   word-break: break-word;
+`;
+
+const TextBlockContentBox = styled.div`
+  max-width: 100%;
+  width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+  caret-color: rgb(55, 53, 47);
+  padding: 3px 2px;
 `;

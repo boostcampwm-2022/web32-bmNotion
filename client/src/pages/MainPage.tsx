@@ -76,8 +76,7 @@ export default function MainPage(): ReactElement {
         <MainContainerBody>
           <PageContainer maxWidth={isReaderMode ? '100%' : '900px'}>
             <PageTitle>제목</PageTitle>
-            <PageBody>
-            </PageBody>
+            <PageBody></PageBody>
           </PageContainer>
         </MainContainerBody>
       </MainContainer>
