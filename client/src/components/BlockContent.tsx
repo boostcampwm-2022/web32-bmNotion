@@ -121,7 +121,7 @@ export default function BlockContent({
         onKeyDown={handleOnKeyDown}
       ></BlockContentBox>
       {blockModalOpen && (
-        <Modal width={'324px'} height={'336px'} position={['30px', '', '', '44px']}>
+        <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
           <BlockodalContent />
         </Modal>
       )}
