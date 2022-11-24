@@ -1,7 +1,7 @@
 import React, { Dispatch, ReactElement, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import Modal from '@/components/modal/Modal';
-import BlockodalContent from '@/components/modal/BlockodalContent';
+import BlockodalContent from '@/components/modal/BlockModalContent';
 
 interface BlockContentProps {
   blockId: number;

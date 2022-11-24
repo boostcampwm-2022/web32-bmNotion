@@ -1,39 +1,23 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
 
-export default function BlockModalContent(): ReactElement {
-  return (
-    <BlockModalContainer>
-      <TypeContainer>
-        <TypeImage />
-        <TypeTextContainer>
-          <TypeTextTitle>텍스트</TypeTextTitle>
-          <TypeTextContents>일반 텍스트를 사용해 쓰기를 시작하세요.</TypeTextContents>
-        </TypeTextContainer>
-      </TypeContainer>
-    </BlockModalContainer>
-  );
+interface TypeProps {
+  image: string;
+  title: string;
+  contents: string;
 }
 
-const BlockModalContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-y: scroll;
-  overflow-x: hidden;
-  width: 100%;
-  height: 100%;
-  padding-top: 8px;
-
-  &::-webkit-scrollbar {
-    width: 10px;
-    background-color: #edece9;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #d3d1cb;
-    border-radius: 6px;
-  }
-`;
+export default function BlockModalContentType({ image, title, contents }: TypeProps): ReactElement {
+  return (
+    <TypeContainer>
+      <TypeImage image={image} />
+      <TypeTextContainer>
+        <TypeTextTitle>{title}</TypeTextTitle>
+        <TypeTextContents>{contents}</TypeTextContents>
+      </TypeTextContainer>
+    </TypeContainer>
+  );
+}
 
 const TypeContainer = styled.div`
   display: flex;
@@ -47,11 +31,11 @@ const TypeContainer = styled.div`
   }
 `;
 
-const TypeImage = styled.div`
+const TypeImage = styled.div<{ image: string }>`
   width: 46px;
   height: 46px;
   border-radius: 3px;
-  background-image: url('/assets/typeImages/text.png');
+  background-image: url(${(props) => props.image});
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
