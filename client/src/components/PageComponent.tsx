@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import styled from 'styled-components';
-import BlockContent from '@/components/BlockContent';
+import StyledBlockContent from '@/components/block/StyledBlockContent';
 
 interface BlockInfo {
   blockId: number;
@@ -88,7 +88,7 @@ export default function PageComponent(): React.ReactElement {
   return (
     <PageBox>
       {pageInfo.blocks.map((block, idx) => (
-        <BlockContent
+        <StyledBlockContent
           key={block.blockId}
           blockId={block.blockId}
           newBlock={addBlock}

@@ -1,6 +1,6 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
-import BlockContent from '@/components/BlockContent';
+import BlockContent from '@/components/block/BlockContent';
 import PageComponent from '@/components/PageComponent';
 import Modal from '@/components/modal/Modal';
 import TopBarModalContent from '@/components/modal/TopBarModalContent';

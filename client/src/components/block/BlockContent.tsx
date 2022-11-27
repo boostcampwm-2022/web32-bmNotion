@@ -12,6 +12,7 @@ interface BlockContentProps {
   content?: string;
   children?: any;
   type: string;
+  setNowType: Function;
 }
 
 interface BlockContentBoxProps {
@@ -66,8 +67,9 @@ export default function BlockContent({
   changeBlock,
   index,
   type,
+  setNowType,
 }: BlockContentProps): ReactElement {
-  const [nowType, setNowType] = useState(type);
+
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const handleBlockBarModal = () => {
     setBlockModalOpen(!blockModalOpen);
@@ -113,111 +115,30 @@ export default function BlockContent({
     }
   };
   const handleType = (type: string) => {
-    console.log('aa');
     setNowType(type);
     setBlockModalOpen(false);
   };
-
-  const renderTypeBlock = () => {
-    if (nowType === 'H1') {
-      return (
-        <H1BlockContentBox>
-          <BlockContainer>
-            <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
-            </BlockButtonBox>
-            <BlockContentBox
-              // type => css
-              contentEditable
-              className="content"
-              onKeyDown={handleOnKeyDown}
-              data-blockid={blockId}
-              data-index={index}
-            ></BlockContentBox>
-            {blockModalOpen && (
-              <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
-              </Modal>
-            )}
-          </BlockContainer>
-        </H1BlockContentBox>
-      );
-    } else if (nowType === 'H2') {
-      return (
-        <H2BlockContentBox>
-          <BlockContainer>
-            <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
-            </BlockButtonBox>
-            <BlockContentBox
-              // type => css
-              contentEditable
-              className="content"
-              onKeyDown={handleOnKeyDown}
-              data-blockid={blockId}
-              data-index={index}
-            ></BlockContentBox>
-            {blockModalOpen && (
-              <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
-              </Modal>
-            )}
-          </BlockContainer>
-        </H2BlockContentBox>
-      );
-    } else if (nowType === 'H3') {
-      return (
-        <H3BlockContentBox>
-          <BlockContainer>
-            <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
-            </BlockButtonBox>
-            <BlockContentBox
-              // type => css
-              contentEditable
-              className="content"
-              onKeyDown={handleOnKeyDown}
-              data-blockid={blockId}
-              data-index={index}
-            ></BlockContentBox>
-            {blockModalOpen && (
-              <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
-              </Modal>
-            )}
-          </BlockContainer>
-        </H3BlockContentBox>
-      );
-    } else {
-      return (
-        <TextBlockContentBox>
-          <BlockContainer>
-            <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
-            </BlockButtonBox>
-            <BlockContentBox
-              // type => css
-              contentEditable
-              className="content"
-              onKeyDown={handleOnKeyDown}
-              data-blockid={blockId}
-              data-index={index}
-            ></BlockContentBox>
-            {blockModalOpen && (
-              <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
-              </Modal>
-            )}
-          </BlockContainer>
-        </TextBlockContentBox>
-      );
-    }
-  };
-  return <>{renderTypeBlock()}</>;
+  return (
+    <BlockContainer>
+      <BlockButtonBox>
+        <BlockPlusButton onClick={handleBlockBarModal} />
+        <BlockOptionButton />
+      </BlockButtonBox>
+      <BlockContentBox
+        // type => css
+        contentEditable
+        className="content"
+        onKeyDown={handleOnKeyDown}
+        data-blockid={blockId}
+        data-index={index}
+      ></BlockContentBox>
+      {blockModalOpen && (
+        <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
+          <BlockModalContent handleType={handleType} />
+        </Modal>
+    )}
+  </BlockContainer>
+  );
 }
 
 const fadeIn = keyframes`
@@ -312,47 +233,3 @@ const BlockContentBox = styled.div.attrs({})`
   word-break: break-word;
 `;
 
-const TextBlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
-`;
-
-const H1BlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
-  font-weight: 600;
-  font-size: 1.875em;
-  line-height: 1.3;
-`;
-
-const H2BlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
-  font-weight: 600;
-  font-size: 1.5em;
-  line-height: 1.3;
-`;
-
-const H3BlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
-  font-weight: 600;
-  font-size: 1.25em;
-  line-height: 1.3;
-`;
