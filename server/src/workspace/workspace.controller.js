@@ -9,7 +9,7 @@ const workspaceController = {
     console.log(req);
   },
   inviteUser: async (req, res) => {
-    const { id: userid } = jwt.decode(req.headers.Autorization);
+    const { id: userid } = jwt.decode(req.headers.authorization);
     const { workspace: workspaceid, nickname } = req.body;
     const resJson = await inviteUserPipeline(userid, workspaceid, nickname);
     res.json(resJson);
