@@ -10,7 +10,7 @@ router.use(
   authController.verifyRefreshtoken,
   authController.requestAccessToken,
 );
-router.get('/list', workspaceController.getList);
+router.get('/list', workspaceController.getWorkspaceList);
 router.post('/addworkspace', workspaceController.addWorkspace);
 router.post('/invite', workspaceController.inviteUser);
 
