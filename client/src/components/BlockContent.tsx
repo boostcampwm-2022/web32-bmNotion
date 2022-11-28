@@ -44,7 +44,7 @@ const markdownGrammer: MarkdownGrammers = {
     getType: (text: string) => 'UL',
   },
   ORDEREDLIST: {
-    regExp: /^[0-9]+.$/,
+    regExp: /^[0-9]+\.$/,
     getType: (text: string) => 'OL' + text.slice(0, text.length - 1),
   },
 };
