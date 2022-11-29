@@ -80,6 +80,37 @@ export default function PageComponent(): React.ReactElement {
     setFocusBlockId(blockId);
   };
 
+  const onFucusIndex = (targetIndex: string) => {
+    const blocks = document.querySelectorAll('div.content');
+    const target = [...blocks].find((el) => el.getAttribute('data-index') === targetIndex);
+    (target as HTMLElement).tabIndex = -1;
+    (target as HTMLElement).focus();
+  };
+
+  const moveBlock = ({
+    e,
+    // type,
+    content,
+    index,
+  }: {
+    e: React.KeyboardEvent<HTMLDivElement>;
+    // type: string;
+    content: string;
+    index: number;
+  }) => {
+    if (e.code === 'ArrowUp') {
+      if (index === 1) {
+        return;
+      }
+      onFucusIndex(String(index - 1));
+    } else if (e.code === 'ArrowDown') {
+      if (index === pageInfo.blocks[pageInfo.blocks.length - 1].index) {
+        return;
+      }
+      onFucusIndex(String(index + 1));
+    }
+  };
+
   useLayoutEffect(() => {
     focusBlockId && onFocus(String(focusBlockId));
   }, [focusBlockId]);
@@ -95,6 +126,7 @@ export default function PageComponent(): React.ReactElement {
 
     setPageInfo({ ...pageInfo, blocks: blocks });
   };
+
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <Droppable droppableId="blocks">
@@ -108,6 +140,7 @@ export default function PageComponent(): React.ReactElement {
                     blockId={block.blockId}
                     newBlock={addBlock}
                     changeBlock={changeBlock}
+                    moveBlock={moveBlock}
                     index={block.index}
                     type={block.type}
                     provided={provided}
