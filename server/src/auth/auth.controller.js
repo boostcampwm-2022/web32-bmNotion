@@ -5,7 +5,6 @@ const {
   isValidAccesstoken,
   isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
-  getPageid,
 } = require('./auth.service');
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
@@ -13,12 +12,13 @@ const responseMessage = require('../response.message.json');
 const signInController = {
   signIn: async (req, res) => {
     const { id, password } = req.body;
-    const { tokens, response: resJson } = await signInPipeline(id, password);
+    const { tokens, response: resJson, workspaceid, pageid } = await signInPipeline(id, password);
     if (resJson.code === '202') {
       const { accessToken, refreshToken } = tokens;
       res.cookie('refreshToken', refreshToken);
       resJson.authorize = accessToken;
-      resJson.pageid = await getPageid(id);
+      resJson.workspace = workspaceid;
+      resJson.pageid = pageid;
     }
     res.json(resJson);
   },
