@@ -63,7 +63,8 @@ const markdownGrammer: MarkdownGrammers = {
 
 const decisionNewBlockType = (prevType: string) => {
   if (['UL', 'OL'].includes(prevType)) return prevType;
-  return 'TEXT';
+  // return 'TEXT';
+  return prevType;
 };
 
 const checkMarkDownGrammer = (text: string) => {
@@ -139,6 +140,15 @@ export default function BlockContent({
       handleOnArrow(e);
     }
   };
+  const handlePlus = (toType: string) => {
+    setBlockPlusModalOpen(false);
+    setBlockOptionModalOpen(false);
+    if (!content && type === 'TEXT') {
+      handleType(toType);
+    } else {
+      newBlock({ blockId, type: decisionNewBlockType(toType), content: '', index: index + 1 });
+    }
+  };
   const handleType = (toType: string) => {
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
@@ -179,7 +189,7 @@ export default function BlockContent({
             </BlockContentBox>
             {blockPlusModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
+                <BlockModalContent handleType={handlePlus} />
               </Modal>
             )}
             {blockOptionModalOpen && (
@@ -215,7 +225,7 @@ export default function BlockContent({
             </BlockContentBox>
             {blockPlusModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
+                <BlockModalContent handleType={handlePlus} />
               </Modal>
             )}
             {blockOptionModalOpen && (
@@ -251,7 +261,7 @@ export default function BlockContent({
             </BlockContentBox>
             {blockPlusModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
+                <BlockModalContent handleType={handlePlus} />
               </Modal>
             )}
             {blockOptionModalOpen && (
@@ -287,7 +297,7 @@ export default function BlockContent({
             </BlockContentBox>
             {blockPlusModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
+                <BlockModalContent handleType={handlePlus} />
               </Modal>
             )}
             {blockOptionModalOpen && (
