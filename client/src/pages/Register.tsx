@@ -142,7 +142,9 @@ export default function Register(): ReactElement {
       return false;
     }
     if (!/^[\w]{3,20}$/.test(nickName)) {
-      setNickNameValidateMessage("닉네임은 알파벳, 숫자 혹은 '_'로 이루어진 3 ~ 20 글자여야 합니다.");
+      setNickNameValidateMessage(
+        "닉네임은 알파벳, 숫자 혹은 '_'로 이루어진 3 ~ 20 글자여야 합니다.",
+      );
       return false;
     }
     return true;
@@ -187,7 +189,12 @@ export default function Register(): ReactElement {
           </ProfileImage>
           <InputContainer>
             <InputHeader>닉네임</InputHeader>
-            <Input name="asd" placeholder="닉네임을 입력하세요" value={inputNickName} onChange={handleInputNickName} />
+            <Input
+              name="asd"
+              placeholder="닉네임을 입력하세요"
+              value={inputNickName}
+              onChange={handleInputNickName}
+            />
           </InputContainer>
           <ValidationContainer>
             {nickNameValidation ? null : <Validation>{nickNameValidateMessage}</Validation>}

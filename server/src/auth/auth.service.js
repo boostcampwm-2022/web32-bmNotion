@@ -75,6 +75,7 @@ const saveUser = async (id, password, nickname, objectName, workspaceid) => {
 
 const createWorkspace = async (id) => {
   const workspace = {
+    title: `${id}'s Notion`,
     owner: id,
     members: [],
     pages: [],
@@ -195,7 +196,6 @@ const isValidRefreshtoken = (refreshToken) => {
 
 const createNewAccesstokenByRefreshtoken = async (refreshToken) => {
   const { id, nickname } = await readOneDocument(dbConfig.COLLECTION_TOKEN, { refreshToken });
-
   const accessToken = createNewAccesstoken(id, nickname);
 
   return accessToken;

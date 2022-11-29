@@ -1,8 +1,18 @@
 const { ObjectId } = require('mongodb');
+const { readAllDocument } = require('../db/db.crud');
 const dbConfig = require('../db.config.json');
 const { readOneDocument, updateOneDocument } = require('../db/db.crud');
 const responseMessage = require('../response.message.json');
 const createResponse = require('../utils/response.util');
+
+const readWorkspaceById = async (userId) => {
+  const queryCriteria = {
+    $or: [{ owner: userId }, { members: { $elemMatch: { userId: userId } } }],
+  };
+  const workspaceList = await readAllDocument(dbConfig.COLLECTION_WORKSPACE, queryCriteria);
+  console.log(workspaceList);
+  return workspaceList;
+};
 
 const inviteUserPipeline = async (userid, workspaceid, nickname) => {
   console.log(userid, workspaceid, nickname);
@@ -32,4 +42,7 @@ const inviteUserPipeline = async (userid, workspaceid, nickname) => {
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
 
-module.exports = { inviteUserPipeline };
+module.exports = {
+  readWorkspaceById,
+  inviteUserPipeline
+};
