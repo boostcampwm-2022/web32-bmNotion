@@ -22,7 +22,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/auth', authRouter);
-app.use('/page', pageRouter);
+app.use('/api/page', pageRouter);
 app.use('/edit', editRouter);
 app.use('/api/workspace', workspaceRouter);
 app.use('/api/user', userRouter);
