@@ -45,7 +45,7 @@ export default function MainPage(): ReactElement {
   const [spaceSettingModalOpen, setSpaceSettingModalOpen] = useState(false);
   const [topBarModalOpen, setTopBarModalOpen] = useState(false);
 
-  const moveNextBlock = () => {};
+  const moveNextBlock = () => { };
   const sideBarButtonClick = () => {
     setSideBarButtonClicked(!sideBarButtonClicked);
   };
@@ -71,9 +71,8 @@ export default function MainPage(): ReactElement {
       })
       .then((res) => {
         if (res.data.code === '202') {
-          setWorkspaceList(res.data);
-        } else {
-          setWorkspaceList(res.data);
+          console.log(res.data);
+          setWorkspaceList(res.data.workspaceList);
         }
       })
       .catch((error) => {
@@ -82,8 +81,9 @@ export default function MainPage(): ReactElement {
   }, []);
 
   useEffect(() => {
+    const workspaceId = localStorage.getItem('workspace');
     axios
-      .get('http://localhost:8080/api/page/list', {
+      .get(`http://localhost:8080/api/page/list/${workspaceId}`, {
         headers: {
           authorization: localStorage.getItem('jwt'),
         },
@@ -91,15 +91,13 @@ export default function MainPage(): ReactElement {
       })
       .then((res) => {
         if (res.data.code === '202') {
-          setWorkspaceList(res.data);
-        } else {
-          setWorkspaceList(res.data);
+          setPageList(res.data.list);
         }
       })
       .catch((error) => {
         console.log(error);
       });
-  }, pageList);
+  }, workspaceList);
 
   return (
     <Wrapper>
@@ -116,11 +114,18 @@ export default function MainPage(): ReactElement {
         </SideBarHeaderContainer>
         <SideBarBodyContainer>
           <SideBarBody>
-            {/* {workspaceList.map((workspace) => (
+            <>워크스페이스 리스트</>
+            {workspaceList.map((workspace) => (
               <>
                 <div>{workspace.title}</div>
               </>
-            ))} */}
+            ))}
+            <>페이지 리스트</>
+            {pageList.map((page) => (
+              <>
+                <div>{page.title}</div>
+              </>
+            ))}
             <SpaceSettingButton onClick={spaceSettingButtonClicked}>
               <span>아이콘</span>
               <span>설정</span>
