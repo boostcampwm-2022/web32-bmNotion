@@ -3,6 +3,7 @@
   "SIGNIN_FAIL": "아이디나 비밀번호가 올바르지 않습니다.",
   "AUTH_FAIL": "UnauthorizedUserError",
   "PAGE_NOT_FOUND": "NonExistentPageError",
+  "USER_NOT_FOUND": "NonExistentUserError",
   "EXIST_NICKNAME": { "nickname": "이미 사용중인 닉네임입니다." },
   "EXIST_ID": { "id": "이미 사용중인 아이디입니다." },
   "NEED_SIGNIN": "NeedSignInError",
