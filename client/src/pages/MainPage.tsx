@@ -116,11 +116,11 @@ export default function MainPage(): ReactElement {
         </SideBarHeaderContainer>
         <SideBarBodyContainer>
           <SideBarBody>
-           {workspaceList.map((workspace) => (
-            <>
-              <div>{workspace.title}</div>
-            </>
-          ))}
+            {/* {workspaceList.map((workspace) => (
+              <>
+                <div>{workspace.title}</div>
+              </>
+            ))} */}
             <SpaceSettingButton onClick={spaceSettingButtonClicked}>
               <span>아이콘</span>
               <span>설정</span>

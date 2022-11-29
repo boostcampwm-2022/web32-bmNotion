@@ -44,5 +44,5 @@ const inviteUserPipeline = async (userid, workspaceid, nickname) => {
 
 module.exports = {
   readWorkspaceById,
-  inviteUserPipeline
+  inviteUserPipeline,
 };
