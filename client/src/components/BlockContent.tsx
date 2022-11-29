@@ -72,16 +72,13 @@ const checkMarkDownGrammer = (text: string) => {
 
 export default function BlockContent({
   block,
-  // children,
-  // blockId,
   newBlock,
   changeBlock,
-  index,
   type,
   provided,
   moveBlock,
 }: BlockContentProps): ReactElement {
-  const { blockId, content, index, type } = block;
+  const { blockId, content, index } = block;
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const refBlock = useRef<HTMLDivElement>(null);
   const handleBlockBarModal = () => {
@@ -132,7 +129,7 @@ export default function BlockContent({
       handleOnArrow(e);
     }
   };
-  const handleType = (type: string) => {
+  const handleType = (toType: string) => {
     setBlockModalOpen(false);
     changeBlock({ blockId, type: toType, content: block.content, index });
   };
