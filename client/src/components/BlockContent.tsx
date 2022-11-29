@@ -1,17 +1,26 @@
-import React, { Dispatch, ReactElement, useState } from 'react';
+import React, { Dispatch, ReactElement, useState, useRef, useLayoutEffect, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import Modal from '@/components/modal/Modal';
 import BlockModalContent from '@/components/modal/BlockModalContent';
 import { render } from 'react-dom';
 
-interface BlockContentProps {
+interface BlockInfo {
   blockId: number;
+  content: string;
+  index: number;
+  type: string;
+  focus?: boolean;
+}
+
+interface BlockContentProps {
+  block: BlockInfo;
+  blockId?: number; // page - Id 불변
+  index?: number; // page - Index 변하는값
+  content?: string; // 눈에 보이는 텍스트 내용
+  type: string;
+  focus?: boolean;
   newBlock: Function;
   changeBlock: Function;
-  index: number;
-  content?: string;
-  children?: any;
-  type: string;
   provided: any;
   moveBlock: Function;
 }
@@ -46,8 +55,8 @@ const markdownGrammer: MarkdownGrammers = {
     getType: (text: string) => 'UL',
   },
   ORDEREDLIST: {
-    regExp: /^[0-9]+.$/,
-    getType: (text: string) => 'OL' + text.slice(0, text.length - 1),
+    regExp: /^[0-9]+\.$/,
+    getType: (text: string) => 'OL',
   },
 };
 
@@ -62,8 +71,9 @@ const checkMarkDownGrammer = (text: string) => {
 };
 
 export default function BlockContent({
-  children,
-  blockId,
+  block,
+  // children,
+  // blockId,
   newBlock,
   changeBlock,
   index,
@@ -71,12 +81,12 @@ export default function BlockContent({
   provided,
   moveBlock,
 }: BlockContentProps): ReactElement {
-  const [nowType, setNowType] = useState(type);
+  const { blockId, content, index, type } = block;
   const [blockModalOpen, setBlockModalOpen] = useState(false);
+  const refBlock = useRef<HTMLDivElement>(null);
   const handleBlockBarModal = () => {
     setBlockModalOpen(!blockModalOpen);
   };
-  // const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
   const handleOnEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.shiftKey) {
       /* 블록 내에서 줄바꿈 반영 */
@@ -93,19 +103,18 @@ export default function BlockContent({
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     /* 현재 카렛 위치 기준으로 text 분리 */
     const elem = e.target as HTMLElement;
-    const content = elem.textContent || '';
+    console.log('텍스트 비교', block.content, ' vs ', elem.textContent);
+    const totalContent = elem.textContent || '';
     const offset = (window.getSelection() as Selection).focusOffset;
-    const [preText, postText] = [content.slice(0, offset), content.slice(offset)];
-
+    const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
+    console.log('🚀 ~ file: BlockContent.tsx ~ line 111 ~ handleOnSpace ~ preText', preText);
     /* 마크다운 문법과 일치 => 해당 타입으로 변경 */
     const toType = checkMarkDownGrammer(preText);
     if (toType !== '') {
       /* toType으로 타입변경 */
-      elem.textContent = postText;
       e.preventDefault();
-      console.log(`toType => ${toType}`); /* TODO toType으로 타입변경하는 함수로 변경 필요 */
+      console.log(`toType => ${toType}, content: ${postText}`);
       changeBlock({ blockId, type: toType, content: postText, index });
-      setNowType(toType);
     }
     // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
@@ -123,14 +132,21 @@ export default function BlockContent({
       handleOnArrow(e);
     }
   };
-
   const handleType = (type: string) => {
-    setNowType(type);
     setBlockModalOpen(false);
+    changeBlock({ blockId, type: toType, content: block.content, index });
+  };
+
+  const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
+    const newContent = (e.target as HTMLDivElement).textContent;
+    console.log('🚀 ~ file: BlockContent.tsx ~ line 134 ~ handleOnInput ~ newContent', newContent);
+    if (newContent) {
+      block.content = newContent;
+    }
   };
 
   const renderTypeBlock = () => {
-    if (nowType === 'H1') {
+    if (type === 'H1') {
       return (
         <H1BlockContentBox>
           <BlockContainer>
@@ -143,9 +159,13 @@ export default function BlockContent({
               contentEditable
               className="content"
               onKeyDown={handleOnKeyDown}
+              onInput={handleOnInput}
               data-blockid={blockId}
               data-index={index}
-            ></BlockContentBox>
+              ref={refBlock}
+            >
+              {block.content || ''}
+            </BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
                 <BlockModalContent handleType={handleType} />
@@ -154,7 +174,7 @@ export default function BlockContent({
           </BlockContainer>
         </H1BlockContentBox>
       );
-    } else if (nowType === 'H2') {
+    } else if (type === 'H2') {
       return (
         <H2BlockContentBox>
           <BlockContainer>
@@ -167,9 +187,13 @@ export default function BlockContent({
               contentEditable
               className="content"
               onKeyDown={handleOnKeyDown}
+              onInput={handleOnInput}
               data-blockid={blockId}
               data-index={index}
-            ></BlockContentBox>
+              ref={refBlock}
+            >
+              {block.content || ''}
+            </BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
                 <BlockModalContent handleType={handleType} />
@@ -178,7 +202,7 @@ export default function BlockContent({
           </BlockContainer>
         </H2BlockContentBox>
       );
-    } else if (nowType === 'H3') {
+    } else if (type === 'H3') {
       return (
         <H3BlockContentBox>
           <BlockContainer>
@@ -191,9 +215,13 @@ export default function BlockContent({
               contentEditable
               className="content"
               onKeyDown={handleOnKeyDown}
+              onInput={handleOnInput}
               data-blockid={blockId}
               data-index={index}
-            ></BlockContentBox>
+              ref={refBlock}
+            >
+              {block.content || ''}
+            </BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
                 <BlockModalContent handleType={handleType} />
@@ -215,9 +243,13 @@ export default function BlockContent({
               contentEditable
               className="content"
               onKeyDown={handleOnKeyDown}
+              onInput={handleOnInput}
               data-blockid={blockId}
               data-index={index}
-            ></BlockContentBox>
+              ref={refBlock}
+            >
+              {block.content || ''}
+            </BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
                 <BlockModalContent handleType={handleType} />

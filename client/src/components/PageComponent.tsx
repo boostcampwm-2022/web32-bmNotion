@@ -8,12 +8,18 @@ interface BlockInfo {
   content: string;
   index: number;
   type: string;
+  focus?: boolean;
 }
 
 interface PageInfo {
   nextId: number;
   pageId: string;
   blocks: BlockInfo[];
+}
+
+interface EditedBlockInfo {
+  block: BlockInfo;
+  type: 'new' | 'change';
 }
 
 const sampleBlocks: BlockInfo[] = [{ blockId: 1, index: 1, content: '', type: 'TEXT' }];
@@ -27,15 +33,7 @@ const samplePageInfo: PageInfo = {
 export default function PageComponent(): React.ReactElement {
   const [pageInfo, setPageInfo] = useState(samplePageInfo);
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
-
-  const onFocus = (targetBlockId: string) => {
-    const contents = document.querySelectorAll('div.content');
-    const target = [...contents].find((el) => el.getAttribute('data-blockid') === targetBlockId);
-    if (target) {
-      (target as any).tabIndex = -1;
-      (target as any).focus();
-    }
-  };
+  const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
 
   const updateIndex = (block: BlockInfo): BlockInfo => ({ ...block, index: block.index + 1 });
   const addBlock = ({
@@ -80,6 +78,21 @@ export default function PageComponent(): React.ReactElement {
     setFocusBlockId(blockId);
   };
 
+  useEffect(() => {
+    if (editedBlock === null) return;
+    const { blockId, content, index, type, focus } = editedBlock.block;
+    setPageInfo((prev) => ({
+      ...prev,
+      blocks: [
+        ...prev.blocks.slice(0, index - 1),
+        { ...editedBlock.block, blockId: type === 'new' ? prev.nextId : blockId },
+        ...prev.blocks.slice(index - 1).map(updateIndex),
+      ],
+      nextId: prev.nextId + 1,
+    }));
+    setFocusBlockId(pageInfo.nextId);
+  }, [editedBlock]);
+
   const onFucusIndex = (targetIndex: string) => {
     const blocks = document.querySelectorAll('div.content');
     const target = [...blocks].find((el) => el.getAttribute('data-index') === targetIndex);
@@ -110,9 +123,32 @@ export default function PageComponent(): React.ReactElement {
       onFucusIndex(String(index + 1));
     }
   };
+  
+  useEffect(() => {
+    const onFocus = (targetBlockId: string) => {
+      const contents = document.querySelectorAll('div.content');
+      console.log('🚀 ~ file: PageComponent.tsx ~ line 90 ~ onFocus ~ contents', contents);
+      console.log(
+        'attr test => ',
+        [...contents][0].getAttribute('data-blockid'),
+        typeof [...contents][0].getAttribute('data-blockid'),
+      );
+      const target = [...contents].find((el) => el.getAttribute('data-blockid') === targetBlockId);
+      if (target) {
+        console.log('🚀 ~ file: PageComponent.tsx ~ line 122 ~ onFocus ~ target', target);
+        (target as any).tabIndex = -1;
+        (target as any).focus();
+        (target as any).tabIndex = 0;
+      }
+    };
 
-  useLayoutEffect(() => {
+    console.log(
+      '🚀 ~ file: PageComponent.tsx ~ line 87 ~ useLayoutEffect ~ focusBlockId',
+      focusBlockId,
+    );
+    
     focusBlockId && onFocus(String(focusBlockId));
+    setFocusBlockId(null);
   }, [focusBlockId]);
 
   const onDragEnd = (result: DropResult) => {
@@ -137,6 +173,7 @@ export default function PageComponent(): React.ReactElement {
                 {(provided) => (
                   <BlockContent
                     key={block.blockId}
+                    block={block}
                     blockId={block.blockId}
                     newBlock={addBlock}
                     changeBlock={changeBlock}
