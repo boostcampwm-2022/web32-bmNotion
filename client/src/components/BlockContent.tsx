@@ -110,6 +110,7 @@ export default function BlockContent({
     if (toType !== '') {
       /* toType으로 타입변경 */
       e.preventDefault();
+      elem.textContent = postText;
       console.log(`toType => ${toType}, content: ${postText}`);
       changeBlock({ blockId, type: toType, content: postText, index });
     }
@@ -161,7 +162,7 @@ export default function BlockContent({
               data-index={index}
               ref={refBlock}
             >
-              {block.content || ''}
+              {content || ''}
             </BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
@@ -189,7 +190,7 @@ export default function BlockContent({
               data-index={index}
               ref={refBlock}
             >
-              {block.content || ''}
+              {content || ''}
             </BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
@@ -217,7 +218,7 @@ export default function BlockContent({
               data-index={index}
               ref={refBlock}
             >
-              {block.content || ''}
+              {content || ''}
             </BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
@@ -245,7 +246,7 @@ export default function BlockContent({
               data-index={index}
               ref={refBlock}
             >
-              {block.content || ''}
+              {content || ''}
             </BlockContentBox>
             {blockModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
