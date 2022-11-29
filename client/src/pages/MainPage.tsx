@@ -4,6 +4,7 @@ import BlockContent from '@/components/BlockContent';
 import PageComponent from '@/components/PageComponent';
 import Modal from '@/components/modal/Modal';
 import TopBarModalContent from '@/components/modal/TopBarModalContent';
+import axios from 'axios';
 import SettingModalContent from '@/components/modal/SettingModalContent';
 
 interface SideBarButtonProps {
@@ -17,6 +18,16 @@ interface SideBarProps {
   sideBarHoverButton: string;
 }
 
+interface Workspace {
+  title: string;
+  id: string;
+}
+
+interface Page {
+  title: string;
+  id: string;
+}
+
 const threePointButton = '/assets/icons/threePoint.png';
 const hamburgerButton = '/assets/icons/hamburger.png';
 const doubleArrowButton = '/assets/icons/doubleArrow.png';
@@ -28,6 +39,8 @@ export default function MainPage(): ReactElement {
   const [sideBarHoverButton, setSideBarHoverButton] = useState('/assets/icons/doubleArrow.png');
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
   const [isReaderMode, setIsReaderMode] = useState(false);
+  const [workspaceList, setWorkspaceList] = useState<Workspace[]>([]);
+  const [pageList, setPageList] = useState<Page[]>([]);
 
   const [spaceSettingModalOpen, setSpaceSettingModalOpen] = useState(false);
   const [topBarModalOpen, setTopBarModalOpen] = useState(false);
@@ -47,6 +60,47 @@ export default function MainPage(): ReactElement {
   const readerModeButtonClick = () => {
     setIsReaderMode(!isReaderMode);
   };
+
+  useEffect(() => {
+    axios
+      .get('http://localhost:8080/api/workspace/list', {
+        headers: {
+          authorization: localStorage.getItem('jwt'),
+        },
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data.code === '202') {
+          setWorkspaceList(res.data);
+        } else {
+          setWorkspaceList(res.data);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get('http://localhost:8080/api/page/list', {
+        headers: {
+          authorization: localStorage.getItem('jwt'),
+        },
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data.code === '202') {
+          setWorkspaceList(res.data);
+        } else {
+          setWorkspaceList(res.data);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, pageList);
+
   return (
     <Wrapper>
       <SideBar isClicked={sideBarButtonClicked} sideBarHoverButton={reverseDoubleArrowButton}>
@@ -62,6 +116,11 @@ export default function MainPage(): ReactElement {
         </SideBarHeaderContainer>
         <SideBarBodyContainer>
           <SideBarBody>
+           {workspaceList.map((workspace) => (
+            <>
+              <div>{workspace.title}</div>
+            </>
+          ))}
             <SpaceSettingButton onClick={spaceSettingButtonClicked}>
               <span>아이콘</span>
               <span>설정</span>
@@ -88,7 +147,10 @@ export default function MainPage(): ReactElement {
             <TopBarOptionButton onClick={handleTopBarModal}></TopBarOptionButton>
             {topBarModalOpen && (
               <Modal width={'230px'} height={'500px'} position={['', '12px', '', '']}>
-                <TopBarModalContent readerMode={readerModeButtonClick} isReaderMode={isReaderMode} />
+                <TopBarModalContent
+                  readerMode={readerModeButtonClick}
+                  isReaderMode={isReaderMode}
+                />
               </Modal>
             )}
           </TopBarRight>

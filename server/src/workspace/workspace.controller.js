@@ -1,9 +1,13 @@
 const jwt = require('jsonwebtoken');
-const { inviteUserPipeline } = require('./workspace.service');
+const { readWorkspaceById, inviteUserPipeline } = require('./workspace.service');
 
 const workspaceController = {
-  getList: (req, res) => {
-    console.log(req);
+  getWorkspaceList: async (req, res) => {
+    console.log('success');
+    const { id: userId } = jwt.decode(req.headers.authorization);
+    const resJson = await readWorkspaceById(userId);
+
+    res.json(resJson);
   },
   addWorkspace: (req, res) => {
     console.log(req);
