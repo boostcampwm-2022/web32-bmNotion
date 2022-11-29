@@ -18,7 +18,7 @@ const pageController = {
   },
 
   readPages: async (req, res) => {
-    const { id: userid } = jwt.decode(req, headers.Authorization);
+    const { id: userid } = jwt.decode(req.headers.Authorization);
     console.log(userid);
     const pages = await readPages(userid);
 

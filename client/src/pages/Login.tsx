@@ -38,11 +38,17 @@ export default function Login(): ReactElement {
     // formData.append('id', inputID);
     // formData.append('password', inputPassWord);
     axios
-      .post('http://localhost:8080/auth/signin', { id: inputID, password: inputPassWord }, { withCredentials: true })
+      .post(
+        'http://localhost:8080/auth/signin',
+        { id: inputID, password: inputPassWord },
+        { withCredentials: true },
+      )
       .then((res) => {
         if (res.data.code === '202') {
           localStorage.setItem('jwt', res.data.authorize);
+          localStorage.setItem('workspace', res.data.workspace);
           console.log(jwt.decode(res.data.authorize));
+          console.log(res.data);
           alert('로그인 되었습니다.');
           navigate(`/page/${res.data.pageid}`);
         } else {
@@ -113,9 +119,17 @@ function InputDiv({
   return (
     <>
       <InputContainer>
-        <Input type={type} name={name} placeholder={placeholder} value={inputValue} onChange={onChange} />
+        <Input
+          type={type}
+          name={name}
+          placeholder={placeholder}
+          value={inputValue}
+          onChange={onChange}
+        />
       </InputContainer>
-      <ValidationContainer>{alertMessage === '' ? null : <Validation>{alertMessage}</Validation>}</ValidationContainer>
+      <ValidationContainer>
+        {alertMessage === '' ? null : <Validation>{alertMessage}</Validation>}
+      </ValidationContainer>
     </>
   );
 }

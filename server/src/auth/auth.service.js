@@ -59,13 +59,15 @@ const encryptPassword = (password) => {
   return encrypted;
 };
 
-const saveUser = async (id, password, nickname, objectName) => {
+const saveUser = async (id, password, nickname, objectName, workspaceid) => {
   const encryptedPw = encryptPassword(password);
   const user = {
     id,
     nickname,
     encryptedPw,
     objectName,
+    workspaces: [workspaceid],
+    likes: [],
   };
   await createDocument('user', user);
   return user;
@@ -76,10 +78,11 @@ const createWorkspace = async (id) => {
     owner: id,
     members: [],
     pages: [],
-    teshcan: [],
+    treshcan: [],
   };
 
-  await createDocument(dbConfig.COLLECTION_WORKSPACE, workspace);
+  const result = await createDocument(dbConfig.COLLECTION_WORKSPACE, workspace);
+  return result.insertedId;
 };
 
 const createNewAccesstoken = (id, nickname) => {
@@ -109,10 +112,10 @@ const signUpPipeline = async (id, password, nickname, file) => {
   const user = await searchUser(id, nickname);
   let message = '';
   if (user === null) {
-    const objectName = `${id}.profile`;
+    const objectName = file ? `${id}.profile` : undefined;
     await uploadImg(objectName, file);
-    await saveUser(id, password, nickname, objectName);
-    await createWorkspace(id);
+    const workspaceid = await createWorkspace(id);
+    await saveUser(id, password, nickname, objectName, workspaceid);
     message = responseMessage.PROCESS_SUCCESS;
   } else if (user.nickname === nickname) {
     message = responseMessage.EXIST_NICKNAME;
@@ -122,11 +125,33 @@ const signUpPipeline = async (id, password, nickname, file) => {
   return createResponse(message);
 };
 
+const getCurrentPageid = (pages) =>
+  pages.reduce((pre, cur) => {
+    const { _id: pageid, lasteditedtime } = cur;
+    const curTime = Date.parse(lasteditedtime);
+    if (pre === undefined) return { pageid, time: curTime };
+    return pre.time > curTime ? pre : { pageid, time: curTime };
+  }, undefined).pageid;
+
+const getPageid = async (userid) => {
+  const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, { owner: userid });
+  if (workspace.pages && workspace.pages.length >= 1) {
+    const pages = await Promise.all(
+      workspace.pages.map((pageid) => readOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid })),
+    );
+    return getCurrentPageid(pages);
+  }
+  const { pageid } = await addPagePipeline(userid);
+  return pageid;
+};
+
 const signInPipeline = async (id, password) => {
   const user = await searchUserById(id);
   const encrypted = encryptPassword(password);
   let message = responseMessage.SIGNIN_FAIL;
   let tokens;
+  let workspaceid;
+  let pageid;
   if (user !== null && encrypted === user.encryptedPw) {
     const accessToken = createNewAccesstoken(user.id, user.nickname);
     const refreshToken = createNewRefreshtoken();
@@ -139,8 +164,15 @@ const signInPipeline = async (id, password) => {
     await createDocument(dbConfig.COLLECTION_TOKEN, newDocument);
     tokens = { accessToken, refreshToken };
     message = responseMessage.PROCESS_SUCCESS;
+    [workspaceid] = user.workspaces;
+    pageid = await getPageid(id);
   }
-  return { tokens, response: createResponse(message) };
+  return {
+    tokens,
+    response: createResponse(message),
+    workspaceid,
+    pageid,
+  };
 };
 
 const isValidAccesstoken = (accessToken) => {
@@ -169,26 +201,6 @@ const createNewAccesstokenByRefreshtoken = async (refreshToken) => {
   return accessToken;
 };
 
-const getCurrentPageid = (pages) =>
-  pages.reduce((pre, cur) => {
-    const { _id: pageid, lasteditedtime } = cur;
-    const curTime = Date.parse(lasteditedtime);
-    if (pre === undefined) return { pageid, time: curTime };
-    return pre.time > curTime ? pre : { pageid, time: curTime };
-  }, undefined).pageid;
-
-const getPageid = async (userid) => {
-  const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, { owner: userid });
-  if (workspace.pages && workspace.pages.length >= 1) {
-    const pages = await Promise.all(
-      workspace.pages.map((pageid) => readOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid })),
-    );
-    return getCurrentPageid(pages);
-  }
-  const { pageid } = await addPagePipeline(userid);
-  return pageid;
-};
-
 module.exports = {
   signInPipeline,
   signUpPipeline,
@@ -196,5 +208,4 @@ module.exports = {
   isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
   createObjectUrl,
-  getPageid,
 };
