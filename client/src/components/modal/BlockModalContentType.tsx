@@ -9,7 +9,13 @@ interface TypeProps {
   handleType: Function;
 }
 
-export default function BlockModalContentType({ image, title, contents, type, handleType }: TypeProps): ReactElement {
+export default function BlockModalContentType({
+  image,
+  title,
+  contents,
+  type,
+  handleType,
+}: TypeProps): ReactElement {
   return (
     <TypeContainer onClick={() => handleType(type)}>
       <TypeImage image={image} />

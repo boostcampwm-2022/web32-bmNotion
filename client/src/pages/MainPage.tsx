@@ -4,6 +4,8 @@ import BlockContent from '@/components/BlockContent';
 import PageComponent from '@/components/PageComponent';
 import Modal from '@/components/modal/Modal';
 import TopBarModalContent from '@/components/modal/TopBarModalContent';
+import axios from 'axios';
+import SettingModalContent from '@/components/modal/SettingModalContent';
 
 interface SideBarButtonProps {
   isClicked: boolean;
@@ -14,6 +16,16 @@ interface SideBarButtonProps {
 interface SideBarProps {
   isClicked: boolean;
   sideBarHoverButton: string;
+}
+
+interface Workspace {
+  title: string;
+  id: string;
+}
+
+interface Page {
+  title: string;
+  id: string;
 }
 
 const threePointButton = '/assets/icons/threePoint.png';
@@ -27,12 +39,19 @@ export default function MainPage(): ReactElement {
   const [sideBarHoverButton, setSideBarHoverButton] = useState('/assets/icons/doubleArrow.png');
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
   const [isReaderMode, setIsReaderMode] = useState(false);
+  const [workspaceList, setWorkspaceList] = useState<Workspace[]>([]);
+  const [pageList, setPageList] = useState<Page[]>([]);
 
+  const [spaceSettingModalOpen, setSpaceSettingModalOpen] = useState(false);
   const [topBarModalOpen, setTopBarModalOpen] = useState(false);
 
   const moveNextBlock = () => {};
   const sideBarButtonClick = () => {
     setSideBarButtonClicked(!sideBarButtonClicked);
+  };
+
+  const spaceSettingButtonClicked = () => {
+    setSpaceSettingModalOpen(!spaceSettingModalOpen);
   };
 
   const handleTopBarModal = () => {
@@ -41,6 +60,47 @@ export default function MainPage(): ReactElement {
   const readerModeButtonClick = () => {
     setIsReaderMode(!isReaderMode);
   };
+
+  useEffect(() => {
+    axios
+      .get('http://localhost:8080/api/workspace/list', {
+        headers: {
+          authorization: localStorage.getItem('jwt'),
+        },
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data.code === '202') {
+          setWorkspaceList(res.data);
+        } else {
+          setWorkspaceList(res.data);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get('http://localhost:8080/api/page/list', {
+        headers: {
+          authorization: localStorage.getItem('jwt'),
+        },
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data.code === '202') {
+          setWorkspaceList(res.data);
+        } else {
+          setWorkspaceList(res.data);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, pageList);
+
   return (
     <Wrapper>
       <SideBar isClicked={sideBarButtonClicked} sideBarHoverButton={reverseDoubleArrowButton}>
@@ -54,6 +114,24 @@ export default function MainPage(): ReactElement {
             ></SideBarButton>
           </SideBarHeader>
         </SideBarHeaderContainer>
+        <SideBarBodyContainer>
+          <SideBarBody>
+           {workspaceList.map((workspace) => (
+            <>
+              <div>{workspace.title}</div>
+            </>
+          ))}
+            <SpaceSettingButton onClick={spaceSettingButtonClicked}>
+              <span>아이콘</span>
+              <span>설정</span>
+            </SpaceSettingButton>
+            {spaceSettingModalOpen && (
+              <Modal width={'230px'} height={'500px'} position={['', '', '', '']}>
+                <SettingModalContent />
+              </Modal>
+            )}
+          </SideBarBody>
+        </SideBarBodyContainer>
       </SideBar>
       <MainContainer>
         <TopBar>
@@ -69,7 +147,10 @@ export default function MainPage(): ReactElement {
             <TopBarOptionButton onClick={handleTopBarModal}></TopBarOptionButton>
             {topBarModalOpen && (
               <Modal width={'230px'} height={'500px'} position={['', '12px', '', '']}>
-                <TopBarModalContent readerMode={readerModeButtonClick} isReaderMode={isReaderMode} />
+                <TopBarModalContent
+                  readerMode={readerModeButtonClick}
+                  isReaderMode={isReaderMode}
+                />
               </Modal>
             )}
           </TopBarRight>
@@ -189,7 +270,34 @@ const SideBarHeader = styled.div`
   padding: 12px;
 `;
 
-const SideBarBody = styled.div``;
+const SideBarBodyContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+`;
+
+const SideBarBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  padding: 12px;
+`;
+
+const SpaceSettingButton = styled.button`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+  }
+`;
 
 const PageContainer = styled.div<{ maxWidth: string }>`
   display: flex;

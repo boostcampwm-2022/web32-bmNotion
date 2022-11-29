@@ -21,6 +21,8 @@ interface BlockContentProps {
   focus?: boolean;
   newBlock: Function;
   changeBlock: Function;
+  provided: any;
+  moveBlock: Function;
 }
 
 interface BlockContentBoxProps {
@@ -74,10 +76,11 @@ export default function BlockContent({
   // blockId,
   newBlock,
   changeBlock,
-}: // index,
-// type,
-// focus,
-BlockContentProps): ReactElement {
+  index,
+  type,
+  provided,
+  moveBlock,
+}: BlockContentProps): ReactElement {
   const { blockId, content, index, type } = block;
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const refBlock = useRef<HTMLDivElement>(null);
@@ -115,14 +118,21 @@ BlockContentProps): ReactElement {
     }
     // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
+
+  const handleOnArrow = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    moveBlock({ e, content: '', index: index });
+  };
+
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.code === 'Enter') {
       handleOnEnter(e);
     } else if (e.code === 'Space') {
       handleOnSpace(e);
+    } else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+      handleOnArrow(e);
     }
   };
-  const handleType = (toType: string) => {
+  const handleType = (type: string) => {
     setBlockModalOpen(false);
     changeBlock({ blockId, type: toType, content: block.content, index });
   };
@@ -223,10 +233,10 @@ BlockContentProps): ReactElement {
     } else {
       return (
         <TextBlockContentBox>
-          <BlockContainer>
+          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
             <BlockButtonBox>
               <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
+              <BlockOptionButton onClick={() => console.log('aa')} {...provided.dragHandleProps} />
             </BlockButtonBox>
             <BlockContentBox
               // type => css
@@ -292,7 +302,7 @@ const BlockPlusButton = styled.button`
   }
 `;
 
-const BlockOptionButton = styled.button`
+const BlockOptionButton = styled.div`
   width: 18px;
   height: 24px;
   background-image: url('/assets/icons/optionButton.png');
