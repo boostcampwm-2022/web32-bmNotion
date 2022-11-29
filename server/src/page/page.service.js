@@ -41,10 +41,12 @@ const addPagePipeline = async (userid) => {
 };
 
 const readPagePipeline = async (workspaceId) => {
-  const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, { _id: ObjectId(workspaceId) });
+  const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, {
+    _id: ObjectId(workspaceId),
+  });
   const pages = new Array();
   for (page of workspace.pages) {
-    const pageInfo = await readOneDocument(dbConfig.COLLECTION_PAGE, { _id: ObjectId(page) })
+    const pageInfo = await readOneDocument(dbConfig.COLLECTION_PAGE, { _id: ObjectId(page) });
     pages.push({ title: pageInfo.title, id: page });
   }
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
