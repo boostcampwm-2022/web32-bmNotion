@@ -3,7 +3,8 @@ const { readWorkspaceById } = require('./workspace.service');
 
 const workspaceController = {
   getWorkspaceList: async (req, res) => {
-    const { id: userId } = jwt.decode(req.headers.Autorization);
+    console.log('success');
+    const { id: userId } = jwt.decode(req.headers.authorization);
     const resJson = await readWorkspaceById(userId);
 
     res.json(resJson);

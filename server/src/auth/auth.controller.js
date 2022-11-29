@@ -36,20 +36,23 @@ const signUpController = {
 
 const authController = {
   verifyAccesstoken: (req, res, next) => {
-    const bearerHeader = req.headers.Authorization;
+    console.log(1);
+    const bearerHeader = req.headers.authorization;
     if (bearerHeader === undefined) return res.json(createResponse(responseMessage.NEED_SIGNIN));
     const accessToken = bearerHeader.replace('Bearer', '').trim();
-    res.local.verifyAccessTokenMessage = isValidAccesstoken(accessToken);
+    res.locals.verifyAccessTokenMessage = isValidAccesstoken(accessToken);
     return next();
   },
 
   verifyRefreshtoken: (req, res, next) => {
-    switch (res.local.verifyAccessTokenMessage) {
+    console.log(2);
+
+    switch (res.locals.verifyAccessTokenMessage) {
       case 'success':
         return next();
 
       case 'TokenExpiredError':
-        res.local.verifyRefreshTokenMessage = isValidRefreshtoken(req.cookies.refreshToken);
+        res.locals.verifyRefreshTokenMessage = isValidRefreshtoken(req.cookies.refreshToken);
         return next();
 
       default:
@@ -58,9 +61,11 @@ const authController = {
   },
 
   requestAccessToken: async (req, res, next) => {
-    if (res.local.verifyAccessTokenMessage === 'success') return next();
+    console.log(3);
 
-    if (res.local.verifyRefreshTokenMessage === 'success') {
+    if (res.locals.verifyAccessTokenMessage === 'success') return next();
+
+    if (res.locals.verifyRefreshTokenMessage === 'success') {
       const resJson = createResponse(responseMessage.RENEWAL_TOKEN);
       resJson.accessToken = await createNewAccesstokenByRefreshtoken(req.cookies.refreshToken);
       return res.json(resJson);

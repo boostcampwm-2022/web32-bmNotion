@@ -15,16 +15,16 @@ app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 require('dotenv').config();
 
 app.use(express.static(path.resolve(__dirname, '..', '..', 'client', 'dist')));
-app.use('/*', express.static(path.resolve(__dirname, '..', '..', 'client', 'dist')));
+// app.use('/*', express.static(path.resolve(__dirname, '..', '..', 'client', 'dist')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/', mainRouter);
 app.use('/auth', authRouter);
 app.use('/page', pageRouter);
 app.use('/edit', editRouter);
 app.use('/api/workspace', workspaceRouter);
+app.use('/', mainRouter);
 
 app.listen(port, () => {
   console.log('연결 성공');
