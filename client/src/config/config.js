@@ -13,4 +13,4 @@ export const API = {
   ADD_WORKSPACE_MEMBER: `${BASE_URL}/api/workspace/invite`,
   RENAME_WORKSPACE: `${BASE_URL}/api/workspace/rename`,
   GET_USER_NICKNAME: `${BASE_URL}/api/user/:nickname`,
-}
+};
