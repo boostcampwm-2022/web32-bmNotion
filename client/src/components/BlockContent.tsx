@@ -67,7 +67,6 @@ export default function BlockContent({
   index,
   type,
 }: BlockContentProps): ReactElement {
-  const [nowType, setNowType] = useState(type);
   const [blockModalOpen, setBlockModalOpen] = useState(false);
   const handleBlockBarModal = () => {
     setBlockModalOpen(!blockModalOpen);
@@ -101,7 +100,6 @@ export default function BlockContent({
       e.preventDefault();
       console.log(`toType => ${toType}`); /* TODO toType으로 타입변경하는 함수로 변경 필요 */
       changeBlock({ blockId, type: toType, content: postText, index });
-      setNowType(toType);
     }
     // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
@@ -112,14 +110,13 @@ export default function BlockContent({
       handleOnSpace(e);
     }
   };
-  const handleType = (type: string) => {
-    console.log('aa');
-    setNowType(type);
+  const handleType = (toType: string) => {
     setBlockModalOpen(false);
+    changeBlock({ blockId, type: toType, content: "", index });
   };
 
   const renderTypeBlock = () => {
-    if (nowType === 'H1') {
+    if (type === 'H1') {
       return (
         <H1BlockContentBox>
           <BlockContainer>
@@ -143,7 +140,7 @@ export default function BlockContent({
           </BlockContainer>
         </H1BlockContentBox>
       );
-    } else if (nowType === 'H2') {
+    } else if (type === 'H2') {
       return (
         <H2BlockContentBox>
           <BlockContainer>
@@ -167,7 +164,7 @@ export default function BlockContent({
           </BlockContainer>
         </H2BlockContentBox>
       );
-    } else if (nowType === 'H3') {
+    } else if (type === 'H3') {
       return (
         <H3BlockContentBox>
           <BlockContainer>
