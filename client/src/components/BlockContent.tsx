@@ -104,7 +104,7 @@ export default function BlockContent({
     const totalContent = elem.textContent || '';
     const offset = (window.getSelection() as Selection).focusOffset;
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
-    console.log('🚀 ~ file: BlockContent.tsx ~ line 111 ~ handleOnSpace ~ preText', preText);
+    // console.log('🚀 ~ file: BlockContent.tsx ~ line 111 ~ handleOnSpace ~ preText', preText);
     /* 마크다운 문법과 일치 => 해당 타입으로 변경 */
     const toType = checkMarkDownGrammer(preText);
     if (toType !== '') {
@@ -136,7 +136,7 @@ export default function BlockContent({
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = (e.target as HTMLDivElement).textContent;
-    console.log('🚀 ~ file: BlockContent.tsx ~ line 134 ~ handleOnInput ~ newContent', newContent);
+    // console.log('🚀 ~ file: BlockContent.tsx ~ line 134 ~ handleOnInput ~ newContent', newContent);
     if (newContent) {
       block.content = newContent;
     }
@@ -146,10 +146,10 @@ export default function BlockContent({
     if (type === 'H1') {
       return (
         <H1BlockContentBox>
-          <BlockContainer>
+          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
             <BlockButtonBox>
               <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
+              <BlockOptionButton onClick={() => console.log('aa')} {...provided.dragHandleProps} />
             </BlockButtonBox>
             <BlockContentBox
               // type => css
@@ -174,10 +174,10 @@ export default function BlockContent({
     } else if (type === 'H2') {
       return (
         <H2BlockContentBox>
-          <BlockContainer>
+          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
             <BlockButtonBox>
               <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
+              <BlockOptionButton onClick={() => console.log('aa')} {...provided.dragHandleProps} />
             </BlockButtonBox>
             <BlockContentBox
               // type => css
@@ -202,10 +202,10 @@ export default function BlockContent({
     } else if (type === 'H3') {
       return (
         <H3BlockContentBox>
-          <BlockContainer>
+          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
             <BlockButtonBox>
               <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
+              <BlockOptionButton onClick={() => console.log('aa')} {...provided.dragHandleProps} />
             </BlockButtonBox>
             <BlockContentBox
               // type => css

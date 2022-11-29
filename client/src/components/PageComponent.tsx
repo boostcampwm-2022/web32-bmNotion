@@ -34,7 +34,7 @@ export default function PageComponent(): React.ReactElement {
   const [pageInfo, setPageInfo] = useState(samplePageInfo);
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
-
+  console.log(pageInfo);
   const updateIndex = (block: BlockInfo): BlockInfo => ({ ...block, index: block.index + 1 });
   const addBlock = ({
     blockId,
@@ -73,7 +73,9 @@ export default function PageComponent(): React.ReactElement {
   }) => {
     setPageInfo((prev) => ({
       ...prev,
-      blocks: prev.blocks.map((block) => (block.blockId === blockId ? { ...block, type, content, ref: true } : block)),
+      blocks: prev.blocks.map((block) =>
+        block.blockId === blockId ? { ...block, type, content, ref: true } : block,
+      ),
     }));
     setFocusBlockId(blockId);
   };
@@ -123,30 +125,30 @@ export default function PageComponent(): React.ReactElement {
       onFucusIndex(String(index + 1));
     }
   };
-  
+
   useEffect(() => {
     const onFocus = (targetBlockId: string) => {
       const contents = document.querySelectorAll('div.content');
-      console.log('🚀 ~ file: PageComponent.tsx ~ line 90 ~ onFocus ~ contents', contents);
-      console.log(
-        'attr test => ',
-        [...contents][0].getAttribute('data-blockid'),
-        typeof [...contents][0].getAttribute('data-blockid'),
-      );
+      // console.log('🚀 ~ file: PageComponent.tsx ~ line 90 ~ onFocus ~ contents', contents);
+      // console.log(
+      //   'attr test => ',
+      //   [...contents][0].getAttribute('data-blockid'),
+      //   typeof [...contents][0].getAttribute('data-blockid'),
+      // );
       const target = [...contents].find((el) => el.getAttribute('data-blockid') === targetBlockId);
       if (target) {
-        console.log('🚀 ~ file: PageComponent.tsx ~ line 122 ~ onFocus ~ target', target);
+        // console.log('🚀 ~ file: PageComponent.tsx ~ line 122 ~ onFocus ~ target', target);
         (target as any).tabIndex = -1;
         (target as any).focus();
         (target as any).tabIndex = 0;
       }
     };
 
-    console.log(
-      '🚀 ~ file: PageComponent.tsx ~ line 87 ~ useLayoutEffect ~ focusBlockId',
-      focusBlockId,
-    );
-    
+    // console.log(
+    //   '🚀 ~ file: PageComponent.tsx ~ line 87 ~ useLayoutEffect ~ focusBlockId',
+    //   focusBlockId,
+    // );
+
     focusBlockId && onFocus(String(focusBlockId));
     setFocusBlockId(null);
   }, [focusBlockId]);
@@ -156,11 +158,15 @@ export default function PageComponent(): React.ReactElement {
     console.log(pageInfo.blocks);
     console.log('res = ', result);
 
-    const blocks = [...pageInfo.blocks];
-    const [reOrderedBlock] = blocks.splice(result.source.index, 1);
-    blocks.splice(result.destination.index, 0, reOrderedBlock);
-
-    setPageInfo({ ...pageInfo, blocks: blocks });
+    setPageInfo((prev) => {
+      const blocks = [...prev.blocks];
+      const [reOrderedBlock] = blocks.splice(result.source.index - 1, 1);
+      blocks.splice((result?.destination?.index as number) - 1, 0, reOrderedBlock);
+      const arrayedBlocks = blocks.map((e, i) => {
+        return { ...e, index: i + 1 };
+      });
+      return { ...prev, blocks: arrayedBlocks };
+    });
   };
 
   return (
@@ -168,23 +174,28 @@ export default function PageComponent(): React.ReactElement {
       <Droppable droppableId="blocks">
         {(provided) => (
           <PageBox className="blocks" {...provided.droppableProps} ref={provided.innerRef}>
-            {pageInfo.blocks.map((block, idx) => (
-              <Draggable key={block.blockId} draggableId={block.blockId.toString()} index={block.blockId}>
-                {(provided) => (
-                  <BlockContent
-                    key={block.blockId}
-                    block={block}
-                    blockId={block.blockId}
-                    newBlock={addBlock}
-                    changeBlock={changeBlock}
-                    moveBlock={moveBlock}
-                    index={block.index}
-                    type={block.type}
-                    provided={provided}
-                  />
-                )}
-              </Draggable>
-            ))}
+            {pageInfo?.blocks &&
+              pageInfo.blocks.map((block, idx) => (
+                <Draggable
+                  key={block.blockId}
+                  draggableId={block.blockId.toString()}
+                  index={idx + 1}
+                >
+                  {(provided) => (
+                    <BlockContent
+                      key={block.blockId}
+                      block={block}
+                      blockId={block.blockId}
+                      newBlock={addBlock}
+                      changeBlock={changeBlock}
+                      moveBlock={moveBlock}
+                      index={block.index}
+                      type={block.type}
+                      provided={provided}
+                    />
+                  )}
+                </Draggable>
+              ))}
             {provided.placeholder}
           </PageBox>
         )}
