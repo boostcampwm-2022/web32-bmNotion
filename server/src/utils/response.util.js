@@ -31,6 +31,10 @@ const createResponse = (message) => {
       response.code = '100';
       response.message = responseMessage.RENEWAL_TOKEN;
       break;
+    case responseMessage.USER_NOT_FOUND:
+      response.code = '404';
+      response.message = responseMessage.USER_NOT_FOUND;
+      break;
     default:
       break;
   }
