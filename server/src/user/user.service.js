@@ -17,5 +17,11 @@ const searchUserPipeline = async (nickname) => {
   });
   return response;
 };
+const getProfilePipeline = (id) => {
+  const url = createObjectUrl(`${id}.profile`);
+  const response = createResponse(responseMessage.PROCESS_SUCCESS);
+  response.url = url;
+  return response;
+};
 
-module.exports = { searchUserPipeline };
+module.exports = { searchUserPipeline, getProfilePipeline };

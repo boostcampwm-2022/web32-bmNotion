@@ -89,7 +89,7 @@ export default function SettingModalContent() {
       return;
     }
     axios
-      .get(`http://localhost:8080/api/user/${nickname}`, {
+      .get(`http://localhost:8080/api/user/search/${nickname}`, {
         headers: {
           Authorization: localStorage.getItem('jwt'),
           withCredentials: true,
@@ -197,4 +197,5 @@ const ProfileImage = styled.img`
   height: 24px;
   border-radius: 12px;
   background: gray;
+  border: 1px solid gray;
 `;
