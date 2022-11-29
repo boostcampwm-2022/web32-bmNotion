@@ -12,6 +12,7 @@ interface BlockContentProps {
   content?: string;
   children?: any;
   type: string;
+  provided: any;
 }
 
 interface BlockContentBoxProps {
@@ -66,6 +67,7 @@ export default function BlockContent({
   changeBlock,
   index,
   type,
+  provided,
 }: BlockContentProps): ReactElement {
   const [nowType, setNowType] = useState(type);
   const [blockModalOpen, setBlockModalOpen] = useState(false);
@@ -194,10 +196,10 @@ export default function BlockContent({
     } else {
       return (
         <TextBlockContentBox>
-          <BlockContainer>
+          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
             <BlockButtonBox>
               <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
+              <BlockOptionButton onClick={() => console.log('aa')} {...provided.dragHandleProps} />
             </BlockButtonBox>
             <BlockContentBox
               // type => css
@@ -259,7 +261,7 @@ const BlockPlusButton = styled.button`
   }
 `;
 
-const BlockOptionButton = styled.button`
+const BlockOptionButton = styled.div`
   width: 18px;
   height: 24px;
   background-image: url('/assets/icons/optionButton.png');
