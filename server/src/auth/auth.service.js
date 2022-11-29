@@ -6,6 +6,7 @@ const dbConfig = require('../db.config.json');
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
 const { addPagePipeline } = require('../page/page.service');
+const { ObjectId } = require('mongodb');
 
 const region = 'kr-standard';
 const bucketName = `${process.env.BUCKET_NAME}`;
@@ -152,6 +153,7 @@ const signInPipeline = async (id, password) => {
   let message = responseMessage.SIGNIN_FAIL;
   let tokens;
   let workspaceid;
+  let spacename;
   let pageid;
   if (user !== null && encrypted === user.encryptedPw) {
     const accessToken = createNewAccesstoken(user.id, user.nickname);
@@ -166,6 +168,10 @@ const signInPipeline = async (id, password) => {
     tokens = { accessToken, refreshToken };
     message = responseMessage.PROCESS_SUCCESS;
     [workspaceid] = user.workspaces;
+    const result = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, {
+      _id: ObjectId(workspaceid),
+    });
+    spacename = result.title;
     pageid = await getPageid(id);
   }
   return {
@@ -173,6 +179,7 @@ const signInPipeline = async (id, password) => {
     response: createResponse(message),
     workspaceid,
     pageid,
+    spacename,
   };
 };
 

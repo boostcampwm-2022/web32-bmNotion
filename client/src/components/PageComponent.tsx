@@ -73,7 +73,9 @@ export default function PageComponent(): React.ReactElement {
   }) => {
     setPageInfo((prev) => ({
       ...prev,
-      blocks: prev.blocks.map((block) => (block.blockId === blockId ? { ...block, type, content, ref: true } : block)),
+      blocks: prev.blocks.map((block) =>
+        block.blockId === blockId ? { ...block, type, content, ref: true } : block,
+      ),
     }));
     setFocusBlockId(blockId);
   };
@@ -123,7 +125,7 @@ export default function PageComponent(): React.ReactElement {
       onFucusIndex(String(index + 1));
     }
   };
-  
+
   useEffect(() => {
     const onFocus = (targetBlockId: string) => {
       const contents = document.querySelectorAll('div.content');
@@ -146,7 +148,7 @@ export default function PageComponent(): React.ReactElement {
       '🚀 ~ file: PageComponent.tsx ~ line 87 ~ useLayoutEffect ~ focusBlockId',
       focusBlockId,
     );
-    
+
     focusBlockId && onFocus(String(focusBlockId));
     setFocusBlockId(null);
   }, [focusBlockId]);
@@ -169,7 +171,11 @@ export default function PageComponent(): React.ReactElement {
         {(provided) => (
           <PageBox className="blocks" {...provided.droppableProps} ref={provided.innerRef}>
             {pageInfo.blocks.map((block, idx) => (
-              <Draggable key={block.blockId} draggableId={block.blockId.toString()} index={block.blockId}>
+              <Draggable
+                key={block.blockId}
+                draggableId={block.blockId.toString()}
+                index={block.blockId}
+              >
                 {(provided) => (
                   <BlockContent
                     key={block.blockId}

@@ -12,13 +12,20 @@ const responseMessage = require('../response.message.json');
 const signInController = {
   signIn: async (req, res) => {
     const { id, password } = req.body;
-    const { tokens, response: resJson, workspaceid, pageid } = await signInPipeline(id, password);
+    const {
+      tokens,
+      response: resJson,
+      workspaceid,
+      pageid,
+      spacename,
+    } = await signInPipeline(id, password);
     if (resJson.code === '202') {
       const { accessToken, refreshToken } = tokens;
       res.cookie('refreshToken', refreshToken);
       resJson.authorize = accessToken;
       resJson.workspace = workspaceid;
       resJson.pageid = pageid;
+      resJson.spacename = spacename;
     }
     res.json(resJson);
   },
