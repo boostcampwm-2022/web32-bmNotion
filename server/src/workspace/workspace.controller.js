@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const {
-  renameWorkspacePipeline
+  renameWorkspacePipeline,
   getWorkspacesPipeline,
   inviteUserPipeline,
 } = require('./workspace.service');
