@@ -151,7 +151,7 @@ export default function BlockContent({
   };
 
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.code === 'Enter') {
+    if (e.key === 'Enter') {
       handleOnEnter(e);
     } else if (e.code === 'Space') {
       handleOnSpace(e);
