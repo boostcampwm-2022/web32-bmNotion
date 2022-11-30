@@ -137,15 +137,16 @@ export default function BlockContent({
     const elem = e.target as HTMLElement;
     // console.log('🚀 ~ file: BlockContent.tsx ~ line 136 ~ handleOnBackspace ~ elem', elem);
     // console.log(elem.textContent, type);
-    if (elem.textContent !== '') return;
-    e.preventDefault();
-    if (type === 'TEXT') {
-      console.log('블록 삭제 트리거');
-      deleteBlock({ block });
-    } else {
+    if ((window.getSelection() as Selection).focusOffset !== 0) return;
+    if (type !== 'TEXT') {
+      e.preventDefault();
       console.log('블록 TEXT로 변경');
       const toType = 'TEXT';
       changeBlock({ blockId, type: toType, content: elem.textContent, index });
+    } else if (elem.textContent === '') {
+      e.preventDefault();
+      console.log('블록 삭제 트리거');
+      deleteBlock({ block });
     }
   };
 
