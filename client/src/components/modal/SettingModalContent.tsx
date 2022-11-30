@@ -1,4 +1,6 @@
-import axios from 'axios';
+import { API } from '@/config/config';
+import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
+import { AxiosResponse } from 'axios';
 import React, { useRef, useState } from 'react';
 import styled from 'styled-components';
 
@@ -26,52 +28,43 @@ export default function SettingModalContent() {
       name,
       workspace: localStorage.getItem('workspace'),
     };
-    axios
-      .post('http://localhost:8080/api/workspace/rename', requestBody, {
-        headers: {
-          Authorization: localStorage.getItem('jwt'),
-        },
-        withCredentials: true,
-      })
-      .then((res) => {
-        if (res.data.code === '202') {
-          localStorage.setItem('spacename', name);
-          if (inputSpacenameRef.current === null) return;
-          inputSpacenameRef.current.value = '';
-          inputSpacenameRef.current.placeholder = name;
-          alert('성공적으로 변경되었습니다.');
-        } else {
-          console.log(res.data);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const requestHeader = {
+      Authorization: localStorage.getItem('jwt'),
+    };
+    const onSuccess = (res: AxiosResponse) => {
+      localStorage.setItem('spacename', name);
+      if (inputSpacenameRef.current === null) return;
+      inputSpacenameRef.current.value = '';
+      inputSpacenameRef.current.placeholder = name;
+      alert('성공적으로 변경되었습니다.');
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    axiosPostRequest(API.RENAME_WORKSPACE, onSuccess, onFail, requestBody, requestHeader);
   };
   const submitInviteUser = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log((e.currentTarget.elements.namedItem('nickname') as HTMLInputElement).value);
     const requestBody = {
       nickname: (e.currentTarget.elements.namedItem('nickname') as HTMLInputElement).value,
       workspace: localStorage.getItem('workspace'),
     };
-    axios
-      .post('http://localhost:8080/api/workspace/invite', requestBody, {
-        headers: {
-          Authorization: localStorage.getItem('jwt'),
-        },
-        withCredentials: true,
-      })
-      .then((res) => {
-        if (res.data.code === '202') {
-          alert('성공적으로 초대되었습니다.');
-        } else {
-          console.log(res.data);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const requestHeader = {
+      Authorization: localStorage.getItem('jwt'),
+    };
+    const onSuccess = (res: AxiosResponse) => {
+      alert('성공적으로 초대되었습니다.');
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    axiosPostRequest(
+      'http://localhost:8080/api/workspace/invite',
+      onSuccess,
+      onFail,
+      requestBody,
+      requestHeader,
+    );
   };
   const onClickSearchedUser = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -83,29 +76,25 @@ export default function SettingModalContent() {
   };
   const onSearchNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nickname = e.target.value;
-    console.log(nickname);
     if (nickname === '') {
       setSearchResult([]);
       return;
     }
-    axios
-      .get(`http://localhost:8080/api/user/search/${nickname}`, {
-        headers: {
-          Authorization: localStorage.getItem('jwt'),
-          withCredentials: true,
-        },
-      })
-      .then((res) => {
-        if (res.data.code === '202') {
-          console.log(res.data.users);
-          setSearchResult(res.data.users);
-        } else {
-          console.log(res);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const onSuccess = (res: AxiosResponse) => {
+      setSearchResult(res.data.users);
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    const requestHeader = {
+      Authorization: localStorage.getItem('jwt'),
+    };
+    axiosGetRequest(
+      `http://localhost:8080/api/user/search/${nickname}`,
+      onSuccess,
+      onFail,
+      requestHeader,
+    );
   };
   return (
     <SettingModalContainer>

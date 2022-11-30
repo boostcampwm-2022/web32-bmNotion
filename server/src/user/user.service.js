@@ -69,10 +69,11 @@ const searchUserPipeline = async (nickname) => {
   });
   return response;
 };
-const getProfilePipeline = (id) => {
+const getProfilePipeline = async (id) => {
+  const { objectName } = await userCrud.readUserById(id);
   const url = createObjectUrl(`${id}.profile`);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
-  response.url = url;
+  response.url = objectName === null ? undefined : url;
   return response;
 };
 

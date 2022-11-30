@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 
-const axiosGetRequest = (
+export const axiosGetRequest = (
   url: string,
   successCallback: (res: AxiosResponse) => any,
   failCallback: (error: AxiosResponse) => any,
@@ -29,12 +29,12 @@ const axiosGetRequest = (
   request();
 };
 
-const axiosPostRequest = (
+export const axiosPostRequest = (
   url: string,
   successCallback: (res: AxiosResponse) => any,
   failCallback: (error: AxiosResponse) => any,
   body: any | undefined,
-  headers: any | undefined,
+  headers?: any | undefined,
 ) => {
   const request = () => {
     axios
@@ -58,5 +58,3 @@ const axiosPostRequest = (
   };
   request();
 };
-
-export default { axiosGetRequest, axiosPostRequest };
