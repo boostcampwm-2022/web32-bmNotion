@@ -194,7 +194,7 @@ export default function MainPage(): ReactElement {
         </TopBar>
         <MainContainerBody>
           <PageContainer maxWidth={isReaderMode ? '100%' : '900px'}>
-            <PageComponent/>
+            <PageComponent />
           </PageContainer>
         </MainContainerBody>
       </MainContainer>

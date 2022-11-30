@@ -26,7 +26,7 @@ interface EditedBlockInfo {
 const sampleBlocks: BlockInfo[] = [{ blockId: 1, index: 1, content: '', type: 'TEXT' }];
 
 const samplePageInfo: PageInfo = {
-  title: "샘플 제목",
+  title: '샘플 제목',
   nextId: 2,
   pageId: 'abc',
   blocks: sampleBlocks,
@@ -37,13 +37,29 @@ export default function PageComponent(): React.ReactElement {
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
   console.log(pageInfo);
-  
+
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = (e.target as HTMLDivElement).textContent;
-    if(newContent) {
+    if (newContent) {
       pageInfo.title = newContent;
     }
-  }
+  };
+  const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const elem = e.target as HTMLElement;
+    const totalContent = elem.textContent || '';
+    const offset = (window.getSelection() as Selection).focusOffset;
+    const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
+    if (e.code === 'Enter') {
+      e.preventDefault();
+      if (totalContent.length === offset) {
+        addBlock({ type: 'TEXT', content: '', index: 1 });
+      } else {
+        pageInfo.title = preText;
+        elem.textContent = preText;
+        addBlock({ type: 'TEXT', content: postText, index: 1 });
+      }
+    }
+  };
   const updateIndex = (block: BlockInfo): BlockInfo => ({ ...block, index: block.index + 1 });
   const addBlock = ({
     blockId,
@@ -51,7 +67,7 @@ export default function PageComponent(): React.ReactElement {
     content,
     index,
   }: {
-    blockId: number;
+    blockId?: number;
     type: string;
     content: string;
     index: number;
@@ -180,12 +196,9 @@ export default function PageComponent(): React.ReactElement {
 
   return (
     <>
-      <PageTitle 
-        contentEditable
-        onInput={handleOnInput}>
+      <PageTitle contentEditable onInput={handleOnInput} onKeyDown={handleOnKeyDown}>
         {pageInfo.title}
       </PageTitle>
-      <button onClick={()=>console.log(pageInfo.title)}>aaa</button>
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="blocks">
           {(provided) => (
@@ -216,16 +229,15 @@ export default function PageComponent(): React.ReactElement {
             </PageBox>
           )}
         </Droppable>
-    </DragDropContext>
+      </DragDropContext>
     </>
-    
   );
 }
 
 const PageBox = styled.div`
   width: 100%;
   flex: 1;
-  margin-top:5px;
+  margin-top: 5px;
 `;
 
 const ExampleContainer = styled.div`
@@ -259,6 +271,5 @@ const PageTitle = styled.div`
   font-weight: 700;
   line-height: 1.2;
   font-size: 40px;
-  padding:3px;
-  background-color: yellowgreen;
+  padding: 3px;
 `;
