@@ -54,7 +54,7 @@ export default function PageComponent(): React.ReactElement {
     const totalContent = elem.textContent || '';
     const offset = (window.getSelection() as Selection).focusOffset;
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
-    if (e.code === 'Enter') {
+    if (e.key === 'Enter') {
       e.preventDefault();
       if (totalContent.length === offset) {
         addBlock({ type: 'TEXT', content: '', index: 1 });
