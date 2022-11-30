@@ -103,7 +103,7 @@ export default function BlockContent({
       e.preventDefault();
       if (!e.nativeEvent.isComposing) {
         /* 한글 입력시 isComposing이 false일때만 실행 */
-        newBlock({ blockId, type: decisionNewBlockType(type), content: '', index: index + 1 });
+        newBlock({ blockId, type: decisionNewBlockType('TEXT'), content: '', index: index + 1 });
       }
     }
   };
