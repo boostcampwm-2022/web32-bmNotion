@@ -38,9 +38,8 @@ const axiosPostRequest = (
 ) => {
   const request = () => {
     axios
-      .post(url, {
+      .post(url, body, {
         headers,
-        body,
         withCredentials: true,
       })
       .then((res) => {

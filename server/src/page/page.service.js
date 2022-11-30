@@ -35,7 +35,11 @@ const pageCrud = {
     return pages;
   },
   updatePage: async (pageid, title, blocks) => {
-    await updateOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid }, { $set: { title, blocks } });
+    await updateOneDocument(
+      dbConfig.COLLECTION_PAGE,
+      { _id: ObjectId(pageid) },
+      { $set: { title, blocks } },
+    );
   },
 };
 
