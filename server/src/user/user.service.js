@@ -1,4 +1,10 @@
-const { readAllDocument, readOneDocument, createDocument } = require('../db/db.crud');
+const { ObjectId } = require('mongodb');
+const {
+  readAllDocument,
+  readOneDocument,
+  createDocument,
+  updateOneDocument,
+} = require('../db/db.crud');
 const dbConfig = require('../db.config.json');
 const responseMessage = require('../response.message.json');
 const createResponse = require('../utils/response.util');
@@ -27,6 +33,18 @@ const userCrud = {
     const user = await readOneDocument(dbConfig.COLLECTION_USER, { nickname });
     return user;
   },
+  readUserByRegex: async (nickname) => {
+    const regex = new RegExp(nickname);
+    const users = await readAllDocument(dbConfig.COLLECTION_USER, { nickname: { $regex: regex } });
+    return users;
+  },
+  updateUserWorkspace: async (userId, workspaceId) => {
+    await updateOneDocument(
+      dbConfig.COLLECTION_USER,
+      { id: userId },
+      { $addToSet: { workspaces: ObjectId(workspaceId) } },
+    );
+  },
 };
 
 const isExistId = async (id) => {
@@ -40,8 +58,7 @@ const isExistNickname = async (nickname) => {
 };
 
 const searchUserPipeline = async (nickname) => {
-  const regex = new RegExp(nickname);
-  const users = await readAllDocument(dbConfig.COLLECTION_USER, { nickname: { $regex: regex } });
+  const users = userCrud.readUserByRegex(nickname);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
   response.users = users.map((user) => {
     const userInfo = {

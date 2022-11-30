@@ -5,6 +5,7 @@ const { readOneDocument, updateOneDocument } = require('../db/db.crud');
 const responseMessage = require('../response.message.json');
 const createResponse = require('../utils/response.util');
 const { addPagePipeline } = require('../page/page.service');
+const { userCrud } = require('../user/user.service');
 
 const workspaceCrud = {
   createDefaultWorkspace: async (id) => {
@@ -25,11 +26,18 @@ const workspaceCrud = {
     });
     return workspace;
   },
+  updateWorkspaceMember: async (workspaceId, userId) => {
+    await updateOneDocument(
+      dbConfig.COLLECTION_WORKSPACE,
+      { _id: ObjectId(workspaceId) },
+      { $addToSet: { members: userId } },
+    );
+  },
 };
 
 const getWorkspacesPipeline = async (userId) => {
   const queryCriteria = {
-    $or: [{ owner: userId }, { members: { $elemMatch: { userId: userId } } }],
+    $or: [{ owner: userId }, { members: { $elemMatch: { userId } } }],
   };
   const workspaceList = await readAllDocument(dbConfig.COLLECTION_WORKSPACE, queryCriteria);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
@@ -39,7 +47,6 @@ const getWorkspacesPipeline = async (userId) => {
 };
 
 const inviteUserPipeline = async (userid, workspaceid, nickname) => {
-  console.log(userid, workspaceid, nickname);
   const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, {
     _id: ObjectId(workspaceid),
   });
@@ -53,16 +60,8 @@ const inviteUserPipeline = async (userid, workspaceid, nickname) => {
   if (invitee === null) {
     return createResponse(responseMessage.USER_NOT_FOUND);
   }
-  await updateOneDocument(
-    dbConfig.COLLECTION_WORKSPACE,
-    { _id: workspaceid },
-    { $addToSet: { members: invitee.id } },
-  );
-  await updateOneDocument(
-    dbConfig.COLLECTION_USER,
-    { id: invitee.id },
-    { $addToSet: { workspaces: workspaceid } },
-  );
+  await workspaceCrud.updateWorkspaceMember(workspaceid, invitee.id);
+  await userCrud.updateUserWorkspace(invitee.id, workspaceid);
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
 
