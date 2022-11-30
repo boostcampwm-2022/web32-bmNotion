@@ -1,5 +1,3 @@
-const AWS = require('aws-sdk');
-const stream = require('node:stream');
 const jwt = require('jsonwebtoken');
 const { ObjectId } = require('mongodb');
 const { createDocument, readOneDocument } = require('../db/db.crud');
@@ -7,29 +5,7 @@ const dbConfig = require('../db.config.json');
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
 const { addPagePipeline } = require('../page/page.service');
-
-const region = 'kr-standard';
-const bucketName = `${process.env.BUCKET_NAME}`;
-const accessKey = `${process.env.ACCESS_KEY}`;
-const secretKey = `${process.env.SECRET_KEY}`;
-
-const S3 = new AWS.S3({
-  endpoint: 'https://kr.object.ncloudstorage.com',
-  region,
-  credentials: {
-    accessKeyId: accessKey,
-    secretAccessKey: secretKey,
-  },
-});
-
-const uploadImg = async (objectName, file) => {
-  if (file === undefined) return;
-  await S3.upload({
-    Bucket: bucketName,
-    Key: objectName,
-    Body: stream.Readable.from(file.buffer),
-  }).promise();
-};
+const { uploadImg } = require('../utils/objectStorage.util');
 
 const searchUserById = async (id) => {
   const user = await readOneDocument(dbConfig.COLLECTION_USER, { id });
@@ -45,12 +21,6 @@ const searchUser = async (id, nickname) => {
   let user = await searchUserById(id);
   user = user !== null ? user : await searchUserByNickName(nickname);
   return user;
-};
-
-const createObjectUrl = (objectName) => {
-  const params = { Bucket: bucketName, Key: objectName };
-  const url = S3.getSignedUrl('getObject', params);
-  return url;
 };
 
 const encryptPassword = (password) => {
@@ -211,5 +181,4 @@ module.exports = {
   isValidAccesstoken,
   isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
-  createObjectUrl,
 };
