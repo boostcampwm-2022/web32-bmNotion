@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import BlockContent from '@/components/BlockContent';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-
+import { API } from '@/config/config';
+import axiosRequest from '@/utils/axios.request';
+import jwt from 'jsonwebtoken';
+import { AxiosResponse } from 'axios';
 interface BlockInfo {
   blockId: number;
   content: string;
@@ -33,11 +37,78 @@ const samplePageInfo: PageInfo = {
 };
 
 export default function PageComponent(): React.ReactElement {
-  const [pageInfo, setPageInfo] = useState(samplePageInfo);
+  const [pageInfo, setPageInfo] = useState<PageInfo>({
+    title: '',
+    nextId: 0,
+    pageId: '',
+    blocks: [],
+  });
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
   // console.log(pageInfo);
+  const axiosGetRequest = axiosRequest.axiosGetRequest;
+  const axiosPostRequest = axiosRequest.axiosPostRequest;
 
+  const { pageid } = useParams();
+
+  const storePage = () => {
+    console.log('페이지 저장');
+    axiosPostRequest(
+      API.UPDATE_PAGE,
+      (res: AxiosResponse) => {
+        console.log('성공');
+      },
+      (res: AxiosResponse) => {
+        console.log(res.data);
+      },
+      {
+        pageid,
+        title: pageInfo.title,
+        blocks: pageInfo.blocks,
+      },
+      {
+        authorization: localStorage.getItem('jwt'),
+      },
+    );
+  };
+  useEffect(() => {
+    const handleStore = (e: KeyboardEvent) => {
+      const isMac = /Mac/.test(window.clientInformation.platform);
+      if (isMac) {
+        if (e.metaKey === true && e.code === 'KeyS') {
+          e.preventDefault();
+          storePage();
+        }
+      } else {
+        if (e.ctrlKey === true && e.code === 'KeyS') {
+          e.preventDefault();
+          storePage();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleStore);
+    return () => window.removeEventListener('keydown', handleStore);
+  }, [pageInfo]);
+
+  useEffect(() => {
+    axiosGetRequest(
+      `${API.GET_PAGE}${pageid}`,
+      (res: AxiosResponse) => {
+        setPageInfo({
+          title: res.data.title,
+          nextId: Math.max(...res.data.blocks.map((e: BlockInfo) => e.blockId), 1),
+          pageId: pageid as string,
+          blocks: res.data.blocks,
+        });
+      },
+      () => {
+        //실패
+      },
+      {
+        authorization: localStorage.getItem('jwt'),
+      },
+    );
+  }, []);
   const updateIndex = (diff: number) => (block: BlockInfo) => ({
     ...block,
     index: block.index + diff,
@@ -218,6 +289,7 @@ export default function PageComponent(): React.ReactElement {
     });
   };
 
+  if (pageInfo === null) return <div>로딩중</div>;
   return (
     <>
       <PageTitle contentEditable onInput={handleOnInput} onKeyDown={handleOnKeyDown}>

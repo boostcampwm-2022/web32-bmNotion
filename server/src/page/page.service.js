@@ -23,7 +23,7 @@ const pageCrud = {
     return result;
   },
   readPageById: async (pageid) => {
-    const page = await readOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid });
+    const page = await readOneDocument(dbConfig.COLLECTION_PAGE, { _id: ObjectId(pageid) });
     return page;
   },
   readPages: async (pageIdArray) => {
@@ -35,7 +35,11 @@ const pageCrud = {
     return pages;
   },
   updatePage: async (pageid, title, blocks) => {
-    await updateOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid }, { $set: { title, blocks } });
+    await updateOneDocument(
+      dbConfig.COLLECTION_PAGE,
+      { _id: ObjectId(pageid) },
+      { $set: { title, blocks } },
+    );
   },
 };
 
@@ -84,9 +88,9 @@ const readPagePipeline = async (workspaceId) => {
 };
 
 const loadPagePipeline = async (userid, pageid) => {
-  const page = pageCrud.readPageById(pageid);
+  const page = await pageCrud.readPageById(pageid);
   if (page === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
-  const authority = page.owner === userid || page.participant.includes(userid);
+  const authority = page.owner === userid || page.participants.includes(userid);
   if (!authority) return createResponse(responseMessage.AUTH_FAIL);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
   response.title = page.title;
