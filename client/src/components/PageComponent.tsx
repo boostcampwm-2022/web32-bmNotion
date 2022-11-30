@@ -42,7 +42,7 @@ export default function PageComponent(): React.ReactElement {
     ...block,
     index: block.index + diff,
   });
-  
+
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = (e.target as HTMLDivElement).textContent;
     if (newContent) {
