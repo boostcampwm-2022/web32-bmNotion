@@ -6,6 +6,7 @@ import Modal from '@/components/modal/Modal';
 import TopBarModalContent from '@/components/modal/TopBarModalContent';
 import axios from 'axios';
 import SettingModalContent from '@/components/modal/SettingModalContent';
+import DimdLayer from '@/components/modal/DimdLayer';
 import jwt from 'jsonwebtoken';
 
 interface SideBarButtonProps {
@@ -53,6 +54,7 @@ export default function MainPage(): ReactElement {
   };
 
   const spaceSettingButtonClicked = () => {
+    console.log('clicked!');
     setSpaceSettingModalOpen(!spaceSettingModalOpen);
   };
 
@@ -147,9 +149,12 @@ export default function MainPage(): ReactElement {
               <span>설정</span>
             </SpaceSettingButton>
             {spaceSettingModalOpen && (
-              <Modal width={'800px'} height={'500px'} position={['', '', '', '']}>
-                <SettingModalContent />
-              </Modal>
+              <>
+                <DimdLayer onClick={spaceSettingButtonClicked}></DimdLayer>
+                <Modal width={'600px'} height={'500px'} position={['', '', '', '']}>
+                  <SettingModalContent />
+                </Modal>
+              </>
             )}
           </SideBarBody>
         </SideBarBodyContainer>
@@ -175,12 +180,15 @@ export default function MainPage(): ReactElement {
             </UserProfileWrapper>
             <TopBarOptionButton onClick={handleTopBarModal}></TopBarOptionButton>
             {topBarModalOpen && (
-              <Modal width={'230px'} height={'500px'} position={['', '12px', '', '']}>
-                <TopBarModalContent
-                  readerMode={readerModeButtonClick}
-                  isReaderMode={isReaderMode}
-                />
-              </Modal>
+              <>
+                <DimdLayer onClick={handleTopBarModal}></DimdLayer>
+                <Modal width={'230px'} height={'500px'} position={['', '12px', '', '']}>
+                  <TopBarModalContent
+                    readerMode={readerModeButtonClick}
+                    isReaderMode={isReaderMode}
+                  />
+                </Modal>
+              </>
             )}
           </TopBarRight>
         </TopBar>
