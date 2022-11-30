@@ -24,6 +24,7 @@ interface BlockContentProps {
   changeBlock: Function;
   provided: any;
   moveBlock: Function;
+  deleteBlock: Function;
 }
 
 interface BlockContentBoxProps {
@@ -76,6 +77,7 @@ export default function BlockContent({
   block,
   newBlock,
   changeBlock,
+  deleteBlock,
   type,
   provided,
   moveBlock,
@@ -133,15 +135,16 @@ export default function BlockContent({
 
   const handleOnBackspace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const elem = e.target as HTMLElement;
-    console.log("🚀 ~ file: BlockContent.tsx ~ line 136 ~ handleOnBackspace ~ elem", elem)
-    console.log(elem.textContent, type)
+    // console.log('🚀 ~ file: BlockContent.tsx ~ line 136 ~ handleOnBackspace ~ elem', elem);
+    // console.log(elem.textContent, type);
     if (elem.textContent !== '') return;
     e.preventDefault();
-    if (type === "TEXT") {
-      console.log("블록 삭제 트리거")
+    if (type === 'TEXT') {
+      console.log('블록 삭제 트리거');
+      deleteBlock({ block });
     } else {
-      console.log("블록 TEXT로 변경")
-      const toType = "TEXT";
+      console.log('블록 TEXT로 변경');
+      const toType = 'TEXT';
       changeBlock({ blockId, type: toType, content: elem.textContent, index });
     }
   };
