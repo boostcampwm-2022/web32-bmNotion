@@ -6,6 +6,7 @@
   "USER_NOT_FOUND": "NonExistentUserError",
   "EXIST_NICKNAME": { "nickname": "이미 사용중인 닉네임입니다." },
   "EXIST_ID": { "id": "이미 사용중인 아이디입니다." },
+  "EXIST_BOTH": { "id": "이미 사용중인 아이디입니다.", "nickname": "이미 사용중인 닉네임입니다." },
   "NEED_SIGNIN": "NeedSignInError",
   "RENEWAL_TOKEN": "renewalToken"
 }
