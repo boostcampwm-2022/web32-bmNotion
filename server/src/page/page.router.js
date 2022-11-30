@@ -10,8 +10,9 @@ router.use(
   authController.verifyRefreshtoken,
   authController.requestAccessToken,
 );
+router.post('/edit', pageController.editPage);
 router.post('/addpage', pageController.addPage);
-router.get('/:pageid', pageController.loadPage);
 router.get('/list/:workspaceid', pageController.readPages);
+router.get('/:pageid', pageController.loadPage);
 
 module.exports = router;

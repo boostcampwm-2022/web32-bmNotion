@@ -64,8 +64,8 @@ const markdownGrammer: MarkdownGrammers = {
 
 const decisionNewBlockType = (prevType: string) => {
   if (['UL', 'OL'].includes(prevType)) return prevType;
-  // return 'TEXT';
-  return prevType;
+  return 'TEXT';
+  // return prevType;
 };
 
 const checkMarkDownGrammer = (text: string) => {
@@ -105,7 +105,7 @@ export default function BlockContent({
       e.preventDefault();
       if (!e.nativeEvent.isComposing) {
         /* 한글 입력시 isComposing이 false일때만 실행 */
-        newBlock({ blockId, type: decisionNewBlockType('TEXT'), content: '', index: index + 1 });
+        newBlock({ blockId, type: decisionNewBlockType(type), content: '', index: index + 1 });
       }
     }
   };
@@ -168,7 +168,7 @@ export default function BlockContent({
     if (!content && type === 'TEXT') {
       handleType(toType);
     } else {
-      newBlock({ blockId, type: decisionNewBlockType(toType), content: '', index: index + 1 });
+      newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
     }
   };
   const handleType = (toType: string) => {

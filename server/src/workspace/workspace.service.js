@@ -1,9 +1,39 @@
 const { ObjectId } = require('mongodb');
-const { readAllDocument } = require('../db/db.crud');
+const { readAllDocument, createDocument } = require('../db/db.crud');
 const dbConfig = require('../db.config.json');
 const { readOneDocument, updateOneDocument } = require('../db/db.crud');
 const responseMessage = require('../response.message.json');
 const createResponse = require('../utils/response.util');
+const { addPagePipeline } = require('../page/page.service');
+const { userCrud } = require('../user/user.service');
+
+const workspaceCrud = {
+  createDefaultWorkspace: async (id) => {
+    const { pageid } = await addPagePipeline(id);
+    const workspace = {
+      title: `${id}'s Notion`,
+      owner: id,
+      members: [id],
+      pages: [pageid],
+      treshcan: [],
+    };
+    const result = await createDocument(dbConfig.COLLECTION_WORKSPACE, workspace);
+    return result.insertedId;
+  },
+  readWorkSpaceById: async (id) => {
+    const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, {
+      _id: ObjectId(id),
+    });
+    return workspace;
+  },
+  updateWorkspaceMember: async (workspaceId, userId) => {
+    await updateOneDocument(
+      dbConfig.COLLECTION_WORKSPACE,
+      { _id: ObjectId(workspaceId) },
+      { $addToSet: { members: userId } },
+    );
+  },
+};
 
 const getWorkspacesPipeline = async (userId) => {
   const queryCriteria = {
@@ -30,16 +60,8 @@ const inviteUserPipeline = async (userid, workspaceid, nickname) => {
   if (invitee === null) {
     return createResponse(responseMessage.USER_NOT_FOUND);
   }
-  await updateOneDocument(
-    dbConfig.COLLECTION_WORKSPACE,
-    { _id: ObjectId(workspaceid) },
-    { $addToSet: { members: invitee.id } },
-  );
-  await updateOneDocument(
-    dbConfig.COLLECTION_USER,
-    { id: invitee.id },
-    { $addToSet: { workspaces: workspaceid } },
-  );
+  await workspaceCrud.updateWorkspaceMember(workspaceid, invitee.id);
+  await userCrud.updateUserWorkspace(invitee.id, workspaceid);
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
 const renameWorkspacePipeline = async (userid, workspaceid, workspacename) => {
@@ -64,4 +86,5 @@ module.exports = {
   renameWorkspacePipeline,
   getWorkspacesPipeline,
   inviteUserPipeline,
+  workspaceCrud,
 };

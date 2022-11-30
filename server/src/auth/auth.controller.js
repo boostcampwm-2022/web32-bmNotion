@@ -2,32 +2,17 @@ const multer = require('multer');
 const {
   signInPipeline,
   signUpPipeline,
-  isValidAccesstoken,
-  isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
 } = require('./auth.service');
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
+const { isValidAccesstoken, isValidRefreshtoken } = require('../utils/jwt.util');
 
 const signInController = {
   signIn: async (req, res) => {
     const { id, password } = req.body;
-    const {
-      tokens,
-      response: resJson,
-      workspaceid,
-      pageid,
-      spacename,
-    } = await signInPipeline(id, password);
-    if (resJson.code === '202') {
-      const { accessToken, refreshToken } = tokens;
-      res.cookie('refreshToken', refreshToken);
-      resJson.authorize = accessToken;
-      resJson.workspace = workspaceid;
-      resJson.pageid = pageid;
-      resJson.spacename = spacename;
-    }
-    res.json(resJson);
+    const { refreshToken, response: resJson } = await signInPipeline(id, password);
+    res.cookie('refreshToken', refreshToken).json(resJson);
   },
 };
 
@@ -49,24 +34,19 @@ const authController = {
     res.locals.verifyAccessTokenMessage = isValidAccesstoken(accessToken);
     return next();
   },
-
   verifyRefreshtoken: (req, res, next) => {
     switch (res.locals.verifyAccessTokenMessage) {
       case 'success':
         return next();
-
       case 'TokenExpiredError':
         res.locals.verifyRefreshTokenMessage = isValidRefreshtoken(req.cookies.refreshToken);
         return next();
-
       default:
         return res.json(createResponse(responseMessage.AUTH_FAIL));
     }
   },
-
   requestAccessToken: async (req, res, next) => {
     if (res.locals.verifyAccessTokenMessage === 'success') return next();
-
     if (res.locals.verifyRefreshTokenMessage === 'success') {
       const resJson = createResponse(responseMessage.RENEWAL_TOKEN);
       resJson.accessToken = await createNewAccesstokenByRefreshtoken(req.cookies.refreshToken);

@@ -4,7 +4,6 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const mainRouter = require('./main/main.router');
 const authRouter = require('./auth/auth.router');
-const editRouter = require('./edit/edit.router');
 const pageRouter = require('./page/page.router');
 const userRouter = require('./user/user.router');
 const workspaceRouter = require('./workspace/workspace.router');
@@ -23,7 +22,6 @@ app.use(cookieParser());
 
 app.use('/auth', authRouter);
 app.use('/api/page', pageRouter);
-app.use('/edit', editRouter);
 app.use('/api/workspace', workspaceRouter);
 app.use('/api/user', userRouter);
 app.use('/', mainRouter);
