@@ -64,8 +64,26 @@ const inviteUserPipeline = async (userid, workspaceid, nickname) => {
   await userCrud.updateUserWorkspace(invitee.id, workspaceid);
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
+const renameWorkspacePipeline = async (userid, workspaceid, workspacename) => {
+  const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, {
+    _id: ObjectId(workspaceid),
+  });
+  if (workspace === null) {
+    return createResponse(responseMessage.PAGE_NOT_FOUND);
+  }
+  if (workspace.owner !== userid) {
+    return createResponse(responseMessage.AUTH_FAIL);
+  }
+  await updateOneDocument(
+    dbConfig.COLLECTION_WORKSPACE,
+    { _id: ObjectId(workspaceid) },
+    { $set: { title: workspacename } },
+  );
+  return createResponse(responseMessage.PROCESS_SUCCESS);
+};
 
 module.exports = {
+  renameWorkspacePipeline,
   getWorkspacesPipeline,
   inviteUserPipeline,
   workspaceCrud,

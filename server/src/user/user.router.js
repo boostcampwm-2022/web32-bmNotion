@@ -3,6 +3,7 @@ const userController = require('./user.controller');
 
 const router = Router();
 
-router.get('/:nickname', userController.searchUser);
+router.get('/search/:nickname', userController.searchUser);
+router.get('/profile/:id', userController.getProfileUrl);
 
 module.exports = router;

@@ -3,16 +3,14 @@ import styled from 'styled-components';
 
 interface TypeProps {
   image: string;
-  title: string;
-  contents: string;
+  text: string;
   type: string;
   handleType: Function;
 }
 
-export default function BlockModalContentType({
+export default function TypeChangeModalContentType({
   image,
-  title,
-  contents,
+  text,
   type,
   handleType,
 }: TypeProps): ReactElement {
@@ -20,8 +18,7 @@ export default function BlockModalContentType({
     <TypeContainer onClick={() => handleType(type)}>
       <TypeImage image={image} />
       <TypeTextContainer>
-        <TypeTextTitle>{title}</TypeTextTitle>
-        <TypeTextContents>{contents}</TypeTextContents>
+        <TypeText>{text}</TypeText>
       </TypeTextContainer>
     </TypeContainer>
   );
@@ -30,24 +27,25 @@ export default function BlockModalContentType({
 const TypeContainer = styled.div`
   display: flex;
   width: calc(100% - 8px);
-  height: 55px;
+  height: 28px;
   border-radius: 3px;
   align-items: center;
+
   &:hover {
     background-color: #ebebea;
   }
 `;
 
 const TypeImage = styled.div<{ image: string }>`
-  width: 46px;
-  height: 46px;
+  width: 22px;
+  height: 22px;
   border-radius: 3px;
   background-image: url(${(props) => props.image});
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
   box-shadow: rgb(15 15 15 / 10%) 0px 0px 0px 1px;
-  margin: 0px 4px 0px 10px;
+  margin: 0px 4px 0px 8px;
 `;
 
 const TypeTextContainer = styled.div`
@@ -58,12 +56,7 @@ const TypeTextContainer = styled.div`
   margin: 0px 12px 0px 6px;
 `;
 
-const TypeTextTitle = styled.div`
+const TypeText = styled.div`
   font-size: 14px;
   color: rgb(55, 53, 47);
-`;
-
-const TypeTextContents = styled.div`
-  font-size: 12px;
-  color: rgba(55, 53, 47, 0.65);
 `;
