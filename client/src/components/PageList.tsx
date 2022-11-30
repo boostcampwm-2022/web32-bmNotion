@@ -1,0 +1,181 @@
+import { API } from '@/config/config';
+import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
+import { AxiosResponse } from 'axios';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import styled from 'styled-components';
+
+interface Page {
+  title: string;
+  id: string;
+}
+
+export default function PageList() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [pageList, setPageList] = useState<Page[]>([]);
+  const navigate = useNavigate();
+
+  const requestPageList = () => {
+    const workspaceId = localStorage.getItem('workspace');
+    const onSuccess = (res: AxiosResponse) => {
+      setPageList(res.data.list);
+      setIsLoading(true);
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    const requestHeader = {
+      authorization: localStorage.getItem('jwt'),
+    };
+    axiosGetRequest(API.GET_PAGE_LIST + workspaceId, onSuccess, onFail, requestHeader);
+  };
+
+  useEffect(() => {
+    if (isLoading === false) return;
+    const handleStore = (e: KeyboardEvent) => {
+      if (e.code === 'KeyS') {
+        const isMac = /Mac/.test(window.clientInformation.platform);
+        const commandKeyPressed = isMac ? e.metaKey === true : e.ctrlKey === true;
+        if (commandKeyPressed === true) {
+          e.preventDefault();
+          requestPageList();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleStore);
+    return () => {
+      window.removeEventListener('keydown', handleStore);
+    };
+  }, [pageList]);
+
+  useEffect(() => {
+    requestPageList();
+  }, [setPageList]);
+
+  const onClickAddPage = (e: React.MouseEvent) => {
+    const workspaceId = localStorage.getItem('workspace');
+    const onSuccess = (res: AxiosResponse) => {
+      const pageid = res.data.pageid;
+      requestPageList();
+      navigate(`/page/${pageid}`);
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    const requestBody = {
+      workspace: workspaceId,
+    };
+    const requestHeader = {
+      authorization: localStorage.getItem('jwt'),
+    };
+    axiosPostRequest(API.ADD_PAGE, onSuccess, onFail, requestBody, requestHeader);
+  };
+
+  const onClickPageContent = (pageid: string) => {
+    navigate(`/page/${pageid}`);
+  };
+
+  const onClickDeleteButton = (pageid: string) => {
+    console.log(pageid);
+  };
+
+  if (isLoading === false) return <></>;
+  return (
+    <PageListWrapper>
+      <PageListHeader>
+        <PageListHeaderSpan>공유 페이지</PageListHeaderSpan>
+        <PageListHeaderButton onClick={onClickAddPage}>+</PageListHeaderButton>
+      </PageListHeader>
+      {pageList.map((page, index) => (
+        <PageListContentWrapper
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation();
+            onClickPageContent(page.id);
+          }}
+          key={index}
+        >
+          <PageListContentSpan>{page.title}</PageListContentSpan>
+          <PageListContentDeleteButton
+            onClick={(e: React.MouseEvent) => {
+              onClickDeleteButton(page.id);
+            }}
+          >
+            <DeleteIcon></DeleteIcon>
+          </PageListContentDeleteButton>
+        </PageListContentWrapper>
+      ))}
+    </PageListWrapper>
+  );
+}
+
+const PageListWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+`;
+
+const PageListHeader = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: auto;
+  padding: 4px;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const PageListHeaderSpan = styled.b`
+  width: auto;
+  font-size: 14px;
+`;
+
+const PageListHeaderButton = styled.button`
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  font-size: 14px;
+  border-radius: 2px;
+  cursor: pointer;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+`;
+
+const PageListContentWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 4px;
+  padding: 8px;
+  cursor: pointer;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    button {
+      div {
+        display: flex;
+      }
+    }
+  }
+`;
+
+const PageListContentSpan = styled.span`
+  font-size: 13px;
+`;
+
+const PageListContentDeleteButton = styled.button`
+  display: flex;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+`;
+const DeleteIcon = styled.div`
+  display: none;
+  width: 8px;
+  height: 8px;
+  background-image: url('/assets/icons/x-solid.svg');
+  background-size: 8px 8px;
+`;

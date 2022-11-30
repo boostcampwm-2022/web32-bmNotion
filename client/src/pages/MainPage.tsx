@@ -10,6 +10,7 @@ import DimdLayer from '@/components/modal/DimdLayer';
 import jwt from 'jsonwebtoken';
 import { axiosGetRequest } from '@/utils/axios.request';
 import { API } from '@/config/config';
+import PageList from '@/components/PageList';
 
 interface SideBarButtonProps {
   isClicked: boolean;
@@ -27,11 +28,6 @@ interface Workspace {
   id: string;
 }
 
-interface Page {
-  title: string;
-  id: string;
-}
-
 const threePointButton = '/assets/icons/threePoint.png';
 const hamburgerButton = '/assets/icons/hamburger.png';
 const doubleArrowButton = '/assets/icons/doubleArrow.png';
@@ -44,7 +40,6 @@ export default function MainPage(): ReactElement {
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
   const [isReaderMode, setIsReaderMode] = useState(false);
   const [workspaceList, setWorkspaceList] = useState<Workspace[]>([]);
-  const [pageList, setPageList] = useState<Page[]>([]);
   const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>(undefined);
 
   const [spaceSettingModalOpen, setSpaceSettingModalOpen] = useState(false);
@@ -56,7 +51,6 @@ export default function MainPage(): ReactElement {
   };
 
   const spaceSettingButtonClicked = () => {
-    console.log('clicked!');
     setSpaceSettingModalOpen(!spaceSettingModalOpen);
   };
 
@@ -98,20 +92,6 @@ export default function MainPage(): ReactElement {
     );
   }, [setProfileImageUrl]);
 
-  useEffect(() => {
-    const workspaceId = localStorage.getItem('workspace');
-    const onSuccess = (res: AxiosResponse) => {
-      setPageList(res.data.list);
-    };
-    const onFail = (res: AxiosResponse) => {
-      console.log(res.data);
-    };
-    const requestHeader = {
-      authorization: localStorage.getItem('jwt'),
-    };
-    axiosGetRequest(API.GET_PAGE_LIST + workspaceId, onSuccess, onFail, requestHeader);
-  }, workspaceList);
-
   return (
     <Wrapper>
       <SideBar isClicked={sideBarButtonClicked} sideBarHoverButton={reverseDoubleArrowButton}>
@@ -127,14 +107,6 @@ export default function MainPage(): ReactElement {
         </SideBarHeaderContainer>
         <SideBarBodyContainer>
           <SideBarBody>
-            <>워크스페이스 리스트</>
-            {workspaceList.map((workspace, index) => (
-              <div key={index}>{workspace.title}</div>
-            ))}
-            <>페이지 리스트</>
-            {pageList.map((page, index) => (
-              <div key={index}>{page.title}</div>
-            ))}
             <SpaceSettingButton onClick={spaceSettingButtonClicked}>
               <span>아이콘</span>
               <span>설정</span>
@@ -147,6 +119,7 @@ export default function MainPage(): ReactElement {
                 </Modal>
               </>
             )}
+            <PageList />
           </SideBarBody>
         </SideBarBodyContainer>
       </SideBar>
