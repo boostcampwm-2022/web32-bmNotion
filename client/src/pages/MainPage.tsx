@@ -7,6 +7,7 @@ import TopBarModalContent from '@/components/modal/TopBarModalContent';
 import axios from 'axios';
 import SettingModalContent from '@/components/modal/SettingModalContent';
 import DimdLayer from '@/components/modal/DimdLayer';
+import jwt from 'jsonwebtoken';
 
 interface SideBarButtonProps {
   isClicked: boolean;
@@ -42,6 +43,7 @@ export default function MainPage(): ReactElement {
   const [isReaderMode, setIsReaderMode] = useState(false);
   const [workspaceList, setWorkspaceList] = useState<Workspace[]>([]);
   const [pageList, setPageList] = useState<Page[]>([]);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>(undefined);
 
   const [spaceSettingModalOpen, setSpaceSettingModalOpen] = useState(false);
   const [topBarModalOpen, setTopBarModalOpen] = useState(false);
@@ -81,11 +83,29 @@ export default function MainPage(): ReactElement {
         console.log(error);
       });
   }, []);
-
   useEffect(() => {
     const workspaceId = localStorage.getItem('workspace');
     axios
-      .get(`http://localhost:8080/api/page/list/${workspaceId}`, {
+      .get(`http://localhost:8080/api/user/profile/${localStorage.getItem('id')}`, {
+        headers: {
+          authorization: localStorage.getItem('jwt'),
+        },
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data.code === '202') {
+          setProfileImageUrl(res.data.url);
+        } else {
+          console.log(res.data);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [setProfileImageUrl]);
+  useEffect(() => {
+    axios
+     .get(`http://localhost:8080/api/page/list/${workspaceId}`, {
         headers: {
           authorization: localStorage.getItem('jwt'),
         },
@@ -117,16 +137,12 @@ export default function MainPage(): ReactElement {
         <SideBarBodyContainer>
           <SideBarBody>
             <>워크스페이스 리스트</>
-            {workspaceList.map((workspace) => (
-              <>
-                <div>{workspace.title}</div>
-              </>
+            {workspaceList.map((workspace, index) => (
+                <div key={index}>{workspace.title}</div>
             ))}
             <>페이지 리스트</>
-            {pageList.map((page) => (
-              <>
-                <div>{page.title}</div>
-              </>
+            {pageList.map((page, index) => (
+                <div key={index}>{page.title}</div>
             ))}
             <SpaceSettingButton onClick={spaceSettingButtonClicked}>
               <span>아이콘</span>
@@ -135,7 +151,7 @@ export default function MainPage(): ReactElement {
             {spaceSettingModalOpen && (
               <>
                 <DimdLayer onClick={spaceSettingButtonClicked}></DimdLayer>
-                <Modal width={'230px'} height={'500px'} position={['', '', '', '']}>
+                <Modal width={'600px'} height={'500px'} position={['', '', '', '']}>
                   <SettingModalContent />
                 </Modal>
               </>
@@ -154,6 +170,14 @@ export default function MainPage(): ReactElement {
             ></SideBarButton>
           </TopBarLeft>
           <TopBarRight>
+            <UserProfileWrapper>
+              <ProfileImage
+                src={`${
+                  profileImageUrl === undefined ? '/assets/icons/profileImage.png' : profileImageUrl
+                }`}
+              />
+              <span>{localStorage.getItem('nickname')}</span>
+            </UserProfileWrapper>
             <TopBarOptionButton onClick={handleTopBarModal}></TopBarOptionButton>
             {topBarModalOpen && (
               <>
@@ -208,6 +232,8 @@ const TopBarLeft = styled.div`
 `;
 
 const TopBarRight = styled.div`
+  display: flex;
+  flex-direction: row;
   padding: 12px;
   position: relative;
 `;
@@ -334,4 +360,22 @@ const PageTitle = styled.div`
 const PageBody = styled.div`
   width: 100%;
   margin-top: 10px;
+`;
+
+const UserProfileWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 36px;
+  padding: 12px;
+  gap: 8px;
+`;
+
+const ProfileImage = styled.img`
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  background: gray;
+  border: 1px solid gray;
 `;

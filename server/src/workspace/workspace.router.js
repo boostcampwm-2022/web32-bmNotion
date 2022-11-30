@@ -13,5 +13,6 @@ router.use(
 router.get('/list', workspaceController.getWorkspaceList);
 router.post('/addworkspace', workspaceController.addWorkspace);
 router.post('/invite', workspaceController.inviteUser);
+router.post('/rename', workspaceController.rename);
 
 module.exports = router;

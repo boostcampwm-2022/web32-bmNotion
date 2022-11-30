@@ -7,7 +7,7 @@ const createResponse = require('../utils/response.util');
 
 const getWorkspacesPipeline = async (userId) => {
   const queryCriteria = {
-    $or: [{ owner: userId }, { members: { $elemMatch: { userId: userId } } }],
+    $or: [{ owner: userId }, { members: { $elemMatch: { userId } } }],
   };
   const workspaceList = await readAllDocument(dbConfig.COLLECTION_WORKSPACE, queryCriteria);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
@@ -17,7 +17,6 @@ const getWorkspacesPipeline = async (userId) => {
 };
 
 const inviteUserPipeline = async (userid, workspaceid, nickname) => {
-  console.log(userid, workspaceid, nickname);
   const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, {
     _id: ObjectId(workspaceid),
   });
@@ -33,7 +32,7 @@ const inviteUserPipeline = async (userid, workspaceid, nickname) => {
   }
   await updateOneDocument(
     dbConfig.COLLECTION_WORKSPACE,
-    { _id: workspaceid },
+    { _id: ObjectId(workspaceid) },
     { $addToSet: { members: invitee.id } },
   );
   await updateOneDocument(
@@ -43,8 +42,26 @@ const inviteUserPipeline = async (userid, workspaceid, nickname) => {
   );
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
+const renameWorkspacePipeline = async (userid, workspaceid, workspacename) => {
+  const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, {
+    _id: ObjectId(workspaceid),
+  });
+  if (workspace === null) {
+    return createResponse(responseMessage.PAGE_NOT_FOUND);
+  }
+  if (workspace.owner !== userid) {
+    return createResponse(responseMessage.AUTH_FAIL);
+  }
+  await updateOneDocument(
+    dbConfig.COLLECTION_WORKSPACE,
+    { _id: ObjectId(workspaceid) },
+    { $set: { title: workspacename } },
+  );
+  return createResponse(responseMessage.PROCESS_SUCCESS);
+};
 
 module.exports = {
+  renameWorkspacePipeline,
   getWorkspacesPipeline,
   inviteUserPipeline,
 };
