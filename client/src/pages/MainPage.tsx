@@ -84,7 +84,6 @@ export default function MainPage(): ReactElement {
       });
   }, []);
   useEffect(() => {
-    const workspaceId = localStorage.getItem('workspace');
     axios
       .get(`http://localhost:8080/api/user/profile/${localStorage.getItem('id')}`, {
         headers: {
@@ -104,8 +103,9 @@ export default function MainPage(): ReactElement {
       });
   }, [setProfileImageUrl]);
   useEffect(() => {
+    const workspaceId = localStorage.getItem('workspace');
     axios
-     .get(`http://localhost:8080/api/page/list/${workspaceId}`, {
+      .get(`http://localhost:8080/api/page/list/${workspaceId}`, {
         headers: {
           authorization: localStorage.getItem('jwt'),
         },
@@ -138,11 +138,11 @@ export default function MainPage(): ReactElement {
           <SideBarBody>
             <>워크스페이스 리스트</>
             {workspaceList.map((workspace, index) => (
-                <div key={index}>{workspace.title}</div>
+              <div key={index}>{workspace.title}</div>
             ))}
             <>페이지 리스트</>
             {pageList.map((page, index) => (
-                <div key={index}>{page.title}</div>
+              <div key={index}>{page.title}</div>
             ))}
             <SpaceSettingButton onClick={spaceSettingButtonClicked}>
               <span>아이콘</span>
