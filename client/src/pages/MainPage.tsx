@@ -194,8 +194,7 @@ export default function MainPage(): ReactElement {
         </TopBar>
         <MainContainerBody>
           <PageContainer maxWidth={isReaderMode ? '100%' : '900px'}>
-            <PageTitle>제목</PageTitle>
-            <PageComponent></PageComponent>
+            <PageComponent/>
           </PageContainer>
         </MainContainerBody>
       </MainContainer>
@@ -347,14 +346,6 @@ const PageContainer = styled.div<{ maxWidth: string }>`
   width: 100%;
   //버튼 클릭하면 max-width: 100%
   transition: all 0.1s linear;
-`;
-const PageTitle = styled.div`
-  width: 100%;
-  margin-top: 100px;
-  color: rgb(55, 53, 47);
-  font-weight: 700;
-  line-height: 1.2;
-  font-size: 40px;
 `;
 
 const PageBody = styled.div`

@@ -12,6 +12,7 @@ interface BlockInfo {
 }
 
 interface PageInfo {
+  title: string;
   nextId: number;
   pageId: string;
   blocks: BlockInfo[];
@@ -25,6 +26,7 @@ interface EditedBlockInfo {
 const sampleBlocks: BlockInfo[] = [{ blockId: 1, index: 1, content: '', type: 'TEXT' }];
 
 const samplePageInfo: PageInfo = {
+  title: "샘플 제목",
   nextId: 2,
   pageId: 'abc',
   blocks: sampleBlocks,
@@ -35,6 +37,13 @@ export default function PageComponent(): React.ReactElement {
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
   console.log(pageInfo);
+  
+  const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
+    const newContent = (e.target as HTMLDivElement).textContent;
+    if(newContent) {
+      pageInfo.title = newContent;
+    }
+  }
   const updateIndex = (block: BlockInfo): BlockInfo => ({ ...block, index: block.index + 1 });
   const addBlock = ({
     blockId,
@@ -170,44 +179,53 @@ export default function PageComponent(): React.ReactElement {
   };
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable droppableId="blocks">
-        {(provided) => (
-          <PageBox className="blocks" {...provided.droppableProps} ref={provided.innerRef}>
-            {pageInfo?.blocks &&
-              pageInfo.blocks.map((block, idx) => (
-                <Draggable
-                  key={block.blockId}
-                  draggableId={block.blockId.toString()}
-                  index={idx + 1}
-                >
-                  {(provided) => (
-                    <BlockContent
-                      key={block.blockId}
-                      block={block}
-                      blockId={block.blockId}
-                      newBlock={addBlock}
-                      changeBlock={changeBlock}
-                      moveBlock={moveBlock}
-                      index={block.index}
-                      type={block.type}
-                      provided={provided}
-                    />
-                  )}
-                </Draggable>
-              ))}
-            {provided.placeholder}
-          </PageBox>
-        )}
-      </Droppable>
+    <>
+      <PageTitle 
+        contentEditable
+        onInput={handleOnInput}>
+        {pageInfo.title}
+      </PageTitle>
+      <button onClick={()=>console.log(pageInfo.title)}>aaa</button>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="blocks">
+          {(provided) => (
+            <PageBox className="blocks" {...provided.droppableProps} ref={provided.innerRef}>
+              {pageInfo?.blocks &&
+                pageInfo.blocks.map((block, idx) => (
+                  <Draggable
+                    key={block.blockId}
+                    draggableId={block.blockId.toString()}
+                    index={idx + 1}
+                  >
+                    {(provided) => (
+                      <BlockContent
+                        key={block.blockId}
+                        block={block}
+                        blockId={block.blockId}
+                        newBlock={addBlock}
+                        changeBlock={changeBlock}
+                        moveBlock={moveBlock}
+                        index={block.index}
+                        type={block.type}
+                        provided={provided}
+                      />
+                    )}
+                  </Draggable>
+                ))}
+              {provided.placeholder}
+            </PageBox>
+          )}
+        </Droppable>
     </DragDropContext>
+    </>
+    
   );
 }
 
 const PageBox = styled.div`
   width: 100%;
   flex: 1;
-  margin-top: 45px;
+  margin-top:5px;
 `;
 
 const ExampleContainer = styled.div`
@@ -222,4 +240,25 @@ const DragExample = styled.div`
   height: 20px;
   margin: 10px;
   width: 100px;
+`;
+
+const PageContainer = styled.div<{ maxWidth: string }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: ${(props) => props.maxWidth}; //900px보다 작으면 width 100%;
+  min-width: 0px;
+  width: 100%;
+  //버튼 클릭하면 max-width: 100%
+  transition: all 0.1s linear;
+`;
+const PageTitle = styled.div`
+  width: 100%;
+  margin-top: 100px;
+  color: rgb(55, 53, 47);
+  font-weight: 700;
+  line-height: 1.2;
+  font-size: 40px;
+  padding:3px;
+  background-color: yellowgreen;
 `;
