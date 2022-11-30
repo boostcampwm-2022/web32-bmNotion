@@ -2,12 +2,11 @@ const multer = require('multer');
 const {
   signInPipeline,
   signUpPipeline,
-  isValidAccesstoken,
-  isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
 } = require('./auth.service');
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
+const { isValidAccesstoken, isValidRefreshtoken } = require('../utils/jwt.util');
 
 const signInController = {
   signIn: async (req, res) => {
@@ -35,24 +34,19 @@ const authController = {
     res.locals.verifyAccessTokenMessage = isValidAccesstoken(accessToken);
     return next();
   },
-
   verifyRefreshtoken: (req, res, next) => {
     switch (res.locals.verifyAccessTokenMessage) {
       case 'success':
         return next();
-
       case 'TokenExpiredError':
         res.locals.verifyRefreshTokenMessage = isValidRefreshtoken(req.cookies.refreshToken);
         return next();
-
       default:
         return res.json(createResponse(responseMessage.AUTH_FAIL));
     }
   },
-
   requestAccessToken: async (req, res, next) => {
     if (res.locals.verifyAccessTokenMessage === 'success') return next();
-
     if (res.locals.verifyRefreshTokenMessage === 'success') {
       const resJson = createResponse(responseMessage.RENEWAL_TOKEN);
       resJson.accessToken = await createNewAccesstokenByRefreshtoken(req.cookies.refreshToken);

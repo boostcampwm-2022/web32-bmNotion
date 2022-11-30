@@ -1,9 +1,31 @@
 const { ObjectId } = require('mongodb');
-const { readAllDocument } = require('../db/db.crud');
+const { readAllDocument, createDocument } = require('../db/db.crud');
 const dbConfig = require('../db.config.json');
 const { readOneDocument, updateOneDocument } = require('../db/db.crud');
 const responseMessage = require('../response.message.json');
 const createResponse = require('../utils/response.util');
+const { addPagePipeline } = require('../page/page.service');
+
+const workspaceCrud = {
+  createDefaultWorkspace: async (id) => {
+    const { pageid } = await addPagePipeline(id);
+    const workspace = {
+      title: `${id}'s Notion`,
+      owner: id,
+      members: [id],
+      pages: [pageid],
+      treshcan: [],
+    };
+    const result = await createDocument(dbConfig.COLLECTION_WORKSPACE, workspace);
+    return result.insertedId;
+  },
+  readWorkSpaceById: async (id) => {
+    const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, {
+      _id: ObjectId(id),
+    });
+    return workspace;
+  },
+};
 
 const getWorkspacesPipeline = async (userId) => {
   const queryCriteria = {
@@ -47,4 +69,5 @@ const inviteUserPipeline = async (userid, workspaceid, nickname) => {
 module.exports = {
   getWorkspacesPipeline,
   inviteUserPipeline,
+  workspaceCrud,
 };

@@ -35,6 +35,10 @@ const createResponse = (message) => {
       response.code = '404';
       response.message = responseMessage.USER_NOT_FOUND;
       break;
+    case responseMessage.EXIST_BOTH:
+      response.code = '404';
+      response.message = responseMessage.EXIST_BOTH;
+      break;
     default:
       break;
   }

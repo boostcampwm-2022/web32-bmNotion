@@ -1,8 +1,43 @@
-const { readAllDocument } = require('../db/db.crud');
+const { readAllDocument, readOneDocument, createDocument } = require('../db/db.crud');
 const dbConfig = require('../db.config.json');
 const responseMessage = require('../response.message.json');
 const createResponse = require('../utils/response.util');
 const { createObjectUrl } = require('../utils/objectStorage.util');
+const { encryptPassword } = require('../utils/encrypt.util');
+
+const userCrud = {
+  createUser: async (id, password, nickname, objectName, workspaceid) => {
+    const encryptedPw = encryptPassword(password);
+    const user = {
+      id,
+      nickname,
+      password: encryptedPw,
+      objectName,
+      workspaces: [workspaceid],
+      likes: [],
+    };
+    await createDocument('user', user);
+    return user;
+  },
+  readUserById: async (id) => {
+    const user = await readOneDocument(dbConfig.COLLECTION_USER, { id });
+    return user;
+  },
+  readUserByNickname: async (nickname) => {
+    const user = await readOneDocument(dbConfig.COLLECTION_USER, { nickname });
+    return user;
+  },
+};
+
+const isExistId = async (id) => {
+  const user = await userCrud.readUserById(id);
+  return user !== null;
+};
+
+const isExistNickname = async (nickname) => {
+  const user = await userCrud.readUserByNickname(nickname);
+  return user !== null;
+};
 
 const searchUserPipeline = async (nickname) => {
   const regex = new RegExp(nickname);
@@ -18,4 +53,4 @@ const searchUserPipeline = async (nickname) => {
   return response;
 };
 
-module.exports = { searchUserPipeline };
+module.exports = { searchUserPipeline, userCrud, isExistId, isExistNickname };
