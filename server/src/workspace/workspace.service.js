@@ -61,7 +61,7 @@ const renameWorkspacePipeline = async (userid, workspaceid, workspacename) => {
 };
 
 module.exports = {
-  renameWorkspacePipeline
+  renameWorkspacePipeline,
   getWorkspacesPipeline,
   inviteUserPipeline,
 };
