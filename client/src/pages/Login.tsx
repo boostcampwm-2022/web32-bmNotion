@@ -45,8 +45,12 @@ export default function Login(): ReactElement {
       )
       .then((res) => {
         if (res.data.code === '202') {
+          const { nickname, id } = jwt.decode(res.data.authorize) as any;
           localStorage.setItem('jwt', res.data.authorize);
           localStorage.setItem('workspace', res.data.workspace);
+          localStorage.setItem('spacename', res.data.spacename);
+          localStorage.setItem('nickname', nickname);
+          localStorage.setItem('id', id);
           console.log(jwt.decode(res.data.authorize));
           console.log(res.data);
           alert('로그인 되었습니다.');
