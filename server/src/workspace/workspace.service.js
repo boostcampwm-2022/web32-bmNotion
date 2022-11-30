@@ -20,6 +20,18 @@ const workspaceCrud = {
     const result = await createDocument(dbConfig.COLLECTION_WORKSPACE, workspace);
     return result.insertedId;
   },
+  createNewWorkspace: async (id, title, owner, members) => {
+    const { pageid } = await addPagePipeline(id);
+    const workspace = {
+      title,
+      owner,
+      members,
+      pages: [pageid],
+      treshcan: [],
+    };
+    const result = await createDocument(dbConfig.COLLECTION_WORKSPACE, workspace);
+    return result.insertedId;
+  },
   readWorkSpaceById: async (id) => {
     const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, {
       _id: ObjectId(id),
@@ -82,9 +94,17 @@ const renameWorkspacePipeline = async (userid, workspaceid, workspacename) => {
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
 
+const addWorkspacePipeline = async (userId, title, members) => {
+  const workspaceDocument = await workspaceCrud.createNewWorkspace(userId, title, userId, members);
+  const response = createResponse(responseMessage.PROCESS_SUCCESS);
+  response.workspaceid = workspaceDocument;
+
+  return response;
+}
+
 module.exports = {
   renameWorkspacePipeline,
   getWorkspacesPipeline,
   inviteUserPipeline,
-  workspaceCrud,
+  addWorkspacePipeline
 };
