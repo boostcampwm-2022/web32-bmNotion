@@ -40,12 +40,13 @@ const saveTokenDocument = async (refreshToken, id, nickname) => {
   await createDocument(dbConfig.COLLECTION_TOKEN, { refreshToken, id, nickname });
 };
 
-const createSignInResponse = (accessToken, refreshToken, workspace, pageid) => {
+const createSignInResponse = (accessToken, refreshToken, workspace, pageid, title) => {
   const response = {
     ...createResponse(responseMessage.PROCESS_SUCCESS),
     authorize: accessToken,
     workspace,
     pageid,
+    spacename: title,
   };
   return { refreshToken, response };
 };
@@ -59,8 +60,9 @@ const signInPipeline = async (id, password) => {
   const refreshToken = createNewRefreshtoken();
   await saveTokenDocument(refreshToken, user.id, user.nickname);
   const [workspace] = user.workspaces;
+  const { title } = await workspaceCrud.readWorkSpaceById(workspace);
   const pageid = await getLastEditedPageId(workspace);
-  return createSignInResponse(accessToken, refreshToken, workspace, pageid);
+  return createSignInResponse(accessToken, refreshToken, workspace, pageid, title);
 };
 
 const createNewAccesstokenByRefreshtoken = async (refreshToken) => {

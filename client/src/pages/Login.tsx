@@ -3,8 +3,10 @@ import styled from 'styled-components';
 import bmLogo from '@/assets/icons/BM_logo.png';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { AxiosResponse } from 'axios';
+import { API } from '@/config/config';
 import jwt from 'jsonwebtoken';
+import { axiosPostRequest } from '@/utils/axios.request';
 
 export default function Login(): ReactElement {
   const [inputID, setInputID] = useState('');
@@ -34,34 +36,22 @@ export default function Login(): ReactElement {
   }, [inputID, inputPassWord]);
 
   const onClickRegisterBtn = () => {
-    // const formData = new FormData();
-    // formData.append('id', inputID);
-    // formData.append('password', inputPassWord);
-    axios
-      .post(
-        'http://localhost:8080/auth/signin',
-        { id: inputID, password: inputPassWord },
-        { withCredentials: true },
-      )
-      .then((res) => {
-        if (res.data.code === '202') {
-          const { nickname, id } = jwt.decode(res.data.authorize) as any;
-          localStorage.setItem('jwt', res.data.authorize);
-          localStorage.setItem('workspace', res.data.workspace);
-          localStorage.setItem('spacename', res.data.spacename);
-          localStorage.setItem('nickname', nickname);
-          localStorage.setItem('id', id);
-          console.log(jwt.decode(res.data.authorize));
-          console.log(res.data);
-          alert('로그인 되었습니다.');
-          navigate(`/page/${res.data.pageid}`);
-        } else {
-          setAlertMessage(res.data.message || '아이디나 패스워드가 올바르지 않습니다.');
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const requestBody = { id: inputID, password: inputPassWord };
+    const onSuccess = (res: AxiosResponse) => {
+      const { nickname, id } = jwt.decode(res.data.authorize) as any;
+      const { authorize, workspace, spacename } = res.data;
+      localStorage.setItem('jwt', authorize);
+      localStorage.setItem('workspace', workspace);
+      localStorage.setItem('spacename', spacename);
+      localStorage.setItem('nickname', nickname);
+      localStorage.setItem('id', id);
+      alert('로그인 되었습니다.');
+      navigate(`/page/${res.data.pageid}`);
+    };
+    const onFail = (res: AxiosResponse) => {
+      setAlertMessage(res.data.message || '아이디나 패스워드가 올바르지 않습니다.');
+    };
+    axiosPostRequest(API.LOGIN, onSuccess, onFail, requestBody, {});
   };
 
   return (

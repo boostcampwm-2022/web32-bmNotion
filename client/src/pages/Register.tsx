@@ -1,7 +1,9 @@
 import React, { useState, useRef, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { AxiosResponse } from 'axios';
+import { axiosPostRequest } from '@/utils/axios.request';
+import { API } from '@/config/config';
 
 export default function Register(): ReactElement {
   const [inputNickName, setInputNickName] = useState('');
@@ -59,26 +61,21 @@ export default function Register(): ReactElement {
       if (selectedFile) {
         formData.append('profileimage', selectedFile);
       }
-      axios
-        .post('http://localhost:8080/auth/signup', formData)
-        .then((res) => {
-          if (res.data.code === '404') {
-            if (res.data.message.id) {
-              setIdValidateMessage(res.data.message.id);
-              setIdValidation(false);
-            }
-            if (res.data.message.nickname) {
-              setNickNameValidateMessage(res.data.message.nickname);
-              setNickNameValidation(false);
-            }
-          } else {
-            alert('회원가입이 완료되었습니다.');
-            navigate('/');
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      const onSuccess = (res: AxiosResponse) => {
+        alert('회원가입이 완료되었습니다.');
+        navigate('/');
+      };
+      const onFail = (res: AxiosResponse) => {
+        if (res.data.message.id) {
+          setIdValidateMessage(res.data.message.id);
+          setIdValidation(false);
+        }
+        if (res.data.message.nickname) {
+          setNickNameValidateMessage(res.data.message.nickname);
+          setNickNameValidation(false);
+        }
+      };
+      axiosPostRequest(API.SIGNUP, onSuccess, onFail, formData);
     }
   };
 

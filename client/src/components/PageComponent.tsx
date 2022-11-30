@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import BlockContent from '@/components/BlockContent';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { API } from '@/config/config';
-import axiosRequest from '@/utils/axios.request';
+import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
 import jwt from 'jsonwebtoken';
 import { AxiosResponse } from 'axios';
 interface BlockInfo {
@@ -45,69 +45,60 @@ export default function PageComponent(): React.ReactElement {
   });
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
-  // console.log(pageInfo);
-  const axiosGetRequest = axiosRequest.axiosGetRequest;
-  const axiosPostRequest = axiosRequest.axiosPostRequest;
 
   const { pageid } = useParams();
 
   const storePage = () => {
     console.log('페이지 저장');
-    axiosPostRequest(
-      API.UPDATE_PAGE,
-      (res: AxiosResponse) => {
-        console.log('성공');
-      },
-      (res: AxiosResponse) => {
-        console.log(res.data);
-      },
-      {
-        pageid,
-        title: pageInfo.title,
-        blocks: pageInfo.blocks,
-      },
-      {
-        authorization: localStorage.getItem('jwt'),
-      },
-    );
+    const requestHeader = {
+      authorization: localStorage.getItem('jwt'),
+    };
+    const requestBody = {
+      pageid,
+      title: pageInfo.title,
+      blocks: pageInfo.blocks,
+    };
+    const onSuccess = (res: AxiosResponse) => {
+      console.log('성공');
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    axiosPostRequest(API.UPDATE_PAGE, onSuccess, onFail, requestBody, requestHeader);
   };
   useEffect(() => {
     const handleStore = (e: KeyboardEvent) => {
-      const isMac = /Mac/.test(window.clientInformation.platform);
-      if (isMac) {
-        if (e.metaKey === true && e.code === 'KeyS') {
-          e.preventDefault();
-          storePage();
-        }
-      } else {
-        if (e.ctrlKey === true && e.code === 'KeyS') {
+      if (e.code === 'KeyS') {
+        const isMac = /Mac/.test(window.clientInformation.platform);
+        const commandKeyPressed = isMac ? e.metaKey === true : e.ctrlKey === true;
+        if (commandKeyPressed === true) {
           e.preventDefault();
           storePage();
         }
       }
     };
     window.addEventListener('keydown', handleStore);
-    return () => window.removeEventListener('keydown', handleStore);
+    return () => {
+      window.removeEventListener('keydown', handleStore);
+    };
   }, [pageInfo]);
 
   useEffect(() => {
-    axiosGetRequest(
-      `${API.GET_PAGE}${pageid}`,
-      (res: AxiosResponse) => {
-        setPageInfo({
-          title: res.data.title,
-          nextId: Math.max(...res.data.blocks.map((e: BlockInfo) => e.blockId), 1),
-          pageId: pageid as string,
-          blocks: res.data.blocks,
-        });
-      },
-      () => {
-        //실패
-      },
-      {
-        authorization: localStorage.getItem('jwt'),
-      },
-    );
+    const requestHeader = {
+      authorization: localStorage.getItem('jwt'),
+    };
+    const onSuccess = (res: AxiosResponse) => {
+      setPageInfo({
+        title: res.data.title,
+        nextId: Math.max(...res.data.blocks.map((e: BlockInfo) => e.blockId), 1),
+        pageId: pageid as string,
+        blocks: res.data.blocks,
+      });
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    axiosGetRequest(API.GET_PAGE + pageid, onSuccess, onFail, requestHeader);
   }, []);
   const updateIndex = (diff: number) => (block: BlockInfo) => ({
     ...block,

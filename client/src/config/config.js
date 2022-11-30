@@ -8,9 +8,9 @@ export const API = {
   UPDATE_PAGE: `${BASE_URL}/api/page/edit`,
   ADD_PAGE: `${BASE_URL}/api/page/addpage`,
   DELETE_PAGE: `${BASE_URL}/api/deletepage`,
-  GET_PAGE_LIST: `${BASE_URL}/api/page/list/:workspaceid`,
+  GET_PAGE_LIST: `${BASE_URL}/api/page/list/`,
   ADD_WORKSPACE: `${BASE_URL}/api/workspace/addworkspace`,
   ADD_WORKSPACE_MEMBER: `${BASE_URL}/api/workspace/invite`,
   RENAME_WORKSPACE: `${BASE_URL}/api/workspace/rename`,
-  GET_USER_NICKNAME: `${BASE_URL}/api/user/:nickname`,
+  GET_USER_NICKNAME: `${BASE_URL}/api/user/`,
 };

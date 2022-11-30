@@ -4,10 +4,12 @@ import BlockContent from '@/components/BlockContent';
 import PageComponent from '@/components/PageComponent';
 import Modal from '@/components/modal/Modal';
 import TopBarModalContent from '@/components/modal/TopBarModalContent';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import SettingModalContent from '@/components/modal/SettingModalContent';
 import DimdLayer from '@/components/modal/DimdLayer';
 import jwt from 'jsonwebtoken';
+import { axiosGetRequest } from '@/utils/axios.request';
+import { API } from '@/config/config';
 
 interface SideBarButtonProps {
   isClicked: boolean;
@@ -66,59 +68,48 @@ export default function MainPage(): ReactElement {
   };
 
   useEffect(() => {
-    axios
-      .get('http://localhost:8080/api/workspace/list', {
-        headers: {
-          authorization: localStorage.getItem('jwt'),
-        },
-        withCredentials: true,
-      })
-      .then((res) => {
-        if (res.data.code === '202') {
-          console.log(res.data);
-          setWorkspaceList(res.data.workspaceList);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const onSuccess = (res: AxiosResponse) => {
+      setWorkspaceList(res.data.workspaceList);
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    const requestHeader = {
+      authorization: localStorage.getItem('jwt'),
+    };
+    axiosGetRequest('http://localhost:8080/api/workspace/list', onSuccess, onFail, requestHeader);
   }, []);
+
   useEffect(() => {
-    axios
-      .get(`http://localhost:8080/api/user/profile/${localStorage.getItem('id')}`, {
-        headers: {
-          authorization: localStorage.getItem('jwt'),
-        },
-        withCredentials: true,
-      })
-      .then((res) => {
-        if (res.data.code === '202') {
-          setProfileImageUrl(res.data.url);
-        } else {
-          console.log(res.data);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const onSuccess = (res: AxiosResponse) => {
+      setProfileImageUrl(res.data.url);
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    const requestHeader = {
+      authorization: localStorage.getItem('jwt'),
+    };
+    axiosGetRequest(
+      `http://localhost:8080/api/user/profile/${localStorage.getItem('id')}`,
+      onSuccess,
+      onFail,
+      requestHeader,
+    );
   }, [setProfileImageUrl]);
+
   useEffect(() => {
     const workspaceId = localStorage.getItem('workspace');
-    axios
-      .get(`http://localhost:8080/api/page/list/${workspaceId}`, {
-        headers: {
-          authorization: localStorage.getItem('jwt'),
-        },
-        withCredentials: true,
-      })
-      .then((res) => {
-        if (res.data.code === '202') {
-          setPageList(res.data.list);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const onSuccess = (res: AxiosResponse) => {
+      setPageList(res.data.list);
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    const requestHeader = {
+      authorization: localStorage.getItem('jwt'),
+    };
+    axiosGetRequest(API.GET_PAGE_LIST + workspaceId, onSuccess, onFail, requestHeader);
   }, workspaceList);
 
   return (
