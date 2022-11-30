@@ -2,6 +2,7 @@ const { createDocument, updateOneDocument, readOneDocument } = require('../db/db
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
 const dbConfig = require('../db.config.json');
+const { ObjectId } = require('mongodb');
 
 const getPageById = async (pageid) => {
   const page = await readOneDocument(dbConfig.COLLECTION_PAGE, { _id: pageid });
@@ -39,19 +40,19 @@ const addPagePipeline = async (userid) => {
   return response;
 };
 
-const readPages = async (userid) => {
-  const result = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, { owner: userid });
-  const pageList = await Promise.all(
-    result.pages.map((pageId) => {
-      const { title } = readOneDocument(dbConfig.COLLECTION_PAGE, { pageid: pageId });
-      return {
-        pageid: pageId,
-        title,
-      };
-    }),
-  );
+const readPagePipeline = async (workspaceId) => {
+  const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, {
+    _id: ObjectId(workspaceId),
+  });
+  const pages = new Array();
+  for (page of workspace.pages) {
+    const pageInfo = await readOneDocument(dbConfig.COLLECTION_PAGE, { _id: ObjectId(page) });
+    pages.push({ title: pageInfo.title, id: page });
+  }
+  const response = createResponse(responseMessage.PROCESS_SUCCESS);
+  response.list = pages;
 
-  return pageList;
+  return response;
 };
 
 const loadPagePipeline = async (userid, pageid) => {
@@ -69,4 +70,4 @@ const loadPagePipeline = async (userid, pageid) => {
   return createResponse(responseMessage.PAGE_NOT_FOUND);
 };
 
-module.exports = { addPagePipeline, loadPagePipeline, readPages };
+module.exports = { addPagePipeline, loadPagePipeline, readPagePipeline };

@@ -12,5 +12,6 @@ router.use(
 );
 router.post('/addpage', pageController.addPage);
 router.get('/:pageid', pageController.loadPage);
+router.get('/list/:workspaceid', pageController.readPages);
 
 module.exports = router;

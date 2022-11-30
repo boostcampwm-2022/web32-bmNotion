@@ -73,9 +73,8 @@ export default function MainPage(): ReactElement {
       })
       .then((res) => {
         if (res.data.code === '202') {
-          setWorkspaceList(res.data);
-        } else {
-          setWorkspaceList(res.data);
+          console.log(res.data);
+          setWorkspaceList(res.data.workspaceList);
         }
       })
       .catch((error) => {
@@ -83,6 +82,7 @@ export default function MainPage(): ReactElement {
       });
   }, []);
   useEffect(() => {
+    const workspaceId = localStorage.getItem('workspace');
     axios
       .get(`http://localhost:8080/api/user/profile/${localStorage.getItem('id')}`, {
         headers: {
@@ -101,25 +101,23 @@ export default function MainPage(): ReactElement {
         console.log(error);
       });
   }, [setProfileImageUrl]);
-  // useEffect(() => {
-  //   axios
-  //     .get('http://localhost:8080/api/page/list', {
-  //       headers: {
-  //         authorization: localStorage.getItem('jwt'),
-  //       },
-  //       withCredentials: true,
-  //     })
-  //     .then((res) => {
-  //       if (res.data.code === '202') {
-  //         setWorkspaceList(res.data);
-  //       } else {
-  //         setWorkspaceList(res.data);
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       console.log(error);
-  //     });
-  // }, pageList);
+  useEffect(() => {
+    axios
+     .get(`http://localhost:8080/api/page/list/${workspaceId}`, {
+        headers: {
+          authorization: localStorage.getItem('jwt'),
+        },
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data.code === '202') {
+          setPageList(res.data.list);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, workspaceList);
 
   return (
     <Wrapper>
@@ -136,8 +134,13 @@ export default function MainPage(): ReactElement {
         </SideBarHeaderContainer>
         <SideBarBodyContainer>
           <SideBarBody>
+            <>워크스페이스 리스트</>
             {workspaceList.map((workspace, index) => (
-              <div key={index}>{workspace.title}</div>
+                <div key={index}>{workspace.title}</div>
+            ))}
+            <>페이지 리스트</>
+            {pageList.map((page, index) => (
+                <div key={index}>{page.title}</div>
             ))}
             <SpaceSettingButton onClick={spaceSettingButtonClicked}>
               <span>아이콘</span>

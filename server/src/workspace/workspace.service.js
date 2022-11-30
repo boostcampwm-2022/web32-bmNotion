@@ -5,12 +5,15 @@ const { readOneDocument, updateOneDocument } = require('../db/db.crud');
 const responseMessage = require('../response.message.json');
 const createResponse = require('../utils/response.util');
 
-const readWorkspaceById = async (userId) => {
+const getWorkspacesPipeline = async (userId) => {
   const queryCriteria = {
     $or: [{ owner: userId }, { members: { $elemMatch: { userId } } }],
   };
   const workspaceList = await readAllDocument(dbConfig.COLLECTION_WORKSPACE, queryCriteria);
-  return workspaceList;
+  const response = createResponse(responseMessage.PROCESS_SUCCESS);
+  response.workspaceList = workspaceList;
+
+  return response;
 };
 
 const inviteUserPipeline = async (userid, workspaceid, nickname) => {
@@ -58,7 +61,7 @@ const renameWorkspacePipeline = async (userid, workspaceid, workspacename) => {
 };
 
 module.exports = {
-  readWorkspaceById,
+  renameWorkspacePipeline
+  getWorkspacesPipeline,
   inviteUserPipeline,
-  renameWorkspacePipeline,
 };

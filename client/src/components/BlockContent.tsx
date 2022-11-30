@@ -2,6 +2,7 @@ import React, { Dispatch, ReactElement, useState, useRef, useLayoutEffect, useEf
 import styled, { keyframes } from 'styled-components';
 import Modal from '@/components/modal/Modal';
 import BlockModalContent from '@/components/modal/BlockModalContent';
+import BlockOptionModalContent from '@/components/modal/BlockOptionModalContent';
 import { render } from 'react-dom';
 
 interface BlockInfo {
@@ -62,7 +63,8 @@ const markdownGrammer: MarkdownGrammers = {
 
 const decisionNewBlockType = (prevType: string) => {
   if (['UL', 'OL'].includes(prevType)) return prevType;
-  return 'TEXT';
+  // return 'TEXT';
+  return prevType;
 };
 
 const checkMarkDownGrammer = (text: string) => {
@@ -79,11 +81,19 @@ export default function BlockContent({
   moveBlock,
 }: BlockContentProps): ReactElement {
   const { blockId, content, index } = block;
-  const [blockModalOpen, setBlockModalOpen] = useState(false);
+  const [blockPlusModalOpen, setBlockPlusModalOpen] = useState(false);
+  const [blockOptionModalOpen, setBlockOptionModalOpen] = useState(false);
   const refBlock = useRef<HTMLDivElement>(null);
-  const handleBlockBarModal = () => {
-    setBlockModalOpen(!blockModalOpen);
+
+  const handleBlockPlusButtonModal = () => {
+    setBlockPlusModalOpen(!blockPlusModalOpen);
+    setBlockOptionModalOpen(false);
   };
+  const handleBlockOptionButtonModal = () => {
+    setBlockOptionModalOpen(!blockOptionModalOpen);
+    setBlockPlusModalOpen(false);
+  };
+
   const handleOnEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.shiftKey) {
       /* 블록 내에서 줄바꿈 반영 */
@@ -93,7 +103,7 @@ export default function BlockContent({
       e.preventDefault();
       if (!e.nativeEvent.isComposing) {
         /* 한글 입력시 isComposing이 false일때만 실행 */
-        newBlock({ blockId, type: decisionNewBlockType(type), content: '', index: index + 1 });
+        newBlock({ blockId, type: decisionNewBlockType('TEXT'), content: '', index: index + 1 });
       }
     }
   };
@@ -104,12 +114,13 @@ export default function BlockContent({
     const totalContent = elem.textContent || '';
     const offset = (window.getSelection() as Selection).focusOffset;
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
-    console.log('🚀 ~ file: BlockContent.tsx ~ line 111 ~ handleOnSpace ~ preText', preText);
+    // console.log('🚀 ~ file: BlockContent.tsx ~ line 111 ~ handleOnSpace ~ preText', preText);
     /* 마크다운 문법과 일치 => 해당 타입으로 변경 */
     const toType = checkMarkDownGrammer(preText);
     if (toType !== '') {
       /* toType으로 타입변경 */
       e.preventDefault();
+      elem.textContent = postText;
       console.log(`toType => ${toType}, content: ${postText}`);
       changeBlock({ blockId, type: toType, content: postText, index });
     }
@@ -129,14 +140,24 @@ export default function BlockContent({
       handleOnArrow(e);
     }
   };
+  const handlePlus = (toType: string) => {
+    setBlockPlusModalOpen(false);
+    setBlockOptionModalOpen(false);
+    if (!content && type === 'TEXT') {
+      handleType(toType);
+    } else {
+      newBlock({ blockId, type: decisionNewBlockType(toType), content: '', index: index + 1 });
+    }
+  };
   const handleType = (toType: string) => {
-    setBlockModalOpen(false);
+    setBlockPlusModalOpen(false);
+    setBlockOptionModalOpen(false);
     changeBlock({ blockId, type: toType, content: block.content, index });
   };
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = (e.target as HTMLDivElement).textContent;
-    console.log('🚀 ~ file: BlockContent.tsx ~ line 134 ~ handleOnInput ~ newContent', newContent);
+    // console.log('🚀 ~ file: BlockContent.tsx ~ line 134 ~ handleOnInput ~ newContent', newContent);
     if (newContent) {
       block.content = newContent;
     }
@@ -146,10 +167,13 @@ export default function BlockContent({
     if (type === 'H1') {
       return (
         <H1BlockContentBox>
-          <BlockContainer>
+          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
             <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
+              <BlockPlusButton onClick={handleBlockPlusButtonModal} />
+              <BlockOptionButton
+                {...provided.dragHandleProps}
+                onClick={handleBlockOptionButtonModal}
+              />
             </BlockButtonBox>
             <BlockContentBox
               // type => css
@@ -161,11 +185,16 @@ export default function BlockContent({
               data-index={index}
               ref={refBlock}
             >
-              {block.content || ''}
+              {content || ''}
             </BlockContentBox>
-            {blockModalOpen && (
+            {blockPlusModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
+                <BlockModalContent handleType={handlePlus} />
+              </Modal>
+            )}
+            {blockOptionModalOpen && (
+              <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
+                <BlockOptionModalContent handleType={handleType} />
               </Modal>
             )}
           </BlockContainer>
@@ -174,10 +203,13 @@ export default function BlockContent({
     } else if (type === 'H2') {
       return (
         <H2BlockContentBox>
-          <BlockContainer>
+          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
             <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
+              <BlockPlusButton onClick={handleBlockPlusButtonModal} />
+              <BlockOptionButton
+                {...provided.dragHandleProps}
+                onClick={handleBlockOptionButtonModal}
+              />{' '}
             </BlockButtonBox>
             <BlockContentBox
               // type => css
@@ -189,11 +221,16 @@ export default function BlockContent({
               data-index={index}
               ref={refBlock}
             >
-              {block.content || ''}
+              {content || ''}
             </BlockContentBox>
-            {blockModalOpen && (
+            {blockPlusModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
+                <BlockModalContent handleType={handlePlus} />
+              </Modal>
+            )}
+            {blockOptionModalOpen && (
+              <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
+                <BlockOptionModalContent handleType={handleType} />
               </Modal>
             )}
           </BlockContainer>
@@ -202,10 +239,13 @@ export default function BlockContent({
     } else if (type === 'H3') {
       return (
         <H3BlockContentBox>
-          <BlockContainer>
+          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
             <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton />
+              <BlockPlusButton onClick={handleBlockPlusButtonModal} />
+              <BlockOptionButton
+                {...provided.dragHandleProps}
+                onClick={handleBlockOptionButtonModal}
+              />
             </BlockButtonBox>
             <BlockContentBox
               // type => css
@@ -217,11 +257,16 @@ export default function BlockContent({
               data-index={index}
               ref={refBlock}
             >
-              {block.content || ''}
+              {content || ''}
             </BlockContentBox>
-            {blockModalOpen && (
+            {blockPlusModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
+                <BlockModalContent handleType={handlePlus} />
+              </Modal>
+            )}
+            {blockOptionModalOpen && (
+              <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
+                <BlockOptionModalContent handleType={handleType} />
               </Modal>
             )}
           </BlockContainer>
@@ -232,8 +277,11 @@ export default function BlockContent({
         <TextBlockContentBox>
           <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
             <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockBarModal} />
-              <BlockOptionButton onClick={() => console.log('aa')} {...provided.dragHandleProps} />
+              <BlockPlusButton onClick={handleBlockPlusButtonModal} />
+              <BlockOptionButton
+                {...provided.dragHandleProps}
+                onClick={handleBlockOptionButtonModal}
+              />
             </BlockButtonBox>
             <BlockContentBox
               // type => css
@@ -245,11 +293,16 @@ export default function BlockContent({
               data-index={index}
               ref={refBlock}
             >
-              {block.content || ''}
+              {content || ''}
             </BlockContentBox>
-            {blockModalOpen && (
+            {blockPlusModalOpen && (
               <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handleType} />
+                <BlockModalContent handleType={handlePlus} />
+              </Modal>
+            )}
+            {blockOptionModalOpen && (
+              <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
+                <BlockOptionModalContent handleType={handleType} />
               </Modal>
             )}
           </BlockContainer>
@@ -300,6 +353,7 @@ const BlockPlusButton = styled.button`
 `;
 
 const BlockOptionButton = styled.div`
+  cursor: pointer;
   width: 18px;
   height: 24px;
   background-image: url('/assets/icons/optionButton.png');
