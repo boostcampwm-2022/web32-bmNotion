@@ -10,7 +10,7 @@ const pageController = {
   editPage: async (req, res) => {
     const { id: userid } = jwt.decode(req.headers.authorization);
     const { pageid, blocks, title } = req.body;
-    const resJson = await editPagePipeline(userid, pageid, blocks, title);
+    const resJson = await editPagePipeline(userid, title, pageid, blocks);
     res.json(resJson);
   },
   addPage: async (req, res) => {
