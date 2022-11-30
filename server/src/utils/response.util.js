@@ -39,6 +39,10 @@ const createResponse = (message) => {
       response.code = '404';
       response.message = responseMessage.EXIST_BOTH;
       break;
+    case responseMessage.NEED_SIGNIN:
+      response.code = '404';
+      response.message = responseMessage.NEED_SIGNIN;
+      break;
     default:
       break;
   }
