@@ -58,7 +58,7 @@ const isExistNickname = async (nickname) => {
 };
 
 const searchUserPipeline = async (nickname) => {
-  const users = userCrud.readUserByRegex(nickname);
+  const users = await userCrud.readUserByRegex(nickname);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
   response.users = users.map((user) => {
     const userInfo = {
