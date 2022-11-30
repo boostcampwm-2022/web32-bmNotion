@@ -131,6 +131,21 @@ export default function BlockContent({
     moveBlock({ e, content: '', index: index });
   };
 
+  const handleOnBackspace = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const elem = e.target as HTMLElement;
+    console.log("🚀 ~ file: BlockContent.tsx ~ line 136 ~ handleOnBackspace ~ elem", elem)
+    console.log(elem.textContent, type)
+    if (elem.textContent !== '') return;
+    e.preventDefault();
+    if (type === "TEXT") {
+      console.log("블록 삭제 트리거")
+    } else {
+      console.log("블록 TEXT로 변경")
+      const toType = "TEXT";
+      changeBlock({ blockId, type: toType, content: elem.textContent, index });
+    }
+  };
+
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.code === 'Enter') {
       handleOnEnter(e);
@@ -138,8 +153,11 @@ export default function BlockContent({
       handleOnSpace(e);
     } else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
       handleOnArrow(e);
+    } else if (e.code == 'Backspace') {
+      handleOnBackspace(e);
     }
   };
+
   const handlePlus = (toType: string) => {
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
