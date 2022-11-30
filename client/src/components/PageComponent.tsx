@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import BlockContent from '@/components/BlockContent';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-
+import {API} from '@/config/config';
+import axiosRequest from '@/utils/axios.request'
+import jwt from 'jsonwebtoken';
+import { AxiosResponse } from 'axios';
 interface BlockInfo {
   blockId: number;
   content: string;
@@ -37,7 +41,23 @@ export default function PageComponent(): React.ReactElement {
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
   // console.log(pageInfo);
+  const axiosGetRequest = axiosRequest.axiosGetRequest;
+  const axiosPostRequest = axiosRequest.axiosPostRequest;
 
+  const {pageid} = useParams();
+  useEffect(()=>{
+    axiosGetRequest(
+      `${API.GET_PAGE}${pageid}`, 
+      (res: AxiosResponse)=>{
+        console.log("@@@@@@@@res = ", res)
+      }, 
+      ()=>{
+        //실패
+      }, 
+      {
+      authorization: localStorage.getItem('jwt'),
+    })
+  },[])
   const updateIndex = (diff: number) => (block: BlockInfo) => ({
     ...block,
     index: block.index + diff,
