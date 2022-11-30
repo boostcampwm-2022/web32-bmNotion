@@ -20,7 +20,7 @@ interface PageInfo {
 
 interface EditedBlockInfo {
   block: BlockInfo;
-  type: 'new' | 'change';
+  type: 'new' | 'change' | 'delete';
 }
 
 const sampleBlocks: BlockInfo[] = [{ blockId: 1, index: 1, content: '', type: 'TEXT' }];
@@ -36,8 +36,13 @@ export default function PageComponent(): React.ReactElement {
   const [pageInfo, setPageInfo] = useState(samplePageInfo);
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
-  console.log(pageInfo);
+  // console.log(pageInfo);
 
+  const updateIndex = (diff: number) => (block: BlockInfo) => ({
+    ...block,
+    index: block.index + diff,
+  });
+  
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = (e.target as HTMLDivElement).textContent;
     if (newContent) {
@@ -60,7 +65,6 @@ export default function PageComponent(): React.ReactElement {
       }
     }
   };
-  const updateIndex = (block: BlockInfo): BlockInfo => ({ ...block, index: block.index + 1 });
   const addBlock = ({
     blockId,
     type,
@@ -78,7 +82,7 @@ export default function PageComponent(): React.ReactElement {
       blocks: [
         ...prev.blocks.slice(0, index - 1),
         { content, type, index, blockId: prev.nextId },
-        ...prev.blocks.slice(index - 1).map(updateIndex),
+        ...prev.blocks.slice(index - 1).map(updateIndex(1)),
       ],
       nextId: prev.nextId + 1,
     }));
@@ -105,19 +109,39 @@ export default function PageComponent(): React.ReactElement {
     setFocusBlockId(blockId);
   };
 
+  const deleteBlock = ({ block }: { block: BlockInfo }) => {
+    console.log('🚀 ~ file: PageComponent.tsx:88 ~ PageComponent ~ deleteBlock', block);
+    setEditedBlock({ block, type: 'delete' });
+  };
+
+  /* editedBlock */
   useEffect(() => {
-    if (editedBlock === null) return;
-    const { blockId, content, index, type, focus } = editedBlock.block;
-    setPageInfo((prev) => ({
-      ...prev,
-      blocks: [
-        ...prev.blocks.slice(0, index - 1),
-        { ...editedBlock.block, blockId: type === 'new' ? prev.nextId : blockId },
-        ...prev.blocks.slice(index - 1).map(updateIndex),
-      ],
-      nextId: prev.nextId + 1,
-    }));
-    setFocusBlockId(pageInfo.nextId);
+    console.log('🚀 ~ file: PageComponent.tsx:94 ~ PageComponent ~ editedBlock', editedBlock);
+    if (!editedBlock || editedBlock.block === undefined) return;
+    if (editedBlock.type === 'delete') {
+      editedBlock !== undefined &&
+        setPageInfo((prev) => ({
+          ...prev,
+          blocks: [
+            ...prev.blocks.slice(0, editedBlock.block.index - 1),
+            ...prev.blocks.slice(editedBlock.block.index).map(updateIndex(-1)),
+          ],
+        }));
+      editedBlock.block.index !== 1 &&
+        setFocusBlockId(pageInfo.blocks[editedBlock.block.index - 2].blockId ?? null);
+    } else {
+      const { blockId, content, index, type, focus } = editedBlock.block;
+      setPageInfo((prev) => ({
+        ...prev,
+        blocks: [
+          ...prev.blocks.slice(0, index - 1),
+          { ...editedBlock.block, blockId: type === 'new' ? prev.nextId : blockId },
+          ...prev.blocks.slice(index - 1).map(updateIndex(1)),
+        ],
+        nextId: type === 'new' ? prev.nextId + 1 : prev.nextId,
+      }));
+      setFocusBlockId(blockId);
+    }
   }, [editedBlock]);
 
   const onFucusIndex = (targetIndex: string) => {
@@ -218,6 +242,7 @@ export default function PageComponent(): React.ReactElement {
                         newBlock={addBlock}
                         changeBlock={changeBlock}
                         moveBlock={moveBlock}
+                        deleteBlock={deleteBlock}
                         index={block.index}
                         type={block.type}
                         provided={provided}

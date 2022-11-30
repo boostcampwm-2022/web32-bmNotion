@@ -24,6 +24,7 @@ interface BlockContentProps {
   changeBlock: Function;
   provided: any;
   moveBlock: Function;
+  deleteBlock: Function;
 }
 
 interface BlockContentBoxProps {
@@ -76,6 +77,7 @@ export default function BlockContent({
   block,
   newBlock,
   changeBlock,
+  deleteBlock,
   type,
   provided,
   moveBlock,
@@ -131,6 +133,23 @@ export default function BlockContent({
     moveBlock({ e, content: '', index: index });
   };
 
+  const handleOnBackspace = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const elem = e.target as HTMLElement;
+    // console.log('🚀 ~ file: BlockContent.tsx ~ line 136 ~ handleOnBackspace ~ elem', elem);
+    // console.log(elem.textContent, type);
+    if ((window.getSelection() as Selection).focusOffset !== 0) return;
+    if (type !== 'TEXT') {
+      e.preventDefault();
+      console.log('블록 TEXT로 변경');
+      const toType = 'TEXT';
+      changeBlock({ blockId, type: toType, content: elem.textContent, index });
+    } else if (elem.textContent === '') {
+      e.preventDefault();
+      console.log('블록 삭제 트리거');
+      deleteBlock({ block });
+    }
+  };
+
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.code === 'Enter') {
       handleOnEnter(e);
@@ -138,8 +157,11 @@ export default function BlockContent({
       handleOnSpace(e);
     } else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
       handleOnArrow(e);
+    } else if (e.code == 'Backspace') {
+      handleOnBackspace(e);
     }
   };
+
   const handlePlus = (toType: string) => {
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
@@ -158,7 +180,7 @@ export default function BlockContent({
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = (e.target as HTMLDivElement).textContent;
     // console.log('🚀 ~ file: BlockContent.tsx ~ line 134 ~ handleOnInput ~ newContent', newContent);
-    if (newContent) {
+    if (newContent !== null) {
       block.content = newContent;
     }
   };
