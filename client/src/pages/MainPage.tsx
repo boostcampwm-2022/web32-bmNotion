@@ -10,6 +10,7 @@ import DimdLayer from '@/components/modal/DimdLayer';
 import jwt from 'jsonwebtoken';
 import { axiosGetRequest } from '@/utils/axios.request';
 import { API } from '@/config/config';
+import WorkspaceList from '@/components/WorkspaceList';
 
 interface SideBarButtonProps {
   isClicked: boolean;
@@ -20,11 +21,6 @@ interface SideBarButtonProps {
 interface SideBarProps {
   isClicked: boolean;
   sideBarHoverButton: string;
-}
-
-interface Workspace {
-  title: string;
-  id: string;
 }
 
 interface Page {
@@ -43,7 +39,6 @@ export default function MainPage(): ReactElement {
   const [sideBarHoverButton, setSideBarHoverButton] = useState('/assets/icons/doubleArrow.png');
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
   const [isReaderMode, setIsReaderMode] = useState(false);
-  const [workspaceList, setWorkspaceList] = useState<Workspace[]>([]);
   const [pageList, setPageList] = useState<Page[]>([]);
   const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>(undefined);
 
@@ -56,7 +51,6 @@ export default function MainPage(): ReactElement {
   };
 
   const spaceSettingButtonClicked = () => {
-    console.log('clicked!');
     setSpaceSettingModalOpen(!spaceSettingModalOpen);
   };
 
@@ -67,18 +61,6 @@ export default function MainPage(): ReactElement {
     setIsReaderMode(!isReaderMode);
   };
 
-  useEffect(() => {
-    const onSuccess = (res: AxiosResponse) => {
-      setWorkspaceList(res.data.workspaceList);
-    };
-    const onFail = (res: AxiosResponse) => {
-      console.log(res.data);
-    };
-    const requestHeader = {
-      authorization: localStorage.getItem('jwt'),
-    };
-    axiosGetRequest('http://localhost:8080/api/workspace/list', onSuccess, onFail, requestHeader);
-  }, []);
 
   useEffect(() => {
     const onSuccess = (res: AxiosResponse) => {
@@ -110,13 +92,14 @@ export default function MainPage(): ReactElement {
       authorization: localStorage.getItem('jwt'),
     };
     axiosGetRequest(API.GET_PAGE_LIST + workspaceId, onSuccess, onFail, requestHeader);
-  }, workspaceList);
+  }, [setPageList]);
 
   return (
     <Wrapper>
       <SideBar isClicked={sideBarButtonClicked} sideBarHoverButton={reverseDoubleArrowButton}>
         <SideBarHeaderContainer>
           <SideBarHeader>
+            <WorkspaceList/>
             <SideBarButton
               isClicked={!sideBarButtonClicked}
               sideBarButton={tranParentButton}
@@ -127,14 +110,10 @@ export default function MainPage(): ReactElement {
         </SideBarHeaderContainer>
         <SideBarBodyContainer>
           <SideBarBody>
-            <>워크스페이스 리스트</>
-            {workspaceList.map((workspace, index) => (
-              <div key={index}>{workspace.title}</div>
-            ))}
-            <>페이지 리스트</>
+            {/* <>페이지 리스트</>
             {pageList.map((page, index) => (
               <div key={index}>{page.title}</div>
-            ))}
+            ))} */}
             <SpaceSettingButton onClick={spaceSettingButtonClicked}>
               <span>아이콘</span>
               <span>설정</span>
@@ -292,11 +271,10 @@ const SideBarHeaderContainer = styled.div`
 
 const SideBarHeader = styled.div`
   display: flex;
-  align-items: center;
   height: 40px;
   width: 100%;
-  justify-content: flex-end;
-  padding: 12px;
+  justify-content: space-between;
+  padding: 0 12px;
 `;
 
 const SideBarBodyContainer = styled.div`
