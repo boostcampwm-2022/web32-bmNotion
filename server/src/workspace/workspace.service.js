@@ -100,11 +100,12 @@ const addWorkspacePipeline = async (userId, title, members) => {
   response.workspaceid = workspaceDocument;
 
   return response;
-}
+};
 
 module.exports = {
   renameWorkspacePipeline,
   getWorkspacesPipeline,
   inviteUserPipeline,
-  addWorkspacePipeline
+  addWorkspacePipeline,
+  workspaceCrud,
 };
