@@ -45,7 +45,7 @@ export default function MainPage(): ReactElement {
   const [spaceSettingModalOpen, setSpaceSettingModalOpen] = useState(false);
   const [topBarModalOpen, setTopBarModalOpen] = useState(false);
 
-  const moveNextBlock = () => { };
+  const moveNextBlock = () => {};
   const sideBarButtonClick = () => {
     setSideBarButtonClicked(!sideBarButtonClicked);
   };
