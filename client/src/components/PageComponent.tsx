@@ -36,6 +36,8 @@ const samplePageInfo: PageInfo = {
   blocks: sampleBlocks,
 };
 
+const STORE_DELAY_TIME = 30 * 1000; // 30초
+
 export default function PageComponent(): React.ReactElement {
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     title: '',
@@ -49,7 +51,8 @@ export default function PageComponent(): React.ReactElement {
   const { pageid } = useParams();
 
   const storePage = () => {
-    console.log('페이지 저장');
+    console.log('페이지 저장', pageInfo.blocks);
+    timeoutInfo.isStoreWaited = false;
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
@@ -66,6 +69,28 @@ export default function PageComponent(): React.ReactElement {
     };
     axiosPostRequest(API.UPDATE_PAGE, onSuccess, onFail, requestBody, requestHeader);
   };
+
+  const timeoutInfo: { id: NodeJS.Timeout; isStoreWaited: boolean } = {
+    id: setTimeout(() => {}),
+    isStoreWaited: false,
+  };
+
+  function storePageTrigger({ isDelay }: { isDelay: boolean }) {
+    if (!isDelay) {
+      clearTimeout(timeoutInfo.id);
+      storePage();
+      return;
+    }
+    if (!timeoutInfo.isStoreWaited) {
+      timeoutInfo.isStoreWaited = true;
+      timeoutInfo.id = setTimeout(storePage, STORE_DELAY_TIME);
+    }
+  }
+
+  useEffect(() => {
+    return () => clearTimeout(timeoutInfo.id);
+  });
+
   useEffect(() => {
     const handleStore = (e: KeyboardEvent) => {
       if (e.code === 'KeyS') {
@@ -73,7 +98,7 @@ export default function PageComponent(): React.ReactElement {
         const commandKeyPressed = isMac ? e.metaKey === true : e.ctrlKey === true;
         if (commandKeyPressed === true) {
           e.preventDefault();
-          storePage();
+          storePageTrigger({ isDelay: false });
         }
       }
     };
@@ -149,6 +174,7 @@ export default function PageComponent(): React.ReactElement {
       nextId: prev.nextId + 1,
     }));
     setFocusBlockId(pageInfo.nextId);
+    storePageTrigger({ isDelay: true });
   };
 
   const changeBlock = ({
@@ -169,11 +195,13 @@ export default function PageComponent(): React.ReactElement {
       ),
     }));
     setFocusBlockId(blockId);
+    storePageTrigger({ isDelay: true });
   };
 
   const deleteBlock = ({ block }: { block: BlockInfo }) => {
     console.log('🚀 ~ file: PageComponent.tsx:88 ~ PageComponent ~ deleteBlock', block);
     setEditedBlock({ block, type: 'delete' });
+    storePageTrigger({ isDelay: true });
   };
 
   /* editedBlock */
@@ -378,6 +406,7 @@ export default function PageComponent(): React.ReactElement {
                         changeBlock={changeBlock}
                         moveBlock={moveBlock}
                         deleteBlock={deleteBlock}
+                        storePageTrigger={storePageTrigger}
                         index={block.index}
                         type={block.type}
                         provided={provided}
