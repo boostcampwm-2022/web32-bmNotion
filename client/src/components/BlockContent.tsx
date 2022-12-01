@@ -157,8 +157,6 @@ export default function BlockContent({
       handleOnSpace(e);
     } else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
       handleOnArrow(e);
-    } else if (e.code == 'Backspace') {
-      handleOnBackspace(e);
     }
   };
 

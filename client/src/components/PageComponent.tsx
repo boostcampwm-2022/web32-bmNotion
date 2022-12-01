@@ -206,11 +206,52 @@ export default function PageComponent(): React.ReactElement {
     }
   }, [editedBlock]);
 
-  const onFucusIndex = (targetIndex: string) => {
+  const onFocusIndex = (targetIndex: string) => {
     const blocks = document.querySelectorAll('div.content');
-    const target = [...blocks].find((el) => el.getAttribute('data-index') === targetIndex);
-    (target as HTMLElement).tabIndex = -1;
-    (target as HTMLElement).focus();
+    const target = [...blocks].find(
+      (el) => el.getAttribute('data-index') === targetIndex,
+    ) as HTMLElement;
+    if (target.childNodes.length === 0) {
+      target.focus();
+      return;
+    }
+  };
+
+  const handleCaretIndex = (
+    e: React.KeyboardEvent<HTMLDivElement>,
+    index: number,
+    offset: number,
+  ) => {
+    e.preventDefault();
+
+    const blocks = document.querySelectorAll('div.content');
+    const target = [...blocks].find(
+      (el) => el.getAttribute('data-index') === String(index),
+    ) as HTMLElement;
+    if (target.childNodes.length === 0) {
+      return;
+    }
+    target.normalize();
+    const range = document.createRange();
+    const select = window.getSelection();
+
+    if (target.innerHTML.includes('\n') && e.code === 'ArrowUp') {
+      const lastLineLength = target.innerHTML.split('\n').slice(-1).join('').length;
+      const baseLength = target.innerHTML.length - lastLineLength;
+      range.setStart(
+        target.childNodes[0],
+        lastLineLength < offset ? baseLength + lastLineLength : baseLength + offset,
+      );
+    } else {
+      range.setStart(
+        target.childNodes[0],
+        target.innerHTML.length < offset ? target.innerHTML.length : offset,
+      );
+    }
+    range.collapse(true);
+
+    select?.removeAllRanges();
+    select?.addRange(range);
   };
 
   const moveBlock = ({
@@ -224,16 +265,47 @@ export default function PageComponent(): React.ReactElement {
     content: string;
     index: number;
   }) => {
-    if (e.code === 'ArrowUp') {
-      if (index === 1) {
+    const offset = (window.getSelection() as Selection).anchorOffset;
+    const contents = document.querySelectorAll('div.content');
+    const target = [...contents].find(
+      (el) => el.getAttribute('data-blockid') === String(index),
+    ) as HTMLElement;
+    if (target.childNodes.length !== 0) {
+      target.normalize();
+    }
+    const lastLineLength = target.innerHTML.split('\n').slice(-1).join('').length;
+    const firstLineLength = target.innerHTML.split('\n')[0].length;
+    const baseLength = target.innerHTML.length - lastLineLength;
+    if (target.innerHTML.includes('\n')) {
+      if (e.code === 'ArrowUp' && offset <= firstLineLength) {
+        onFocusIndex(String(index - 1));
+        handleCaretIndex(e, index - 1, offset);
+        return;
+      } else if (
+        e.code === 'ArrowDown' &&
+        baseLength < offset &&
+        offset <= target.innerHTML.length
+      ) {
+        onFocusIndex(String(index + 1));
+        handleCaretIndex(e, index + 1, offset - baseLength);
+        return;
+      } else {
         return;
       }
-      onFucusIndex(String(index - 1));
-    } else if (e.code === 'ArrowDown') {
-      if (index === pageInfo.blocks[pageInfo.blocks.length - 1].index) {
-        return;
+    } else {
+      if (e.code === 'ArrowUp') {
+        if (index === 1) {
+          return;
+        }
+        onFocusIndex(String(index - 1));
+        handleCaretIndex(e, index - 1, offset);
+      } else if (e.code === 'ArrowDown') {
+        if (index === pageInfo.blocks[pageInfo.blocks.length - 1].index) {
+          return;
+        }
+        onFocusIndex(String(index + 1));
+        handleCaretIndex(e, index + 1, offset);
       }
-      onFucusIndex(String(index + 1));
     }
   };
 
