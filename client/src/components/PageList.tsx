@@ -2,7 +2,7 @@ import { API } from '@/config/config';
 import { axiosDeleteRequest, axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
 import { AxiosResponse } from 'axios';
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 
 interface Page {
@@ -14,6 +14,7 @@ interface Page {
 export default function PageList() {
   const [isLoading, setIsLoading] = useState(false);
   const [pageList, setPageList] = useState<Page[]>([]);
+  const { pageid } = useParams();
   const navigate = useNavigate();
 
   const requestPageList = () => {
@@ -51,7 +52,7 @@ export default function PageList() {
 
   useEffect(() => {
     requestPageList();
-  }, [setPageList]);
+  }, [setPageList, pageid]);
 
   const onClickAddPage = (e: React.MouseEvent) => {
     const workspaceId = localStorage.getItem('workspace');
@@ -113,7 +114,9 @@ export default function PageList() {
             }}
             key={index}
           >
-            <PageListContentSpan>{page.title}</PageListContentSpan>
+            <PageListContentSpan>
+              {page.title === '' ? '제목 없음' : page.title}
+            </PageListContentSpan>
             <PageListContentDeleteButton
               onClick={(e: React.MouseEvent) => {
                 onClickDeleteButton(page.id);
