@@ -400,31 +400,9 @@ const PageBox = styled.div`
   margin-top: 5px;
 `;
 
-const ExampleContainer = styled.div`
-  width: 100%;
-  display: flex;
-  background-color: blue;
-  margin: 10px;
-`;
-
-const DragExample = styled.div`
-  background-color: red;
-  height: 20px;
-  margin: 10px;
-  width: 100px;
-`;
-
-const PageContainer = styled.div<{ maxWidth: string }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: ${(props) => props.maxWidth}; //900px보다 작으면 width 100%;
-  min-width: 0px;
-  width: 100%;
-  //버튼 클릭하면 max-width: 100%
-  transition: all 0.1s linear;
-`;
-const PageTitle = styled.div`
+const PageTitle = styled.div.attrs({
+  placeholder: '제목 없음',
+})`
   width: 100%;
   margin-top: 100px;
   color: rgb(55, 53, 47);
@@ -432,4 +410,17 @@ const PageTitle = styled.div`
   line-height: 1.2;
   font-size: 40px;
   padding: 3px;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:empty::before {
+    content: attr(placeholder);
+    color: #e1e1e0;
+  }
+
+  &:empty:focus::before {
+    content: '';
+  }
 `;
