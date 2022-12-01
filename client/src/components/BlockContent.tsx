@@ -25,6 +25,7 @@ interface BlockContentProps {
   provided: any;
   moveBlock: Function;
   deleteBlock: Function;
+  storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
 interface BlockContentBoxProps {
@@ -81,6 +82,7 @@ export default function BlockContent({
   type,
   provided,
   moveBlock,
+  storePageTrigger,
 }: BlockContentProps): ReactElement {
   const { blockId, content, index } = block;
   const [blockPlusModalOpen, setBlockPlusModalOpen] = useState(false);
@@ -178,10 +180,13 @@ export default function BlockContent({
   };
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
-    const newContent = (e.target as HTMLDivElement).textContent;
+    const target = e.target as HTMLElement;
+    target.normalize();
+    const newContent = target.textContent;
     // console.log('🚀 ~ file: BlockContent.tsx ~ line 134 ~ handleOnInput ~ newContent', newContent);
     if (newContent !== null) {
       block.content = newContent;
+      storePageTrigger({ isDelay: true });
     }
   };
 

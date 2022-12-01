@@ -36,6 +36,8 @@ const samplePageInfo: PageInfo = {
   blocks: sampleBlocks,
 };
 
+const STORE_DELAY_TIME = 30 * 1000; // 30초
+
 export default function PageComponent(): React.ReactElement {
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     title: '',
@@ -49,7 +51,8 @@ export default function PageComponent(): React.ReactElement {
   const { pageid } = useParams();
 
   const storePage = () => {
-    console.log('페이지 저장');
+    console.log('페이지 저장', pageInfo.blocks);
+    timeoutInfo.isStoreWaited = false;
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
@@ -66,6 +69,28 @@ export default function PageComponent(): React.ReactElement {
     };
     axiosPostRequest(API.UPDATE_PAGE, onSuccess, onFail, requestBody, requestHeader);
   };
+
+  const timeoutInfo: { id: NodeJS.Timeout; isStoreWaited: boolean } = {
+    id: setTimeout(() => {}),
+    isStoreWaited: false,
+  };
+
+  function storePageTrigger({ isDelay }: { isDelay: boolean }) {
+    if (!isDelay) {
+      clearTimeout(timeoutInfo.id);
+      storePage();
+      return;
+    }
+    if (!timeoutInfo.isStoreWaited) {
+      timeoutInfo.isStoreWaited = true;
+      timeoutInfo.id = setTimeout(storePage, STORE_DELAY_TIME);
+    }
+  }
+
+  useEffect(() => {
+    return () => clearTimeout(timeoutInfo.id);
+  });
+
   useEffect(() => {
     const handleStore = (e: KeyboardEvent) => {
       if (e.code === 'KeyS') {
@@ -73,7 +98,7 @@ export default function PageComponent(): React.ReactElement {
         const commandKeyPressed = isMac ? e.metaKey === true : e.ctrlKey === true;
         if (commandKeyPressed === true) {
           e.preventDefault();
-          storePage();
+          storePageTrigger({ isDelay: false });
         }
       }
     };
@@ -99,7 +124,7 @@ export default function PageComponent(): React.ReactElement {
       console.log(res.data);
     };
     axiosGetRequest(API.GET_PAGE + pageid, onSuccess, onFail, requestHeader);
-  }, []);
+  }, [pageid]);
   const updateIndex = (diff: number) => (block: BlockInfo) => ({
     ...block,
     index: block.index + diff,
@@ -149,6 +174,7 @@ export default function PageComponent(): React.ReactElement {
       nextId: prev.nextId + 1,
     }));
     setFocusBlockId(pageInfo.nextId);
+    storePageTrigger({ isDelay: true });
   };
 
   const changeBlock = ({
@@ -169,11 +195,13 @@ export default function PageComponent(): React.ReactElement {
       ),
     }));
     setFocusBlockId(blockId);
+    storePageTrigger({ isDelay: true });
   };
 
   const deleteBlock = ({ block }: { block: BlockInfo }) => {
     console.log('🚀 ~ file: PageComponent.tsx:88 ~ PageComponent ~ deleteBlock', block);
     setEditedBlock({ block, type: 'delete' });
+    storePageTrigger({ isDelay: true });
   };
 
   /* editedBlock */
@@ -206,11 +234,50 @@ export default function PageComponent(): React.ReactElement {
     }
   }, [editedBlock]);
 
-  const onFucusIndex = (targetIndex: string) => {
+  const onFocusIndex = (targetIndex: string) => {
     const blocks = document.querySelectorAll('div.content');
-    const target = [...blocks].find((el) => el.getAttribute('data-index') === targetIndex);
-    (target as HTMLElement).tabIndex = -1;
-    (target as HTMLElement).focus();
+    const target = [...blocks].find(
+      (el) => el.getAttribute('data-index') === targetIndex,
+    ) as HTMLElement;
+    if (target.childNodes.length === 0) {
+      target.focus();
+      return;
+    }
+  };
+
+  const handleCaretIndex = (
+    e: React.KeyboardEvent<HTMLDivElement>,
+    index: number,
+    offset: number,
+  ) => {
+    e.preventDefault();
+    const blocks = document.querySelectorAll('div.content');
+    const target = [...blocks].find(
+      (el) => el.getAttribute('data-index') === String(index),
+    ) as HTMLElement;
+    if (target.childNodes.length === 0) {
+      return;
+    }
+    const range = document.createRange();
+    const select = window.getSelection();
+
+    if (target.innerHTML.includes('\n') && e.code === 'ArrowUp') {
+      const lastLineLength = target.innerHTML.split('\n').slice(-1).join('').length;
+      const baseLength = target.innerHTML.length - lastLineLength;
+      range.setStart(
+        target.childNodes[0],
+        lastLineLength < offset ? baseLength + lastLineLength : baseLength + offset,
+      );
+    } else {
+      range.setStart(
+        target.childNodes[0],
+        target.innerHTML.length < offset ? target.innerHTML.length : offset,
+      );
+    }
+    range.collapse(true);
+
+    select?.removeAllRanges();
+    select?.addRange(range);
   };
 
   const moveBlock = ({
@@ -224,16 +291,41 @@ export default function PageComponent(): React.ReactElement {
     content: string;
     index: number;
   }) => {
-    if (e.code === 'ArrowUp') {
-      if (index === 1) {
+    const offset = (window.getSelection() as Selection).anchorOffset;
+    const target = e.target as HTMLElement;
+    const lastLineLength = target.innerHTML.split('\n').slice(-1).join('').length;
+    const firstLineLength = target.innerHTML.split('\n')[0].length;
+    const baseLength = target.innerHTML.length - lastLineLength;
+    if (target.innerHTML.includes('\n')) {
+      if (e.code === 'ArrowUp' && offset <= firstLineLength) {
+        onFocusIndex(String(index - 1));
+        handleCaretIndex(e, index - 1, offset);
+        return;
+      } else if (
+        e.code === 'ArrowDown' &&
+        baseLength < offset &&
+        offset <= target.innerHTML.length
+      ) {
+        onFocusIndex(String(index + 1));
+        handleCaretIndex(e, index + 1, offset - baseLength);
+        return;
+      } else {
         return;
       }
-      onFucusIndex(String(index - 1));
-    } else if (e.code === 'ArrowDown') {
-      if (index === pageInfo.blocks[pageInfo.blocks.length - 1].index) {
-        return;
+    } else {
+      if (e.code === 'ArrowUp') {
+        if (index === 1) {
+          return;
+        }
+        onFocusIndex(String(index - 1));
+        handleCaretIndex(e, index - 1, offset);
+      } else if (e.code === 'ArrowDown') {
+        if (index === pageInfo.blocks[pageInfo.blocks.length - 1].index) {
+          return;
+        }
+        onFocusIndex(String(index + 1));
+        handleCaretIndex(e, index + 1, offset);
       }
-      onFucusIndex(String(index + 1));
     }
   };
 
@@ -306,6 +398,7 @@ export default function PageComponent(): React.ReactElement {
                         changeBlock={changeBlock}
                         moveBlock={moveBlock}
                         deleteBlock={deleteBlock}
+                        storePageTrigger={storePageTrigger}
                         index={block.index}
                         type={block.type}
                         provided={provided}
@@ -328,31 +421,9 @@ const PageBox = styled.div`
   margin-top: 5px;
 `;
 
-const ExampleContainer = styled.div`
-  width: 100%;
-  display: flex;
-  background-color: blue;
-  margin: 10px;
-`;
-
-const DragExample = styled.div`
-  background-color: red;
-  height: 20px;
-  margin: 10px;
-  width: 100px;
-`;
-
-const PageContainer = styled.div<{ maxWidth: string }>`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: ${(props) => props.maxWidth}; //900px보다 작으면 width 100%;
-  min-width: 0px;
-  width: 100%;
-  //버튼 클릭하면 max-width: 100%
-  transition: all 0.1s linear;
-`;
-const PageTitle = styled.div`
+const PageTitle = styled.div.attrs({
+  placeholder: '제목 없음',
+})`
   width: 100%;
   margin-top: 100px;
   color: rgb(55, 53, 47);
@@ -360,4 +431,17 @@ const PageTitle = styled.div`
   line-height: 1.2;
   font-size: 40px;
   padding: 3px;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:empty::before {
+    content: attr(placeholder);
+    color: #e1e1e0;
+  }
+
+  &:empty:focus::before {
+    content: '';
+  }
 `;

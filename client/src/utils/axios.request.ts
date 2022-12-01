@@ -29,6 +29,35 @@ export const axiosGetRequest = (
   request();
 };
 
+export const axiosDeleteRequest = (
+  url: string,
+  successCallback: (res: AxiosResponse) => any,
+  failCallback: (error: AxiosResponse) => any,
+  headers: any | undefined,
+) => {
+  const request = () => {
+    axios
+      .delete(url, {
+        headers,
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data.code === '202') {
+          successCallback(res);
+        } else if (res.data.code === '100') {
+          localStorage.setItem('jwt', res.data.authorize);
+          request();
+        } else {
+          failCallback(res);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  request();
+};
+
 export const axiosPostRequest = (
   url: string,
   successCallback: (res: AxiosResponse) => any,

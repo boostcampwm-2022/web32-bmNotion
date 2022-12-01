@@ -13,6 +13,7 @@ router.use(
 router.post('/edit', pageController.editPage);
 router.post('/addpage', pageController.addPage);
 router.get('/list/:workspaceid', pageController.readPages);
+router.delete('/delete/:workspaceid/:pageid', pageController.deletePage);
 router.get('/:pageid', pageController.loadPage);
 
 module.exports = router;
