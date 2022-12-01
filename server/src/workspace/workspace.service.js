@@ -1,10 +1,11 @@
+/* eslint no-underscore-dangle: 0 */
 const { ObjectId } = require('mongodb');
 const { readAllDocument, createDocument } = require('../db/db.crud');
 const dbConfig = require('../db.config.json');
 const { readOneDocument, updateOneDocument } = require('../db/db.crud');
 const responseMessage = require('../response.message.json');
 const createResponse = require('../utils/response.util');
-const { addPagePipeline } = require('../page/page.service');
+const { addPagePipeline, selectLastEditedPageId } = require('../page/page.service');
 const { userCrud } = require('../user/user.service');
 
 const workspaceCrud = {
@@ -20,12 +21,12 @@ const workspaceCrud = {
     const result = await createDocument(dbConfig.COLLECTION_WORKSPACE, workspace);
     return result.insertedId;
   },
-  createNewWorkspace: async (id, title, owner, members) => {
+  createNewWorkspace: async (id) => {
     const { pageid } = await addPagePipeline(id);
     const workspace = {
-      title,
-      owner,
-      members,
+      title: `${id}'s Notion`,
+      owner: id,
+      members: [id],
       pages: [pageid],
       treshcan: [],
     };
@@ -53,7 +54,10 @@ const getWorkspacesPipeline = async (userId) => {
   };
   const workspaceList = await readAllDocument(dbConfig.COLLECTION_WORKSPACE, queryCriteria);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
-  response.workspaceList = workspaceList;
+  response.workspaceList = workspaceList.map((workspace) => {
+    const workspaceInfo = { id: workspace._id, title: workspace.title };
+    return workspaceInfo;
+  });
 
   return response;
 };
@@ -94,11 +98,27 @@ const renameWorkspacePipeline = async (userid, workspaceid, workspacename) => {
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
 
-const addWorkspacePipeline = async (userId, title, members) => {
-  const workspaceDocument = await workspaceCrud.createNewWorkspace(userId, title, userId, members);
+const addWorkspacePipeline = async (userId) => {
+  const workspaceId = await workspaceCrud.createNewWorkspace(userId);
+  await userCrud.updateUserWorkspace(userId, workspaceId);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
-  response.workspaceid = workspaceDocument;
+  response.workspaceid = workspaceId;
+  return response;
+};
 
+const isWorkspaceMember = async (workspaceid, userid) => {
+  const workspace = await workspaceCrud.readWorkSpaceById(workspaceid);
+  return workspace.members.includes(userid);
+};
+
+const getWorkspaceInfoPipeline = async (userid, workspaceid) => {
+  const workspace = await workspaceCrud.readWorkSpaceById(workspaceid);
+  if (workspace === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
+  const isMember = workspace.members.includes(userid);
+  if (isMember === false) return createResponse(responseMessage.AUTH_FAIL);
+  const response = createResponse(responseMessage.PROCESS_SUCCESS);
+  response.spacename = workspace.title;
+  response.pageid = await selectLastEditedPageId(workspace.pages);
   return response;
 };
 
@@ -108,4 +128,6 @@ module.exports = {
   inviteUserPipeline,
   addWorkspacePipeline,
   workspaceCrud,
+  getWorkspaceInfoPipeline,
+  isWorkspaceMember,
 };

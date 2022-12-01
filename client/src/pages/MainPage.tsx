@@ -10,6 +10,7 @@ import DimdLayer from '@/components/modal/DimdLayer';
 import jwt from 'jsonwebtoken';
 import { axiosGetRequest } from '@/utils/axios.request';
 import { API } from '@/config/config';
+import WorkspaceList from '@/components/WorkspaceList';
 import PageList from '@/components/PageList';
 
 interface SideBarButtonProps {
@@ -21,11 +22,6 @@ interface SideBarButtonProps {
 interface SideBarProps {
   isClicked: boolean;
   sideBarHoverButton: string;
-}
-
-interface Workspace {
-  title: string;
-  id: string;
 }
 
 const threePointButton = '/assets/icons/threePoint.png';
@@ -40,7 +36,6 @@ export default function MainPage(): ReactElement {
   const [sideBarHoverButton, setSideBarHoverButton] = useState('/assets/icons/doubleArrow.png');
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
   const [isReaderMode, setIsReaderMode] = useState(false);
-  const [workspaceList, setWorkspaceList] = useState<Workspace[]>([]);
   const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>(undefined);
 
   const [spaceSettingModalOpen, setSpaceSettingModalOpen] = useState(false);
@@ -61,19 +56,6 @@ export default function MainPage(): ReactElement {
   const readerModeButtonClick = () => {
     setIsReaderMode(!isReaderMode);
   };
-
-  useEffect(() => {
-    const onSuccess = (res: AxiosResponse) => {
-      setWorkspaceList(res.data.workspaceList);
-    };
-    const onFail = (res: AxiosResponse) => {
-      console.log(res.data);
-    };
-    const requestHeader = {
-      authorization: localStorage.getItem('jwt'),
-    };
-    axiosGetRequest('http://localhost:8080/api/workspace/list', onSuccess, onFail, requestHeader);
-  }, []);
 
   useEffect(() => {
     const onSuccess = (res: AxiosResponse) => {
@@ -98,6 +80,7 @@ export default function MainPage(): ReactElement {
       <SideBar isClicked={sideBarButtonClicked} sideBarHoverButton={reverseDoubleArrowButton}>
         <SideBarHeaderContainer>
           <SideBarHeader>
+            <WorkspaceList />
             <SideBarButton
               isClicked={!sideBarButtonClicked}
               sideBarButton={tranParentButton}
@@ -229,6 +212,7 @@ const SideBarButton = styled.button<SideBarButtonProps>`
   background-position: center;
   width: 24px;
   height: 24px;
+  margin: 12px;
   transition: all 0.2s linear;
   border-radius: 3px;
 
@@ -257,7 +241,7 @@ const SideBarHeaderContainer = styled.div`
   flex-direction: row;
   align-items: center;
   width: 100%;
-  height: 45px;
+  height: auto;
 
   &:hover {
     background-color: #ebebea;
@@ -266,11 +250,10 @@ const SideBarHeaderContainer = styled.div`
 
 const SideBarHeader = styled.div`
   display: flex;
-  align-items: center;
-  height: 40px;
+  height: auto;
   width: 100%;
-  justify-content: flex-end;
-  padding: 12px;
+  justify-content: space-between;
+  padding: 0 12px;
 `;
 
 const SideBarBodyContainer = styled.div`
