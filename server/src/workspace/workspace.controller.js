@@ -4,6 +4,7 @@ const {
   getWorkspacesPipeline,
   inviteUserPipeline,
   addWorkspacePipeline,
+  getWorkspaceInfoPipeline,
 } = require('./workspace.service');
 
 const workspaceController = {
@@ -33,6 +34,13 @@ const workspaceController = {
     const { workspace: workspaceid, name: workspacename } = req.body;
     const resJson = await renameWorkspacePipeline(userid, workspaceid, workspacename);
 
+    res.json(resJson);
+  },
+
+  getInfo: async (req, res) => {
+    const { id: userid } = jwt.decode(req.headers.authorization);
+    const { workspaceid } = req.params;
+    const resJson = await getWorkspaceInfoPipeline(userid, workspaceid);
     res.json(resJson);
   },
 };

@@ -62,6 +62,11 @@ const selectLastEditedPage = (pages) =>
     return pre.time > curTime ? pre : { pageid, time: curTime };
   }, undefined);
 
+const selectLastEditedPageId = async (pageIds) => {
+  const pages = await pageCrud.readPages(pageIds);
+  return selectLastEditedPage(pages).pageid;
+};
+
 const addPagePipeline = async (userid) => {
   const result = await pageCrud.createPage(userid);
   await updateOneDocument(
@@ -105,4 +110,5 @@ module.exports = {
   editPagePipeline,
   pageCrud,
   selectLastEditedPage,
+  selectLastEditedPageId,
 };

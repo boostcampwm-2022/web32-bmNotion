@@ -2,6 +2,7 @@ import { API } from '@/config/config';
 import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
 import { AxiosResponse } from 'axios';
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 interface Workspace {
@@ -18,7 +19,8 @@ export default function WorkspaceList() {
   const [workspaceList, setWorkspaceList] = useState<Workspace[]>([]);
   const [listButtonCilcked, setListButtonCilcked] = useState(false);
   const [spacename, setSpacename] = useState(localStorage.getItem('spacename') as string);
-  const [spaceid, setSpaceid] = useState(localStorage.getItem('workspace') as string);
+
+  const navigate = useNavigate();
 
   const requestSpaceList = () => {
     const onSuccess = (res: AxiosResponse) => {
@@ -63,7 +65,28 @@ export default function WorkspaceList() {
     requestAddSpace();
   };
 
-  const onClickWorkspace = (workspaceId) => {};
+  const onClickWorkspace = (workspaceId: string) => {
+    if (isLoading === false) return;
+    const onSuccess = (res: AxiosResponse) => {
+      console.log(res.data);
+      const { spacename, pageid } = res.data;
+      localStorage.setItem('workspace', workspaceId);
+      localStorage.setItem('spacename', spacename);
+      navigate(`/page/${pageid}`);
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    const requestHeader = {
+      authorization: localStorage.getItem('jwt'),
+    };
+    axiosGetRequest(
+      `http://localhost:8080/api/workspace/info/${workspaceId}`,
+      onSuccess,
+      onFail,
+      requestHeader,
+    );
+  };
 
   if (isLoading === false) return <></>;
   return (
@@ -77,7 +100,13 @@ export default function WorkspaceList() {
           workspace.id === localStorage.getItem('workspace') ? (
             <></>
           ) : (
-            <WorkspaceContentWrapper key={index}>
+            <WorkspaceContentWrapper
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation();
+                onClickWorkspace(workspace.id);
+              }}
+              key={index}
+            >
               <WorkspaceContentSpan>{workspace.title}</WorkspaceContentSpan>
             </WorkspaceContentWrapper>
           ),
@@ -148,6 +177,11 @@ const WorkspaceContentWrapper = styled.div`
   align-items: center;
   width: auto;
   height: auto;
+  cursor: pointer;
+  &:hover {
+    background-color: white;
+    border-radius: 5px;
+  }
 `;
 
 const WorkspaceContentSpan = styled.span`

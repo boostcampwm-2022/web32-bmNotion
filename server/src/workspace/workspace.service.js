@@ -5,7 +5,7 @@ const dbConfig = require('../db.config.json');
 const { readOneDocument, updateOneDocument } = require('../db/db.crud');
 const responseMessage = require('../response.message.json');
 const createResponse = require('../utils/response.util');
-const { addPagePipeline } = require('../page/page.service');
+const { addPagePipeline, selectLastEditedPageId } = require('../page/page.service');
 const { userCrud } = require('../user/user.service');
 
 const workspaceCrud = {
@@ -106,11 +106,20 @@ const addWorkspacePipeline = async (userId) => {
   return response;
 };
 
-const getLastEditedPageId = async (workspaceId) => {
-  const workspace = await workspaceCrud.readWorkSpaceById(workspaceId);
-  return await selectPageFromWorkspace(pages).pageid;
-  const pages = await pageCrud.readPages(workspace.pages);
-  return selectLastEditedPage(pages).pageid;
+const isWorkspaceMember = async (workspaceid, userid) => {
+  const workspace = await workspaceCrud.readWorkSpaceById(workspaceid);
+  return workspace.members.includes(userid);
+};
+
+const getWorkspaceInfoPipeline = async (userid, workspaceid) => {
+  const workspace = await workspaceCrud.readWorkSpaceById(workspaceid);
+  if (workspace === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
+  const isMember = workspace.members.includes(userid);
+  if (isMember === false) return createResponse(responseMessage.AUTH_FAIL);
+  const response = createResponse(responseMessage.PROCESS_SUCCESS);
+  response.spacename = workspace.title;
+  response.pageid = await selectLastEditedPageId(workspace.pages);
+  return response;
 };
 
 module.exports = {
@@ -119,5 +128,6 @@ module.exports = {
   inviteUserPipeline,
   addWorkspacePipeline,
   workspaceCrud,
-  getLastEditedPageId,
+  getWorkspaceInfoPipeline,
+  isWorkspaceMember,
 };
