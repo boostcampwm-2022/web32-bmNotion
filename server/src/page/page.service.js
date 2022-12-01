@@ -4,6 +4,7 @@ const { createDocument, updateOneDocument, readOneDocument } = require('../db/db
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
 const dbConfig = require('../db.config.json');
+const { workspaceCrud } = require('../workspace/workspace.service');
 
 const pageCrud = {
   createPage: async (userid) => {
@@ -39,6 +40,13 @@ const pageCrud = {
       dbConfig.COLLECTION_PAGE,
       { _id: ObjectId(pageid) },
       { $set: { title, blocks } },
+    );
+  },
+  deletePage: async (pageid) => {
+    await updateOneDocument(
+      dbConfig.COLLECTION_PAGE,
+      { _id: ObjectId(pageid) },
+      { $set: { deleted: true } },
     );
   },
 };
@@ -98,11 +106,19 @@ const loadPagePipeline = async (userid, pageid) => {
   return response;
 };
 
+const deletePagePipeline = async (pageid) => {
+  const page = await pageCrud.readPageById(pageid);
+  if (page === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
+  await pageCrud.deletePage(pageid);
+  return createResponse(responseMessage.PROCESS_SUCCESS);
+};
+
 module.exports = {
   addPagePipeline,
   loadPagePipeline,
   readPagePipeline,
   editPagePipeline,
+  deletePagePipeline,
   pageCrud,
   selectLastEditedPage,
 };

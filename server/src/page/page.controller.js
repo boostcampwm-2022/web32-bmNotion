@@ -7,6 +7,7 @@ const {
   loadPagePipeline,
   readPagePipeline,
   editPagePipeline,
+  deletePagePipeline,
 } = require('./page.service');
 
 const pageController = {
@@ -20,9 +21,10 @@ const pageController = {
     const { id: userid } = jwt.decode(req.headers.authorization);
     const { workspace: workspaceid } = req.body;
     const workspace = await workspaceCrud.readWorkSpaceById(workspaceid);
-    if (!workspace.members.includes(userid)) return createResponse(responseMessage.AUTH_FAIL);
+    if (!workspace.members.includes(userid))
+      return res.json(createResponse(responseMessage.AUTH_FAIL));
     const resJson = await addPagePipeline(userid, workspaceid);
-    res.json(resJson);
+    return res.json(resJson);
   },
   loadPage: async (req, res) => {
     const { pageid } = req.params;
@@ -35,6 +37,15 @@ const pageController = {
     const resJson = await readPagePipeline(workspaceid);
 
     res.json(resJson);
+  },
+  deletePage: async (req, res) => {
+    const { id: userid } = jwt.decode(req.headers.authorization);
+    const { workspaceid, pageid } = req.params;
+    const workspace = await workspaceCrud.readPageById(workspaceid);
+    if (!workspace.members.includes(userid))
+      return res.Json(createResponse(responseMessage.AUTH_FAIL));
+    const resJson = deletePagePipeline(pageid);
+    return res.json(resJson);
   },
 };
 
