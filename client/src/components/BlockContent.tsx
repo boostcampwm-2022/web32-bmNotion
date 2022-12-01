@@ -180,7 +180,9 @@ export default function BlockContent({
   };
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
-    const newContent = (e.target as HTMLDivElement).textContent;
+    const target = e.target as HTMLElement;
+    target.normalize();
+    const newContent = target.textContent;
     // console.log('🚀 ~ file: BlockContent.tsx ~ line 134 ~ handleOnInput ~ newContent', newContent);
     if (newContent !== null) {
       block.content = newContent;

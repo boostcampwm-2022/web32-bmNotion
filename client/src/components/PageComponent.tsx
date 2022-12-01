@@ -251,7 +251,6 @@ export default function PageComponent(): React.ReactElement {
     offset: number,
   ) => {
     e.preventDefault();
-
     const blocks = document.querySelectorAll('div.content');
     const target = [...blocks].find(
       (el) => el.getAttribute('data-index') === String(index),
@@ -259,7 +258,6 @@ export default function PageComponent(): React.ReactElement {
     if (target.childNodes.length === 0) {
       return;
     }
-    target.normalize();
     const range = document.createRange();
     const select = window.getSelection();
 
@@ -294,13 +292,7 @@ export default function PageComponent(): React.ReactElement {
     index: number;
   }) => {
     const offset = (window.getSelection() as Selection).anchorOffset;
-    const contents = document.querySelectorAll('div.content');
-    const target = [...contents].find(
-      (el) => el.getAttribute('data-blockid') === String(index),
-    ) as HTMLElement;
-    if (target.childNodes.length !== 0) {
-      target.normalize();
-    }
+    const target = e.target as HTMLElement;
     const lastLineLength = target.innerHTML.split('\n').slice(-1).join('').length;
     const firstLineLength = target.innerHTML.split('\n')[0].length;
     const baseLength = target.innerHTML.length - lastLineLength;
