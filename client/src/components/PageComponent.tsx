@@ -36,7 +36,7 @@ const samplePageInfo: PageInfo = {
   blocks: sampleBlocks,
 };
 
-const STORE_DELAY_TIME = 2 * 1000; // 30초
+const STORE_DELAY_TIME = 30 * 1000; // 30초
 
 export default function PageComponent(): React.ReactElement {
   const [pageInfo, setPageInfo] = useState<PageInfo>({
