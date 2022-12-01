@@ -62,11 +62,11 @@ const selectLastEditedPage = (pages) =>
     return pre.time > curTime ? pre : { pageid, time: curTime };
   }, undefined);
 
-const addPagePipeline = async (userid) => {
+const addPagePipeline = async (userid, workspaceid) => {
   const result = await pageCrud.createPage(userid);
   await updateOneDocument(
     dbConfig.COLLECTION_WORKSPACE,
-    { owner: userid },
+    { _id: ObjectId(workspaceid) },
     { $addToSet: { pages: result.insertedId } },
   );
   const response = createResponse(responseMessage.PROCESS_SUCCESS);

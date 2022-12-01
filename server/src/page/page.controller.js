@@ -1,4 +1,7 @@
 const jwt = require('jsonwebtoken');
+const createResponse = require('../utils/response.util');
+const responseMessage = require('../response.message.json');
+const { workspaceCrud } = require('../workspace/workspace.service');
 const {
   addPagePipeline,
   loadPagePipeline,
@@ -15,7 +18,10 @@ const pageController = {
   },
   addPage: async (req, res) => {
     const { id: userid } = jwt.decode(req.headers.authorization);
-    const resJson = await addPagePipeline(userid);
+    const { workspace: workspaceid } = req.body;
+    const workspace = await workspaceCrud.readWorkSpaceById(workspaceid);
+    if (!workspace.members.includes(userid)) return createResponse(responseMessage.AUTH_FAIL);
+    const resJson = await addPagePipeline(userid, workspaceid);
     res.json(resJson);
   },
   loadPage: async (req, res) => {
