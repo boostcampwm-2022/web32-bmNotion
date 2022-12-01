@@ -33,6 +33,7 @@ const hamburgerButton = '/assets/icons/hamburger.png';
 const doubleArrowButton = '/assets/icons/doubleArrow.png';
 const reverseDoubleArrowButton = '/assets/icons/reverseDoubleArrow.png';
 const tranParentButton = '/assets/icons/transparent.png';
+const SettingIconSvg = '/assets/icons/gear.svg';
 
 export default function MainPage(): ReactElement {
   const [sideBarButton, setSideBarButton] = useState('/assets/icons/hamburger.png');
@@ -108,7 +109,7 @@ export default function MainPage(): ReactElement {
         <SideBarBodyContainer>
           <SideBarBody>
             <SpaceSettingButton onClick={spaceSettingButtonClicked}>
-              <span>아이콘</span>
+              <SettingIcon />
               <span>설정</span>
             </SpaceSettingButton>
             {spaceSettingModalOpen && (
@@ -294,7 +295,7 @@ const SpaceSettingButton = styled.button`
   flex-direction: row;
   align-items: center;
   width: 100%;
-  gap: 8px;
+  height: 24px;
   &:hover {
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 2px;
@@ -333,4 +334,12 @@ const ProfileImage = styled.img`
   border-radius: 12px;
   background: gray;
   border: 1px solid gray;
+`;
+
+const SettingIcon = styled.div`
+  width: 12px;
+  height: 12px;
+  background-image: url('/assets/icons/gear.svg');
+  background-size: 12px 12px;
+  margin: 8px;
 `;
