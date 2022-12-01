@@ -41,10 +41,10 @@ const pageController = {
   deletePage: async (req, res) => {
     const { id: userid } = jwt.decode(req.headers.authorization);
     const { workspaceid, pageid } = req.params;
-    const workspace = await workspaceCrud.readPageById(workspaceid);
+    const workspace = await workspaceCrud.readWorkSpaceById(workspaceid);
     if (!workspace.members.includes(userid))
       return res.Json(createResponse(responseMessage.AUTH_FAIL));
-    const resJson = deletePagePipeline(pageid);
+    const resJson = await deletePagePipeline(pageid);
     return res.json(resJson);
   },
 };

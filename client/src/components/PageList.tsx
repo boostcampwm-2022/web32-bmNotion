@@ -1,5 +1,5 @@
 import { API } from '@/config/config';
-import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
+import { axiosDeleteRequest, axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
 import { AxiosResponse } from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +8,7 @@ import styled from 'styled-components';
 interface Page {
   title: string;
   id: string;
+  deleted: any;
 }
 
 export default function PageList() {
@@ -76,7 +77,22 @@ export default function PageList() {
   };
 
   const onClickDeleteButton = (pageid: string) => {
-    console.log(pageid);
+    const workspaceId = localStorage.getItem('workspace');
+    const onSuccess = (res: AxiosResponse) => {
+      requestPageList();
+    };
+    const onFail = (res: AxiosResponse) => {
+      console.log(res.data);
+    };
+    const requestHeader = {
+      authorization: localStorage.getItem('jwt'),
+    };
+    axiosDeleteRequest(
+      API.DELETE_PAGE + workspaceId + '/' + pageid,
+      onSuccess,
+      onFail,
+      requestHeader,
+    );
   };
 
   if (isLoading === false) return <></>;
@@ -86,24 +102,28 @@ export default function PageList() {
         <PageListHeaderSpan>공유 페이지</PageListHeaderSpan>
         <PageListHeaderButton onClick={onClickAddPage}>+</PageListHeaderButton>
       </PageListHeader>
-      {pageList.map((page, index) => (
-        <PageListContentWrapper
-          onClick={(e: React.MouseEvent) => {
-            e.stopPropagation();
-            onClickPageContent(page.id);
-          }}
-          key={index}
-        >
-          <PageListContentSpan>{page.title}</PageListContentSpan>
-          <PageListContentDeleteButton
+      {pageList.map((page, index) =>
+        page.deleted === true ? (
+          <></>
+        ) : (
+          <PageListContentWrapper
             onClick={(e: React.MouseEvent) => {
-              onClickDeleteButton(page.id);
+              e.stopPropagation();
+              onClickPageContent(page.id);
             }}
+            key={index}
           >
-            <DeleteIcon></DeleteIcon>
-          </PageListContentDeleteButton>
-        </PageListContentWrapper>
-      ))}
+            <PageListContentSpan>{page.title}</PageListContentSpan>
+            <PageListContentDeleteButton
+              onClick={(e: React.MouseEvent) => {
+                onClickDeleteButton(page.id);
+              }}
+            >
+              <DeleteIcon></DeleteIcon>
+            </PageListContentDeleteButton>
+          </PageListContentWrapper>
+        ),
+      )}
     </PageListWrapper>
   );
 }

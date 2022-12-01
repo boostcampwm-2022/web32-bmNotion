@@ -4,13 +4,12 @@ const { createDocument, updateOneDocument, readOneDocument } = require('../db/db
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
 const dbConfig = require('../db.config.json');
-const { workspaceCrud } = require('../workspace/workspace.service');
 
 const pageCrud = {
   createPage: async (userid) => {
     const now = new Date().toUTCString();
     const page = {
-      deleted: 'false',
+      deleted: false,
       title: '제목없음',
       owner: userid,
       participants: [userid],
@@ -89,7 +88,7 @@ const readPagePipeline = async (workspaceId) => {
   const pages = await pageCrud.readPages(workspace.pages);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
   response.list = pages.map((page) => {
-    const pageInfo = { title: page.title, id: page._id };
+    const pageInfo = { title: page.title, id: page._id, deleted: page.deleted };
     return pageInfo;
   });
   return response;
