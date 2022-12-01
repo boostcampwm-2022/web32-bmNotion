@@ -16,9 +16,7 @@ const workspaceController = {
 
   addWorkspace: async (req, res) => {
     const { id: userId } = jwt.decode(req.headers.authorization);
-    const { title, members } = req.body;
-    const resJson = await addWorkspacePipeline(userId, title, members);
-
+    const resJson = await addWorkspacePipeline(userId);
     res.json(resJson);
   },
 

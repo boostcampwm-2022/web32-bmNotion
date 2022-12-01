@@ -61,7 +61,6 @@ export default function MainPage(): ReactElement {
     setIsReaderMode(!isReaderMode);
   };
 
-
   useEffect(() => {
     const onSuccess = (res: AxiosResponse) => {
       setProfileImageUrl(res.data.url);
@@ -99,7 +98,7 @@ export default function MainPage(): ReactElement {
       <SideBar isClicked={sideBarButtonClicked} sideBarHoverButton={reverseDoubleArrowButton}>
         <SideBarHeaderContainer>
           <SideBarHeader>
-            <WorkspaceList/>
+            <WorkspaceList />
             <SideBarButton
               isClicked={!sideBarButtonClicked}
               sideBarButton={tranParentButton}
@@ -234,6 +233,7 @@ const SideBarButton = styled.button<SideBarButtonProps>`
   background-position: center;
   width: 24px;
   height: 24px;
+  margin: 12px;
   transition: all 0.2s linear;
   border-radius: 3px;
 
@@ -262,7 +262,7 @@ const SideBarHeaderContainer = styled.div`
   flex-direction: row;
   align-items: center;
   width: 100%;
-  height: 45px;
+  height: auto;
 
   &:hover {
     background-color: #ebebea;
@@ -271,7 +271,7 @@ const SideBarHeaderContainer = styled.div`
 
 const SideBarHeader = styled.div`
   display: flex;
-  height: 40px;
+  height: auto;
   width: 100%;
   justify-content: space-between;
   padding: 0 12px;
