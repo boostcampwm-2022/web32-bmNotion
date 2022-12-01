@@ -10,7 +10,7 @@ const pageCrud = {
     const now = new Date().toUTCString();
     const page = {
       deleted: false,
-      title: '제목없음',
+      title: '',
       owner: userid,
       participants: [userid],
       createdtime: now,
