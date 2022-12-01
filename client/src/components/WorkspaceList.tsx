@@ -2,7 +2,7 @@ import { API } from '@/config/config';
 import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
 import { AxiosResponse } from 'axios';
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 
 interface Workspace {
@@ -19,6 +19,7 @@ export default function WorkspaceList() {
   const [workspaceList, setWorkspaceList] = useState<Workspace[]>([]);
   const [listButtonCilcked, setListButtonCilcked] = useState(false);
   const [spacename, setSpacename] = useState(localStorage.getItem('spacename') as string);
+  const { pageid } = useParams();
 
   const navigate = useNavigate();
 
@@ -54,7 +55,7 @@ export default function WorkspaceList() {
   }, [localStorage.getItem('spacename')]);
   useEffect(() => {
     requestSpaceList();
-  }, []);
+  }, [pageid]);
 
   const onListButtonClick = () => {
     console.log(workspaceList);
