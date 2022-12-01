@@ -99,7 +99,7 @@ export default function PageComponent(): React.ReactElement {
       console.log(res.data);
     };
     axiosGetRequest(API.GET_PAGE + pageid, onSuccess, onFail, requestHeader);
-  }, []);
+  }, [pageid]);
   const updateIndex = (diff: number) => (block: BlockInfo) => ({
     ...block,
     index: block.index + diff,

@@ -9,7 +9,7 @@ const pageCrud = {
   createPage: async (userid) => {
     const now = new Date().toUTCString();
     const page = {
-      deleted: 'false',
+      deleted: false,
       title: '제목없음',
       owner: userid,
       participants: [userid],
@@ -41,6 +41,13 @@ const pageCrud = {
       { $set: { title, blocks } },
     );
   },
+  deletePage: async (pageid) => {
+    await updateOneDocument(
+      dbConfig.COLLECTION_PAGE,
+      { _id: ObjectId(pageid) },
+      { $set: { deleted: true } },
+    );
+  },
 };
 
 const checkPageAuthority = (page, userid) => page.participants.includes(userid);
@@ -62,11 +69,11 @@ const selectLastEditedPage = (pages) =>
     return pre.time > curTime ? pre : { pageid, time: curTime };
   }, undefined);
 
-const addPagePipeline = async (userid) => {
+const addPagePipeline = async (userid, workspaceid) => {
   const result = await pageCrud.createPage(userid);
   await updateOneDocument(
     dbConfig.COLLECTION_WORKSPACE,
-    { owner: userid },
+    { _id: ObjectId(workspaceid) },
     { $addToSet: { pages: result.insertedId } },
   );
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
@@ -81,7 +88,7 @@ const readPagePipeline = async (workspaceId) => {
   const pages = await pageCrud.readPages(workspace.pages);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
   response.list = pages.map((page) => {
-    const pageInfo = { title: page.title, id: page._id };
+    const pageInfo = { title: page.title, id: page._id, deleted: page.deleted };
     return pageInfo;
   });
   return response;
@@ -98,11 +105,19 @@ const loadPagePipeline = async (userid, pageid) => {
   return response;
 };
 
+const deletePagePipeline = async (pageid) => {
+  const page = await pageCrud.readPageById(pageid);
+  if (page === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
+  await pageCrud.deletePage(pageid);
+  return createResponse(responseMessage.PROCESS_SUCCESS);
+};
+
 module.exports = {
   addPagePipeline,
   loadPagePipeline,
   readPagePipeline,
   editPagePipeline,
+  deletePagePipeline,
   pageCrud,
   selectLastEditedPage,
 };

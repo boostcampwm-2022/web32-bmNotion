@@ -7,7 +7,7 @@ export const API = {
   GET_PAGE: `${BASE_URL}/api/page/`,
   UPDATE_PAGE: `${BASE_URL}/api/page/edit`,
   ADD_PAGE: `${BASE_URL}/api/page/addpage`,
-  DELETE_PAGE: `${BASE_URL}/api/deletepage`,
+  DELETE_PAGE: `${BASE_URL}/api/page/delete/`,
   GET_PAGE_LIST: `${BASE_URL}/api/page/list/`,
   ADD_WORKSPACE: `${BASE_URL}/api/workspace/addworkspace`,
   ADD_WORKSPACE_MEMBER: `${BASE_URL}/api/workspace/invite`,
