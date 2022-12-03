@@ -170,7 +170,7 @@ export default function BlockContent({
     if (!content && type === 'TEXT') {
       handleType(toType);
     } else {
-      newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
+      newBlock({ blockId, type: toType, content: '', index: index + 1 });
     }
   };
   const handleType = (toType: string) => {
