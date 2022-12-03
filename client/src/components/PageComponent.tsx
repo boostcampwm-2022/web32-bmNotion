@@ -234,7 +234,11 @@ export default function PageComponent(): React.ReactElement {
     }
   }, [editedBlock]);
 
-  const onFocusIndex = (e: React.KeyboardEvent<HTMLDivElement>, targetIndex: string, offset: number) => {
+  const onFocusIndex = (
+    e: React.KeyboardEvent<HTMLDivElement>,
+    targetIndex: string,
+    offset: number,
+  ) => {
     const blocks = document.querySelectorAll('div.content');
     const target = [...blocks].find(
       (el) => el.getAttribute('data-index') === targetIndex,
@@ -314,11 +318,13 @@ export default function PageComponent(): React.ReactElement {
           return;
         }
         onFocusIndex(e, String(index - 1), offset);
+        return;
       } else if (e.code === 'ArrowDown') {
         if (index === pageInfo.blocks[pageInfo.blocks.length - 1].index) {
           return;
         }
         onFocusIndex(e, String(index + 1), offset);
+        return;
       }
     }
   };
