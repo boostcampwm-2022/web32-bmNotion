@@ -1,6 +1,6 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
-import BlockContent from '@/components/BlockContent';
+import BlockContent from '@/components/block/BlockContent';
 import PageComponent from '@/components/PageComponent';
 import Modal from '@/components/modal/Modal';
 import TopBarModalContent from '@/components/modal/TopBarModalContent';
@@ -160,13 +160,12 @@ const MainContainer = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
-  position: relative;
 `;
 const TopBar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: absolute;
+  position: fixed;
   width: 100%;
   height: 45px;
   top: 0;

@@ -131,7 +131,6 @@ const WorkspaceHeadContent = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  line-height: 45px;
   width: 100%;
   height: 45px;
   gap: 8px;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import BlockContent from '@/components/BlockContent';
+import StyledBlockContent from '@/components/block/StyledBlockContent';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { API } from '@/config/config';
 import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
@@ -234,7 +234,11 @@ export default function PageComponent(): React.ReactElement {
     }
   }, [editedBlock]);
 
-  const onFocusIndex = (targetIndex: string) => {
+  const onFocusIndex = (
+    e: React.KeyboardEvent<HTMLDivElement>,
+    targetIndex: string,
+    offset: number,
+  ) => {
     const blocks = document.querySelectorAll('div.content');
     const target = [...blocks].find(
       (el) => el.getAttribute('data-index') === targetIndex,
@@ -243,18 +247,15 @@ export default function PageComponent(): React.ReactElement {
       target.focus();
       return;
     }
+    handleCaretIndex(e, target, offset);
   };
 
   const handleCaretIndex = (
     e: React.KeyboardEvent<HTMLDivElement>,
-    index: number,
+    target: HTMLElement,
     offset: number,
   ) => {
     e.preventDefault();
-    const blocks = document.querySelectorAll('div.content');
-    const target = [...blocks].find(
-      (el) => el.getAttribute('data-index') === String(index),
-    ) as HTMLElement;
     if (target.childNodes.length === 0) {
       return;
     }
@@ -298,33 +299,32 @@ export default function PageComponent(): React.ReactElement {
     const baseLength = target.innerHTML.length - lastLineLength;
     if (target.innerHTML.includes('\n')) {
       if (e.code === 'ArrowUp' && offset <= firstLineLength) {
-        onFocusIndex(String(index - 1));
-        handleCaretIndex(e, index - 1, offset);
+        //여러 line을 가진 block의 첫번쨰 줄일 경우
+        onFocusIndex(e, String(index - 1), offset);
         return;
       } else if (
+        //여러 line을 가진 block의 마지막 줄일 경우
         e.code === 'ArrowDown' &&
         baseLength < offset &&
         offset <= target.innerHTML.length
       ) {
-        onFocusIndex(String(index + 1));
-        handleCaretIndex(e, index + 1, offset - baseLength);
-        return;
-      } else {
+        onFocusIndex(e, String(index + 1), offset - baseLength);
         return;
       }
+      return;
     } else {
       if (e.code === 'ArrowUp') {
         if (index === 1) {
           return;
         }
-        onFocusIndex(String(index - 1));
-        handleCaretIndex(e, index - 1, offset);
+        onFocusIndex(e, String(index - 1), offset);
+        return;
       } else if (e.code === 'ArrowDown') {
         if (index === pageInfo.blocks[pageInfo.blocks.length - 1].index) {
           return;
         }
-        onFocusIndex(String(index + 1));
-        handleCaretIndex(e, index + 1, offset);
+        onFocusIndex(e, String(index + 1), offset);
+        return;
       }
     }
   };
@@ -390,7 +390,7 @@ export default function PageComponent(): React.ReactElement {
                     index={idx + 1}
                   >
                     {(provided) => (
-                      <BlockContent
+                      <StyledBlockContent
                         key={block.blockId}
                         block={block}
                         blockId={block.blockId}
