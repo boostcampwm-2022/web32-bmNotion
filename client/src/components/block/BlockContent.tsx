@@ -42,11 +42,11 @@ interface MarkdownGrammer {
   getType: (text: string) => string;
 }
 
-interface BlockInfo {
-  blockId: number;
-  content: string;
-  index: number;
-}
+// interface BlockInfo {
+//   blockId: number;
+//   content: string;
+//   index: number;
+// }
 
 const markdownGrammer: MarkdownGrammers = {
   HEADER: {
@@ -190,154 +190,36 @@ export default function BlockContent({
     }
   };
 
-  const renderTypeBlock = () => {
-    if (type === 'H1') {
-      return (
-        <H1BlockContentBox>
-          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
-            <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockPlusButtonModal} />
-              <BlockOptionButton
-                {...provided.dragHandleProps}
-                onClick={handleBlockOptionButtonModal}
-              />
-            </BlockButtonBox>
-            <BlockContentBox
-              // type => css
-              contentEditable
-              className="content"
-              onKeyDown={handleOnKeyDown}
-              onInput={handleOnInput}
-              data-blockid={blockId}
-              data-index={index}
-              ref={refBlock}
-            >
-              {content || ''}
-            </BlockContentBox>
-            {blockPlusModalOpen && (
-              <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handlePlus} />
-              </Modal>
-            )}
-            {blockOptionModalOpen && (
-              <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
-                <BlockOptionModalContent handleType={handleType} />
-              </Modal>
-            )}
-          </BlockContainer>
-        </H1BlockContentBox>
-      );
-    } else if (type === 'H2') {
-      return (
-        <H2BlockContentBox>
-          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
-            <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockPlusButtonModal} />
-              <BlockOptionButton
-                {...provided.dragHandleProps}
-                onClick={handleBlockOptionButtonModal}
-              />{' '}
-            </BlockButtonBox>
-            <BlockContentBox
-              // type => css
-              contentEditable
-              className="content"
-              onKeyDown={handleOnKeyDown}
-              onInput={handleOnInput}
-              data-blockid={blockId}
-              data-index={index}
-              ref={refBlock}
-            >
-              {content || ''}
-            </BlockContentBox>
-            {blockPlusModalOpen && (
-              <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handlePlus} />
-              </Modal>
-            )}
-            {blockOptionModalOpen && (
-              <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
-                <BlockOptionModalContent handleType={handleType} />
-              </Modal>
-            )}
-          </BlockContainer>
-        </H2BlockContentBox>
-      );
-    } else if (type === 'H3') {
-      return (
-        <H3BlockContentBox>
-          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
-            <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockPlusButtonModal} />
-              <BlockOptionButton
-                {...provided.dragHandleProps}
-                onClick={handleBlockOptionButtonModal}
-              />
-            </BlockButtonBox>
-            <BlockContentBox
-              // type => css
-              contentEditable
-              className="content"
-              onKeyDown={handleOnKeyDown}
-              onInput={handleOnInput}
-              data-blockid={blockId}
-              data-index={index}
-              ref={refBlock}
-            >
-              {content || ''}
-            </BlockContentBox>
-            {blockPlusModalOpen && (
-              <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handlePlus} />
-              </Modal>
-            )}
-            {blockOptionModalOpen && (
-              <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
-                <BlockOptionModalContent handleType={handleType} />
-              </Modal>
-            )}
-          </BlockContainer>
-        </H3BlockContentBox>
-      );
-    } else {
-      return (
-        <TextBlockContentBox>
-          <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
-            <BlockButtonBox>
-              <BlockPlusButton onClick={handleBlockPlusButtonModal} />
-              <BlockOptionButton
-                {...provided.dragHandleProps}
-                onClick={handleBlockOptionButtonModal}
-              />
-            </BlockButtonBox>
-            <BlockContentBox
-              // type => css
-              contentEditable
-              className="content"
-              onKeyDown={handleOnKeyDown}
-              onInput={handleOnInput}
-              data-blockid={blockId}
-              data-index={index}
-              ref={refBlock}
-            >
-              {content || ''}
-            </BlockContentBox>
-            {blockPlusModalOpen && (
-              <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-                <BlockModalContent handleType={handlePlus} />
-              </Modal>
-            )}
-            {blockOptionModalOpen && (
-              <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
-                <BlockOptionModalContent handleType={handleType} />
-              </Modal>
-            )}
-          </BlockContainer>
-        </TextBlockContentBox>
-      );
-    }
-  };
-  return <>{renderTypeBlock()}</>;
+  return (
+    <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
+      <BlockButtonBox>
+        <BlockPlusButton onClick={handleBlockPlusButtonModal} />
+        <BlockOptionButton {...provided.dragHandleProps} onClick={handleBlockOptionButtonModal} />
+      </BlockButtonBox>
+      <BlockContentBox
+        // type => css
+        contentEditable
+        className="content"
+        onKeyDown={handleOnKeyDown}
+        onInput={handleOnInput}
+        data-blockid={blockId}
+        data-index={index}
+        ref={refBlock}
+      >
+        {content || ''}
+      </BlockContentBox>
+      {blockPlusModalOpen && (
+        <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
+          <BlockModalContent handleType={handlePlus} />
+        </Modal>
+      )}
+      {blockOptionModalOpen && (
+        <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
+          <BlockOptionModalContent handleType={handleType} />
+        </Modal>
+      )}
+    </BlockContainer>
+  );
 }
 
 const fadeIn = keyframes`

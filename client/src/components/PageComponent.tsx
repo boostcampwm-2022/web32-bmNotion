@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import BlockContent from '@/components/BlockContent';
+import StyledBlockContent from '@/components/block/StyledBlockContent';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { API } from '@/config/config';
 import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
@@ -390,7 +390,7 @@ export default function PageComponent(): React.ReactElement {
                     index={idx + 1}
                   >
                     {(provided) => (
-                      <BlockContent
+                      <StyledBlockContent
                         key={block.blockId}
                         block={block}
                         blockId={block.blockId}
