@@ -221,7 +221,11 @@ export default function BlockContent({
             )}
             {blockOptionModalOpen && (
               <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
-                <BlockOptionModalContent handleType={handleType} />
+                <BlockOptionModalContent
+                  handleType={handleType}
+                  deleteBlock={deleteBlock}
+                  block={block}
+                />
               </Modal>
             )}
           </BlockContainer>
@@ -257,7 +261,11 @@ export default function BlockContent({
             )}
             {blockOptionModalOpen && (
               <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
-                <BlockOptionModalContent handleType={handleType} />
+                <BlockOptionModalContent
+                  handleType={handleType}
+                  deleteBlock={deleteBlock}
+                  block={block}
+                />
               </Modal>
             )}
           </BlockContainer>
@@ -293,7 +301,11 @@ export default function BlockContent({
             )}
             {blockOptionModalOpen && (
               <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
-                <BlockOptionModalContent handleType={handleType} />
+                <BlockOptionModalContent
+                  handleType={handleType}
+                  deleteBlock={deleteBlock}
+                  block={block}
+                />
               </Modal>
             )}
           </BlockContainer>
@@ -329,7 +341,11 @@ export default function BlockContent({
             )}
             {blockOptionModalOpen && (
               <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
-                <BlockOptionModalContent handleType={handleType} />
+                <BlockOptionModalContent
+                  handleType={handleType}
+                  deleteBlock={deleteBlock}
+                  block={block}
+                />
               </Modal>
             )}
           </BlockContainer>
