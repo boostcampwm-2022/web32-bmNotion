@@ -215,10 +215,11 @@ export default function BlockContent({
       )}
       {blockOptionModalOpen && (
         <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
-          <BlockOptionModalContent 
-          deleteBlock={deleteBlock}
-          block={block}
-          handleType={handleType} />
+          <BlockOptionModalContent
+            deleteBlock={deleteBlock}
+            block={block}
+            handleType={handleType}
+          />
         </Modal>
       )}
     </BlockContainer>
