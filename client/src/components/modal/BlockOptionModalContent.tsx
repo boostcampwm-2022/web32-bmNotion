@@ -3,11 +3,24 @@ import TypeChangeModalContent from '@/components/modal/TypeChangeModalContent';
 import Modal from '@/components/modal/Modal';
 import styled from 'styled-components';
 
+interface BlockInfo {
+  blockId: number;
+  content: string;
+  index: number;
+  type: string;
+  focus?: boolean;
+}
+interface BlockOptionModalProps {
+  handleType: Function;
+  deleteBlock: Function;
+  block: BlockInfo;
+}
+
 export default function BlockOptionModalContent({
   handleType,
-}: {
-  handleType: Function;
-}): ReactElement {
+  deleteBlock,
+  block,
+}: BlockOptionModalProps): ReactElement {
   const [typeChangeModalOpen, setTypeChangeModalOpen] = useState(false);
 
   const handleChangeTypeModal = () => {
@@ -22,7 +35,12 @@ export default function BlockOptionModalContent({
           <OptionTextTitle>전환</OptionTextTitle>
         </OptionTextContainer>
       </OptionContainer>
-      <OptionContainer>
+      <OptionContainer
+        onClick={() => {
+          console.log(block);
+          deleteBlock({ block });
+        }}
+      >
         <OptionImage image={'/assets/icons/trash.png'} />
         <OptionTextContainer>
           <OptionTextTitle>삭제</OptionTextTitle>
