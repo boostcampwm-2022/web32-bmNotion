@@ -1,9 +1,9 @@
 const BASE_URL = 'http://localhost:8080';
 
 export const API = {
-  LOGIN: `${BASE_URL}/auth/signin`,
-  LOGOUT: `${BASE_URL}/auth/logout`,
-  SIGNUP: `${BASE_URL}/auth/signup`,
+  LOGIN: `${BASE_URL}/api/auth/signin`,
+  LOGOUT: `${BASE_URL}/api/auth/logout`,
+  SIGNUP: `${BASE_URL}/api/auth/signup`,
   GET_PAGE: `${BASE_URL}/api/page/`,
   UPDATE_PAGE: `${BASE_URL}/api/page/edit`,
   ADD_PAGE: `${BASE_URL}/api/page/addpage`,

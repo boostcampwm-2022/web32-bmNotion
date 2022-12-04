@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/auth', authRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/page', pageRouter);
 app.use('/api/workspace', workspaceRouter);
 app.use('/api/user', userRouter);
