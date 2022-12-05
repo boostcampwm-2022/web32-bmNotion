@@ -4,7 +4,8 @@ import { AxiosResponse } from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-
+import { useAtom } from 'jotai';
+import { workSpaceNameAtom, workSpaceIdAtom } from '@/store/workSpaceAtom';
 interface Workspace {
   title: string;
   id: string;
@@ -15,10 +16,11 @@ interface WorkspaceContentsProps {
 }
 
 export default function WorkspaceList() {
+  const [workSpaceName, setWorkSpaceName] = useAtom(workSpaceNameAtom);
+  const [workSpaceId, setWorkSpaceId] = useAtom(workSpaceIdAtom);
   const [isLoading, setIsLoading] = useState(false);
   const [workspaceList, setWorkspaceList] = useState<Workspace[]>([]);
   const [listButtonCilcked, setListButtonCilcked] = useState(false);
-  const [spacename, setSpacename] = useState(localStorage.getItem('spacename') as string);
   const { pageid } = useParams();
 
   const navigate = useNavigate();
@@ -50,9 +52,10 @@ export default function WorkspaceList() {
     axiosPostRequest(API.ADD_WORKSPACE, onSuccess, onFail, {}, requestHeader);
   };
 
-  useEffect(() => {
-    setSpacename(localStorage.getItem('spacename') as string);
-  }, [localStorage.getItem('spacename')]);
+  // useEffect(() => {
+  //   setSpacename(localStorage.getItem('spacename') as string);
+  // }, [localStorage.getItem('spacename')]);
+
   useEffect(() => {
     requestSpaceList();
   }, [pageid]);
@@ -71,8 +74,8 @@ export default function WorkspaceList() {
     const onSuccess = (res: AxiosResponse) => {
       console.log(res.data);
       const { spacename, pageid } = res.data;
-      localStorage.setItem('workspace', workspaceId);
-      localStorage.setItem('spacename', spacename);
+      setWorkSpaceId(workspaceId);
+      setWorkSpaceName(spacename);
       navigate(`/page/${pageid}`);
     };
     const onFail = (res: AxiosResponse) => {
@@ -93,12 +96,12 @@ export default function WorkspaceList() {
   return (
     <WorkspaceListWrapper>
       <WorkspaceHeadContent>
-        <span>{spacename}</span>
+        <span>{workSpaceName}</span>
         <OpenWorkspaceButton onClick={onListButtonClick}></OpenWorkspaceButton>
       </WorkspaceHeadContent>
       <WorkspaceContents listButtonCilcked={listButtonCilcked}>
         {workspaceList.map((workspace, index) =>
-          workspace.id === localStorage.getItem('workspace') ? (
+          workspace.id === workSpaceId ? (
             <></>
           ) : (
             <WorkspaceContentWrapper
