@@ -7,8 +7,15 @@ import { AxiosResponse } from 'axios';
 import { API } from '@/config/config';
 import jwt from 'jsonwebtoken';
 import { axiosPostRequest } from '@/utils/axios.request';
+import { useAtom } from 'jotai';
+import { workSpaceNameAtom, workSpaceIdAtom } from '@/store/workSpaceAtom';
+import { userNickNameAtom, userIdAtom } from '@/store/userAtom';
 
 export default function Login(): ReactElement {
+  const [, setWorkSpaceName] = useAtom(workSpaceNameAtom);
+  const [, setWorkSpaceId] = useAtom(workSpaceIdAtom);
+  const [, setUserNickName] = useAtom(userNickNameAtom);
+  const [, setUserId] = useAtom(userIdAtom);
   const [inputID, setInputID] = useState('');
   const [inputPassWord, setInputPassWord] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
@@ -41,10 +48,10 @@ export default function Login(): ReactElement {
       const { nickname, id } = jwt.decode(res.data.authorize) as any;
       const { authorize, workspace, spacename } = res.data;
       localStorage.setItem('jwt', authorize);
-      localStorage.setItem('workspace', workspace);
-      localStorage.setItem('spacename', spacename);
-      localStorage.setItem('nickname', nickname);
-      localStorage.setItem('id', id);
+      setWorkSpaceName(spacename);
+      setWorkSpaceId(workspace);
+      setUserNickName(nickname);
+      setUserId(id);
       alert('로그인 되었습니다.');
       navigate(`/page/${res.data.pageid}`);
     };

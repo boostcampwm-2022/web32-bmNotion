@@ -12,7 +12,8 @@ import { axiosGetRequest } from '@/utils/axios.request';
 import { API } from '@/config/config';
 import WorkspaceList from '@/components/WorkspaceList';
 import PageList from '@/components/PageList';
-
+import { useAtom } from 'jotai';
+import { userNickNameAtom, userIdAtom } from '@/store/userAtom';
 interface SideBarButtonProps {
   isClicked: boolean;
   sideBarButton: string;
@@ -32,6 +33,9 @@ const tranParentButton = '/assets/icons/transparent.png';
 const SettingIconSvg = '/assets/icons/gear.svg';
 
 export default function MainPage(): ReactElement {
+  const [userNickName] = useAtom(userNickNameAtom);
+  const [userId] = useAtom(userIdAtom);
+
   const [sideBarButton, setSideBarButton] = useState('/assets/icons/hamburger.png');
   const [sideBarHoverButton, setSideBarHoverButton] = useState('/assets/icons/doubleArrow.png');
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
@@ -68,7 +72,7 @@ export default function MainPage(): ReactElement {
       authorization: localStorage.getItem('jwt'),
     };
     axiosGetRequest(
-      `http://localhost:8080/api/user/profile/${localStorage.getItem('id')}`,
+      `http://localhost:8080/api/user/profile/${userId}`,
       onSuccess,
       onFail,
       requestHeader,
@@ -124,7 +128,7 @@ export default function MainPage(): ReactElement {
                   profileImageUrl === undefined ? '/assets/icons/profileImage.png' : profileImageUrl
                 }`}
               />
-              <span>{localStorage.getItem('nickname')}</span>
+              <span>{userNickName}</span>
             </UserProfileWrapper>
             <TopBarOptionButton onClick={handleTopBarModal}></TopBarOptionButton>
             {topBarModalOpen && (
