@@ -4,6 +4,7 @@ import Modal from '@/components/modal/Modal';
 import BlockModalContent from '@/components/modal/BlockModalContent';
 import BlockOptionModalContent from '@/components/modal/BlockOptionModalContent';
 import { render } from 'react-dom';
+import DimdLayer from '@/components/modal/DimdLayer';
 
 interface BlockInfo {
   blockId: number;
@@ -209,18 +210,25 @@ export default function BlockContent({
         {content || ''}
       </BlockContentBox>
       {blockPlusModalOpen && (
-        <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-          <BlockModalContent handleType={handlePlus} />
-        </Modal>
+        <>
+          <DimdLayer onClick={handleBlockPlusButtonModal}></DimdLayer>
+          <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
+            <BlockModalContent handleType={handlePlus} />
+          </Modal>
+        </>
       )}
       {blockOptionModalOpen && (
-        <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
-          <BlockOptionModalContent
-            deleteBlock={deleteBlock}
-            block={block}
-            handleType={handleType}
-          />
-        </Modal>
+        <>
+          <DimdLayer onClick={handleBlockOptionButtonModal}></DimdLayer>
+          <Modal width={'265px'} height={'84px'} position={['', '', '-84px', '44px']}>
+            <BlockOptionModalContent
+              deleteBlock={deleteBlock}
+              block={block}
+              handleType={handleType}
+              handleBlockOptionButtonModal={handleBlockOptionButtonModal}
+            />
+          </Modal>
+        </>
       )}
     </BlockContainer>
   );
