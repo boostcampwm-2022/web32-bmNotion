@@ -27,6 +27,11 @@ interface EditedBlockInfo {
   type: 'new' | 'change' | 'delete';
 }
 
+interface BlockTask {
+  blockId: number;
+  task: string;
+}
+
 const sampleBlocks: BlockInfo[] = [{ blockId: 1, index: 1, content: '', type: 'TEXT' }];
 
 const samplePageInfo: PageInfo = {
@@ -47,12 +52,69 @@ export default function PageComponent(): React.ReactElement {
   });
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
+  const [blockTask, setBlockTask] = useState<BlockTask[]>([]);
 
   const { pageid } = useParams();
+
+  const filterTask = (blockTasks: BlockTask[]) => {
+    const taskIds = {} as any;
+    return blockTasks.reduce((pre, cur) => {
+      const { task, blockId } = cur;
+      const target = pre[blockId];
+      if (target === undefined) {
+        if (task === 'create') {
+          pre[blockId] = 'create';
+        } else if (task === 'edit') {
+          pre[blockId] = 'edit';
+        } else if (task === 'delete') {
+          pre[blockId] = 'delete';
+        }
+      } else {
+        if (target === 'delete') {
+          if (task === 'delete') {
+            pre[blockId] = 'delete';
+          } else if (task === 'edit') {
+            pre[blockId] = 'edit';
+          } else if (task === 'create') {
+            pre[blockId] = 'edit';
+          }
+        } else if (target === 'edit') {
+          if (task === 'delete') {
+            pre[blockId] = 'delete';
+          } else if (task === 'edit') {
+            pre[blockId] = 'edit';
+          } else if (task === 'create') {
+            pre[blockId] = 'edit';
+          }
+        } else if (target === 'create') {
+          if (task === 'delete') {
+            pre[blockId] = undefined;
+          } else if (task === 'edit') {
+            pre[blockId] = 'create';
+          } else if (task === 'create') {
+            pre[blockId] = 'create';
+          }
+        }
+      }
+      return pre;
+    }, taskIds);
+  };
+
+  const taskRequest = (filteredTask: Object, blocks: BlockInfo[]) => {
+    console.log('tasks');
+    const entries = Object.entries(filteredTask);
+    console.log(filteredTask);
+    entries.map((value) => {
+      const [blockId, task] = value;
+      console.log(blocks.find((block) => block.blockId === Number(blockId)));
+    });
+  };
 
   const storePage = () => {
     console.log('페이지 저장', pageInfo.blocks);
     timeoutInfo.isStoreWaited = false;
+    const filteredTasks = filterTask(blockTask);
+    taskRequest(filteredTasks, pageInfo.blocks);
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
@@ -62,6 +124,8 @@ export default function PageComponent(): React.ReactElement {
       blocks: pageInfo.blocks,
     };
     const onSuccess = (res: AxiosResponse) => {
+      console.log(blockTask);
+      setBlockTask([]);
       console.log('성공');
     };
     const onFail = (res: AxiosResponse) => {
@@ -115,7 +179,7 @@ export default function PageComponent(): React.ReactElement {
     const onSuccess = (res: AxiosResponse) => {
       setPageInfo({
         title: res.data.title,
-        nextId: Math.max(...res.data.blocks.map((e: BlockInfo) => e.blockId), 1),
+        nextId: Math.max(...res.data.blocks.map((e: BlockInfo) => e.blockId), 0) + 1,
         pageId: pageid as string,
         blocks: res.data.blocks,
       });
@@ -125,10 +189,13 @@ export default function PageComponent(): React.ReactElement {
     };
     axiosGetRequest(API.GET_PAGE + pageid, onSuccess, onFail, requestHeader);
   }, [pageid]);
-  const updateIndex = (diff: number) => (block: BlockInfo) => ({
-    ...block,
-    index: block.index + diff,
-  });
+  const updateIndex = (diff: number) => (block: BlockInfo) => {
+    setBlockTask((prev) => [...prev, { blockId: block.blockId, task: 'edit' }]);
+    return {
+      ...block,
+      index: block.index + diff,
+    };
+  };
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = (e.target as HTMLDivElement).textContent;
@@ -164,6 +231,7 @@ export default function PageComponent(): React.ReactElement {
     index: number;
   }) => {
     console.log('addblock');
+    setBlockTask((prev) => [...prev, { blockId: pageInfo.nextId, task: 'create' }]);
     setPageInfo((prev) => ({
       ...prev,
       blocks: [
@@ -194,6 +262,7 @@ export default function PageComponent(): React.ReactElement {
         block.blockId === blockId ? { ...block, type, content, ref: true } : block,
       ),
     }));
+    setBlockTask((prev) => [...prev, { blockId, task: 'edit' }]);
     setFocusBlockId(blockId);
     storePageTrigger({ isDelay: true });
   };
@@ -201,6 +270,7 @@ export default function PageComponent(): React.ReactElement {
   const deleteBlock = ({ block }: { block: BlockInfo }) => {
     console.log('🚀 ~ file: PageComponent.tsx:88 ~ PageComponent ~ deleteBlock', block);
     setEditedBlock({ block, type: 'delete' });
+    setBlockTask((prev) => [...prev, { blockId: block.blockId, task: 'delete' }]);
     storePageTrigger({ isDelay: true });
   };
 
@@ -358,7 +428,6 @@ export default function PageComponent(): React.ReactElement {
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    console.log(pageInfo.blocks);
     console.log('res = ', result);
 
     setPageInfo((prev) => {
@@ -366,6 +435,7 @@ export default function PageComponent(): React.ReactElement {
       const [reOrderedBlock] = blocks.splice(result.source.index - 1, 1);
       blocks.splice((result?.destination?.index as number) - 1, 0, reOrderedBlock);
       const arrayedBlocks = blocks.map((e, i) => {
+        setBlockTask((prev) => [...prev, { blockId: e.blockId, task: 'edit' }]);
         return { ...e, index: i + 1 };
       });
       return { ...prev, blocks: arrayedBlocks };
@@ -402,6 +472,7 @@ export default function PageComponent(): React.ReactElement {
                         index={block.index}
                         type={block.type}
                         provided={provided}
+                        setTask={setBlockTask}
                       />
                     )}
                   </Draggable>

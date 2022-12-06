@@ -25,6 +25,7 @@ interface BlockContentProps {
   provided: any;
   moveBlock: Function;
   deleteBlock: Function;
+  setTask: Function;
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
@@ -83,6 +84,7 @@ export default function BlockContent({
   provided,
   moveBlock,
   storePageTrigger,
+  setTask,
 }: BlockContentProps): ReactElement {
   const { blockId, content, index } = block;
   const [blockPlusModalOpen, setBlockPlusModalOpen] = useState(false);
@@ -186,6 +188,7 @@ export default function BlockContent({
     // console.log('🚀 ~ file: BlockContent.tsx ~ line 134 ~ handleOnInput ~ newContent', newContent);
     if (newContent !== null) {
       block.content = newContent;
+      setTask((prev: any) => [...prev, { blockId: block.blockId, task: 'edit' }]);
       storePageTrigger({ isDelay: true });
     }
   };
