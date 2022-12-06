@@ -103,18 +103,29 @@ export default function PageComponent(): React.ReactElement {
   const taskRequest = (filteredTask: Object, blocks: BlockInfo[]) => {
     console.log('tasks');
     const entries = Object.entries(filteredTask);
-    console.log(filteredTask);
-    entries.map((value) => {
+    return entries.map((value) => {
       const [blockId, task] = value;
-      console.log(blocks.find((block) => block.blockId === Number(blockId)));
+      if (task === 'delete') {
+        return { blockId: Number(blockId), task };
+      }
+      const block = blocks.find((block) => block.blockId === Number(blockId));
+      if (block === undefined) return;
+      return {
+        blockId: Number(blockId),
+        task,
+        content: block.content,
+        index: block.index,
+        type: block.type,
+      };
     });
   };
 
   const storePage = () => {
-    console.log('페이지 저장', pageInfo.blocks);
+    console.log('페이지 저장');
+    setBlockTask([]);
     timeoutInfo.isStoreWaited = false;
     const filteredTasks = filterTask(blockTask);
-    taskRequest(filteredTasks, pageInfo.blocks);
+    const tasks = taskRequest(filteredTasks, pageInfo.blocks);
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
@@ -122,13 +133,13 @@ export default function PageComponent(): React.ReactElement {
       pageid,
       title: pageInfo.title,
       blocks: pageInfo.blocks,
+      tasks,
     };
     const onSuccess = (res: AxiosResponse) => {
-      console.log(blockTask);
-      setBlockTask([]);
       console.log('성공');
     };
     const onFail = (res: AxiosResponse) => {
+      setBlockTask((prev) => [...blockTask, ...prev]);
       console.log(res.data);
     };
     axiosPostRequest(API.UPDATE_PAGE, onSuccess, onFail, requestBody, requestHeader);
@@ -170,7 +181,7 @@ export default function PageComponent(): React.ReactElement {
     return () => {
       window.removeEventListener('keydown', handleStore);
     };
-  }, [pageInfo]);
+  }, [pageInfo, blockTask]);
 
   useEffect(() => {
     const requestHeader = {
@@ -472,7 +483,7 @@ export default function PageComponent(): React.ReactElement {
                         index={block.index}
                         type={block.type}
                         provided={provided}
-                        setTask={setBlockTask}
+                        task={blockTask}
                       />
                     )}
                   </Draggable>

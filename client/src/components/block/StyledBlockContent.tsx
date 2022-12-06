@@ -22,7 +22,7 @@ interface StyledBlockContentProps {
   provided: any;
   moveBlock: Function;
   deleteBlock: Function;
-  setTask: Function;
+  task: any;
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
@@ -35,7 +35,7 @@ export default function StyledBlockContent({
   provided,
   moveBlock,
   storePageTrigger,
-  setTask,
+  task,
 }: StyledBlockContentProps): ReactElement {
   const renderTypeBlock = () => {
     if (type === 'H1') {
@@ -53,7 +53,7 @@ export default function StyledBlockContent({
             index={block.index}
             type={block.type}
             provided={provided}
-            setTask={setTask}
+            task={task}
           />
         </H1BlockContentBox>
       );
@@ -72,7 +72,7 @@ export default function StyledBlockContent({
             index={block.index}
             type={block.type}
             provided={provided}
-            setTask={setTask}
+            task={task}
           />
         </H2BlockContentBox>
       );
@@ -91,7 +91,7 @@ export default function StyledBlockContent({
             index={block.index}
             type={block.type}
             provided={provided}
-            setTask={setTask}
+            task={task}
           />
         </H3BlockContentBox>
       );
@@ -110,7 +110,7 @@ export default function StyledBlockContent({
             index={block.index}
             type={block.type}
             provided={provided}
-            setTask={setTask}
+            task={task}
           />
         </TextBlockContentBox>
       );
