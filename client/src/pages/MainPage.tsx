@@ -189,7 +189,7 @@ interface DragRangeProps {
 }
 
 const DragRange = styled.div<DragRangeProps>`
-  background-color: red;
+  background-color: rgba(35, 131, 226, 0.28);
   width:100%;
   height:100%;
   position:absolute;

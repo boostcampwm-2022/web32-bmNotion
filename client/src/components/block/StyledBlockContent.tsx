@@ -69,7 +69,6 @@ const TextBlockContentBox = styled.div`
   white-space: pre-wrap;
   word-break: break-word;
   caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
 `;
 
 const H1BlockContentBox = styled.div`
@@ -78,10 +77,11 @@ const H1BlockContentBox = styled.div`
   white-space: pre-wrap;
   word-break: break-word;
   caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
   font-weight: 600;
   font-size: 1.875em;
   line-height: 1.3;
+  margin-top: 32px;
+  margin-bottom: 4px;
 `;
 
 const H2BlockContentBox = styled.div`
@@ -90,10 +90,10 @@ const H2BlockContentBox = styled.div`
   white-space: pre-wrap;
   word-break: break-word;
   caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
   font-weight: 600;
   font-size: 1.5em;
   line-height: 1.3;
+  margin-top:24px;
 `;
 
 const H3BlockContentBox = styled.div`
@@ -102,8 +102,8 @@ const H3BlockContentBox = styled.div`
   white-space: pre-wrap;
   word-break: break-word;
   caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
   font-weight: 600;
   font-size: 1.25em;
   line-height: 1.3;
+  margin-top:16px;
 `;
