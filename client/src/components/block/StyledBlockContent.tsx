@@ -22,6 +22,7 @@ interface StyledBlockContentProps {
   provided: any;
   moveBlock: Function;
   deleteBlock: Function;
+  task: any;
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
@@ -34,6 +35,7 @@ export default function StyledBlockContent({
   provided,
   moveBlock,
   storePageTrigger,
+  task,
 }: StyledBlockContentProps): ReactElement {
   const StyleBox = {
     'H1': H1BlockContentBox,
@@ -56,6 +58,7 @@ export default function StyledBlockContent({
             index={block.index}
             type={block.type}
             provided={provided}
+            task={task}
           />
       </StyleBox>
     )
