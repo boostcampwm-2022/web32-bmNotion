@@ -15,11 +15,10 @@ const parseHeader = (rawHeaders) => {
 module.exports = (server) => {
   const sse = new SSE(server);
   sse.on('connection', (client) => {
-    console.log(client);
     console.log('connect!');
     const pageId = parseHeader(client.req.rawHeaders);
-    sse.on(pageId, (tasks) => {
-      client.send(JSON.stringify(tasks));
+    sse.on(pageId, (tasks, userId, title) => {
+      client.send(JSON.stringify({ edits: tasks, userId, title }));
     });
     client.on('close', () => {
       console.log('disconnect!');

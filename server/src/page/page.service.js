@@ -5,9 +5,19 @@ const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
 const dbConfig = require('../db.config.json');
 
-const createBulk = (pageid, editInfos) => {
-  console.log(editInfos);
+const createBulk = (pageid, editInfos, title) => {
+  const updateTitle = {
+    updateOne: {
+      filter: {
+        _id: ObjectId(pageid),
+      },
+      update: {
+        $set: { title },
+      },
+    },
+  };
   const bulks = editInfos.map((editInfo) => {
+    if (editInfo === null) return undefined;
     const { task, blockId } = editInfo;
     if (task === 'delete') {
       return {
@@ -65,7 +75,7 @@ const createBulk = (pageid, editInfos) => {
     }
     return {};
   });
-  return bulks;
+  return [updateTitle, ...bulks];
 };
 
 const pageCrud = {
@@ -111,8 +121,8 @@ const pageCrud = {
       { $set: { deleted: true } },
     );
   },
-  updateTasks: async (pageid, tasks) => {
-    const bulks = createBulk(pageid, tasks);
+  updateTasks: async (pageid, tasks, title) => {
+    const bulks = createBulk(pageid, tasks, title);
     await writeBulk(dbConfig.COLLECTION_PAGE, bulks);
   },
 };
@@ -124,7 +134,7 @@ const editPagePipeline = async (userid, title, pageid, blocks, tasks) => {
   if (page === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
   // const isParticipant = checkPageAuthority(page, userid);
   // if (!isParticipant) return createResponse(responseMessage.AUTH_FAIL);
-  if (tasks.length > 0) await pageCrud.updateTasks(pageid, tasks);
+  if (tasks.length > 0) await pageCrud.updateTasks(pageid, tasks, title);
   // await pageCrud.updatePage(pageid, title, blocks);
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };

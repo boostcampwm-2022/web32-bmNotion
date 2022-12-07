@@ -61,12 +61,13 @@ export default function PageComponent(): React.ReactElement {
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
   const [blockTask, setBlockTask] = useState<BlockTask[]>([]);
+  // const [isUploading, setIsUploading] = useState(false);
+  let isUploading = false;
 
   const { pageid } = useParams();
 
   const filterTask = (blockTasks: BlockTask[]) => {
     const taskIds = {} as any;
-    console.log(blockTasks);
     return blockTasks.reduce((pre, cur) => {
       const { task, blockId } = cur;
       const target = pre[blockId];
@@ -110,7 +111,6 @@ export default function PageComponent(): React.ReactElement {
   };
 
   const taskRequest = (filteredTask: Object, blocks: BlockInfo[]) => {
-    console.log('tasks');
     const entries = Object.entries(filteredTask);
     return entries.map((value) => {
       const [blockId, task] = value;
@@ -131,9 +131,11 @@ export default function PageComponent(): React.ReactElement {
 
   const storePage = () => {
     console.log('페이지 저장');
-    setBlockTask([]);
+    isUploading = true;
+    const blockTaskTemp = blockTask.slice(0);
+    blockTask.splice(0);
     timeoutInfo.isStoreWaited = false;
-    const filteredTasks = filterTask(blockTask);
+    const filteredTasks = filterTask(blockTaskTemp);
     const tasks = taskRequest(filteredTasks, pageInfo.blocks);
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
@@ -145,9 +147,11 @@ export default function PageComponent(): React.ReactElement {
     };
     const onSuccess = (res: AxiosResponse) => {
       console.log('성공');
+      isUploading = false;
     };
     const onFail = (res: AxiosResponse) => {
-      setBlockTask((prev) => [...blockTask, ...prev]);
+      setBlockTask((prev) => [...blockTaskTemp, ...prev]);
+      isUploading = false;
       console.log(res.data);
     };
     axiosPostRequest(API.UPDATE_PAGE, onSuccess, onFail, requestBody, requestHeader);
@@ -161,12 +165,12 @@ export default function PageComponent(): React.ReactElement {
   function storePageTrigger({ isDelay }: { isDelay: boolean }) {
     if (!isDelay) {
       clearTimeout(timeoutInfo.id);
-      storePage();
+      // storePage();
       return;
     }
     if (!timeoutInfo.isStoreWaited) {
       timeoutInfo.isStoreWaited = true;
-      timeoutInfo.id = setTimeout(storePage, STORE_DELAY_TIME);
+      // timeoutInfo.id = setTimeout(storePage, STORE_DELAY_TIME);
     }
   }
 
@@ -174,24 +178,24 @@ export default function PageComponent(): React.ReactElement {
     return () => clearTimeout(timeoutInfo.id);
   });
 
+  // useEffect(() => {
+  //   const handleStore = (e: KeyboardEvent) => {
+  //     if (e.code === 'KeyS') {
+  //       const isMac = /Mac/.test(window.clientInformation.platform);
+  //       const commandKeyPressed = isMac ? e.metaKey === true : e.ctrlKey === true;
+  //       if (commandKeyPressed === true) {
+  //         e.preventDefault();
+  //         storePageTrigger({ isDelay: false });
+  //       }
+  //     }
+  //   };
+  //   window.addEventListener('keydown', handleStore);
+  //   return () => {
+  //     window.removeEventListener('keydown', handleStore);
+  //   };
+  // }, [pageInfo, blockTask]);
   useEffect(() => {
-    const handleStore = (e: KeyboardEvent) => {
-      if (e.code === 'KeyS') {
-        const isMac = /Mac/.test(window.clientInformation.platform);
-        const commandKeyPressed = isMac ? e.metaKey === true : e.ctrlKey === true;
-        if (commandKeyPressed === true) {
-          e.preventDefault();
-          storePageTrigger({ isDelay: false });
-        }
-      }
-    };
-    window.addEventListener('keydown', handleStore);
-    return () => {
-      window.removeEventListener('keydown', handleStore);
-    };
-  }, [pageInfo, blockTask]);
-  useEffect(() => {
-    const source = new EventSource(`http://localhost:8080/sse}`, {
+    const source = new EventSource(`http://localhost:8080/sse`, {
       withCredentials: true,
     });
     const onServerConnect = (e: Event) => {
@@ -200,8 +204,13 @@ export default function PageComponent(): React.ReactElement {
     };
     const onServerMsg = (e: MessageEvent) => {
       console.log('sse msg');
-      const edits = JSON.parse(e.data);
-      console.log(edits);
+      const { edits, userId, title } = JSON.parse(e.data) as {
+        edits: EditInfo[];
+        userId: string;
+        title: string;
+      };
+      if (userId === localStorage.getItem('id')) return;
+      pageInfo.title = title;
       edits.map((edit: EditInfo) => {
         const { task, blockId, type, content, index } = edit;
         switch (task) {
@@ -234,6 +243,21 @@ export default function PageComponent(): React.ReactElement {
       source.close();
     };
   }, [pageid]);
+
+  useEffect(() => {
+    const checkEdit = () => blockTask.length > 0;
+    const checkUploading = () => isUploading;
+    const syncPage = () => {
+      if (checkEdit() && !checkUploading()) {
+        storePage();
+      }
+    };
+    const id = setInterval(syncPage, 500);
+
+    return () => {
+      clearInterval(id);
+    };
+  }, [pageid, pageInfo]);
 
   useEffect(() => {
     const requestHeader = {
@@ -345,24 +369,23 @@ export default function PageComponent(): React.ReactElement {
   useEffect(() => {
     console.log('🚀 ~ file: PageComponent.tsx:94 ~ PageComponent ~ editedBlock', editedBlock);
     if (!editedBlock || editedBlock.block === undefined) return;
-    // const block = pageInfo.blocks.find(
-    //   (block) => block.blockId === Number(editedBlock.block.blockId),
-    // );
-    // if (block === undefined) return;
+    const targetBlock = pageInfo.blocks.find(
+      (block) => block.blockId === Number(editedBlock.block.blockId),
+    );
+    if (targetBlock === undefined) return;
     if (editedBlock.type === 'delete') {
       editedBlock !== undefined &&
         setPageInfo((prev) => ({
           ...prev,
-          blocks: prev.blocks
-            .filter((block) => block.blockId !== editedBlock.block.blockId)
-            .map((block) =>
-              block.blockId > editedBlock.block.blockId
-                ? { ...block, blockId: block.blockId - 1 }
-                : block,
-            ),
+          blocks: [
+            ...prev.blocks.slice(0, targetBlock.index - 1),
+            ...prev.blocks.slice(targetBlock.index).map(updateIndex(-1)),
+          ],
         }));
       editedBlock.block.index !== 1 &&
-        setFocusBlockId(pageInfo.blocks[editedBlock.block.index - 2].blockId ?? null);
+        setFocusBlockId(
+          pageInfo.blocks.find((block) => block.index === targetBlock.index - 1)?.blockId ?? null,
+        );
     } else {
       const { blockId, content, index, type, focus } = editedBlock.block;
       setPageInfo((prev) => ({
