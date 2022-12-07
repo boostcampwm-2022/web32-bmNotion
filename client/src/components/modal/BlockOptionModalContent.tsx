@@ -2,6 +2,7 @@ import React, { useState, ReactElement, useEffect } from 'react';
 import TypeChangeModalContent from '@/components/modal/TypeChangeModalContent';
 import Modal from '@/components/modal/Modal';
 import styled from 'styled-components';
+import DimdLayer from '@/components/modal/DimdLayer';
 
 interface BlockInfo {
   blockId: number;
@@ -14,17 +15,22 @@ interface BlockOptionModalProps {
   handleType: Function;
   deleteBlock: Function;
   block: BlockInfo;
+  handleBlockOptionButtonModal: Function;
 }
 
 export default function BlockOptionModalContent({
   handleType,
   deleteBlock,
   block,
+  handleBlockOptionButtonModal,
 }: BlockOptionModalProps): ReactElement {
   const [typeChangeModalOpen, setTypeChangeModalOpen] = useState(false);
 
   const handleChangeTypeModal = () => {
     setTypeChangeModalOpen(!typeChangeModalOpen);
+    if (typeChangeModalOpen) {
+      handleBlockOptionButtonModal();
+    }
   };
 
   return (
@@ -47,9 +53,12 @@ export default function BlockOptionModalContent({
         </OptionTextContainer>
       </OptionContainer>
       {typeChangeModalOpen && (
-        <Modal width={'220px'} height={'236px'} position={['0px', '', '', '265px']}>
-          <TypeChangeModalContent handleType={handleType} />
-        </Modal>
+        <>
+          <DimdLayer onClick={handleChangeTypeModal}></DimdLayer>
+          <Modal width={'220px'} height={'236px'} position={['0px', '', '', '265px']}>
+            <TypeChangeModalContent handleType={handleType} />
+          </Modal>
+        </>
       )}
     </OptionModalContainer>
   );

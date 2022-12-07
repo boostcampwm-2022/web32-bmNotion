@@ -3,7 +3,8 @@ import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
 import { AxiosResponse } from 'axios';
 import React, { useRef, useState } from 'react';
 import styled from 'styled-components';
-
+import { useAtom } from 'jotai';
+import { workSpaceNameAtom, workSpaceIdAtom } from '@/store/workSpaceAtom';
 interface user {
   url?: string;
   nickname: string;
@@ -18,6 +19,8 @@ interface clickedUser extends Element {
 }
 
 export default function SettingModalContent() {
+  const [workSpaceName, setWorkSpaceName] = useAtom(workSpaceNameAtom);
+  const [workSpaceId, setWorkSpaceId] = useAtom(workSpaceIdAtom);
   const inputNicknameRef = useRef<HTMLInputElement>(null);
   const inputSpacenameRef = useRef<HTMLInputElement>(null);
   const [searchResult, setSearchResult] = useState<user[]>([]);
@@ -26,13 +29,13 @@ export default function SettingModalContent() {
     const name = (e.currentTarget.elements.namedItem('name') as HTMLInputElement).value;
     const requestBody = {
       name,
-      workspace: localStorage.getItem('workspace'),
+      workspace: workSpaceId,
     };
     const requestHeader = {
       Authorization: localStorage.getItem('jwt'),
     };
     const onSuccess = (res: AxiosResponse) => {
-      localStorage.setItem('spacename', name);
+      setWorkSpaceName(name);
       if (inputSpacenameRef.current === null) return;
       inputSpacenameRef.current.value = '';
       inputSpacenameRef.current.placeholder = name;
@@ -47,7 +50,7 @@ export default function SettingModalContent() {
     e.preventDefault();
     const requestBody = {
       nickname: (e.currentTarget.elements.namedItem('nickname') as HTMLInputElement).value,
-      workspace: localStorage.getItem('workspace'),
+      workspace: workSpaceId,
     };
     const requestHeader = {
       Authorization: localStorage.getItem('jwt'),
@@ -103,7 +106,7 @@ export default function SettingModalContent() {
       <SetSpaceNameForm onSubmit={submitSpaceName}>
         <SpaceNameInput
           ref={inputSpacenameRef}
-          placeholder={localStorage.getItem('spacename') as string}
+          placeholder={workSpaceName}
           name="name"
         ></SpaceNameInput>
       </SetSpaceNameForm>

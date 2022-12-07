@@ -37,11 +37,16 @@ export default function StyledBlockContent({
   storePageTrigger,
   task,
 }: StyledBlockContentProps): ReactElement {
+  const StyleBox = {
+    'H1': H1BlockContentBox,
+    'H2': H2BlockContentBox,
+    'H3': H3BlockContentBox,
+    'TEXT': TextBlockContentBox,
+  }[type] || TextBlockContentBox;
   const renderTypeBlock = () => {
-    if (type === 'H1') {
-      return (
-        <H1BlockContentBox>
-          <BlockContent
+    return (
+      <StyleBox>
+        <BlockContent
             key={block.blockId}
             block={block}
             blockId={block.blockId}
@@ -55,66 +60,8 @@ export default function StyledBlockContent({
             provided={provided}
             task={task}
           />
-        </H1BlockContentBox>
-      );
-    } else if (type === 'H2') {
-      return (
-        <H2BlockContentBox>
-          <BlockContent
-            key={block.blockId}
-            block={block}
-            blockId={block.blockId}
-            newBlock={newBlock}
-            changeBlock={changeBlock}
-            moveBlock={moveBlock}
-            deleteBlock={deleteBlock}
-            storePageTrigger={storePageTrigger}
-            index={block.index}
-            type={block.type}
-            provided={provided}
-            task={task}
-          />
-        </H2BlockContentBox>
-      );
-    } else if (type === 'H3') {
-      return (
-        <H3BlockContentBox>
-          <BlockContent
-            key={block.blockId}
-            block={block}
-            blockId={block.blockId}
-            newBlock={newBlock}
-            changeBlock={changeBlock}
-            moveBlock={moveBlock}
-            deleteBlock={deleteBlock}
-            storePageTrigger={storePageTrigger}
-            index={block.index}
-            type={block.type}
-            provided={provided}
-            task={task}
-          />
-        </H3BlockContentBox>
-      );
-    } else {
-      return (
-        <TextBlockContentBox>
-          <BlockContent
-            key={block.blockId}
-            block={block}
-            blockId={block.blockId}
-            newBlock={newBlock}
-            changeBlock={changeBlock}
-            moveBlock={moveBlock}
-            deleteBlock={deleteBlock}
-            storePageTrigger={storePageTrigger}
-            index={block.index}
-            type={block.type}
-            provided={provided}
-            task={task}
-          />
-        </TextBlockContentBox>
-      );
-    }
+      </StyleBox>
+    )
   };
   return <>{renderTypeBlock()}</>;
 }

@@ -4,7 +4,8 @@ import { AxiosResponse } from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-
+import { useAtom } from 'jotai';
+import { workSpaceIdAtom } from '@/store/workSpaceAtom';
 interface Page {
   title: string;
   id: string;
@@ -12,13 +13,15 @@ interface Page {
 }
 
 export default function PageList() {
+  const [workSpaceId] = useAtom(workSpaceIdAtom);
+
   const [isLoading, setIsLoading] = useState(false);
   const [pageList, setPageList] = useState<Page[]>([]);
   const { pageid } = useParams();
   const navigate = useNavigate();
 
   const requestPageList = () => {
-    const workspaceId = localStorage.getItem('workspace');
+    const workspaceId = workSpaceId;
     const onSuccess = (res: AxiosResponse) => {
       setPageList(res.data.list);
       setIsLoading(true);
@@ -55,7 +58,7 @@ export default function PageList() {
   }, [setPageList, pageid]);
 
   const onClickAddPage = (e: React.MouseEvent) => {
-    const workspaceId = localStorage.getItem('workspace');
+    const workspaceId = workSpaceId;
     const onSuccess = (res: AxiosResponse) => {
       const pageid = res.data.pageid;
       requestPageList();
@@ -78,7 +81,7 @@ export default function PageList() {
   };
 
   const onClickDeleteButton = (pageid: string) => {
-    const workspaceId = localStorage.getItem('workspace');
+    const workspaceId = workSpaceId;
     const onSuccess = (res: AxiosResponse) => {
       requestPageList();
     };
