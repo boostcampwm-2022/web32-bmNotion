@@ -1,23 +1,20 @@
 const path = require('path');
 const fs = require("fs");
+const stream = require('node:stream');
+const { uploadImg, createObjectUrl } = require('../utils/objectStorage.util');
 
 const imageController = {
-    processImage: async (req, res) => {
-        const file = req.body;
-        
-        const buf = Buffer.from(file)
-        // console.log(buf)
-        
-        // const result = fs.createReadStream(file)
-        // console.log(result);
-        
-        // console.log(typeof file);
-        // console.log(file);
+  processImage: async (req, res) => {
+    /**
+     * 이미지 이름은 어떻게???
+     */
+    const file = req.body;
+    
+    // uploadImg('jhjSampleImage', {buffer: file})
 
-        res.sendStatus(201);
-        // res.sendFile(path.join(__dirname, '../../../client/public/assets/chunseek.png'));
-        // res.send();
-    }
+    const url = createObjectUrl('jhjSampleImage');
+    res.status(202).json({url, code: '202'});
+  }
 };
 
 module.exports = { imageController };
