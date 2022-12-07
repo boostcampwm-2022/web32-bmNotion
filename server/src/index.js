@@ -2,16 +2,19 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const mainRouter = require('./main/main.router');
 const authRouter = require('./auth/auth.router');
 const pageRouter = require('./page/page.router');
 const userRouter = require('./user/user.router');
+const blockRouter = require('./block/block.router');
 const workspaceRouter = require('./workspace/workspace.router');
 
 const port = process.env.PORT || '8080';
 const app = express();
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
+app.use(bodyParser.raw({ type: 'application/octet-stream' }))
 require('dotenv').config();
 
 app.use(express.static(path.resolve(__dirname, '..', '..', 'client', 'dist')));
@@ -24,6 +27,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/page', pageRouter);
 app.use('/api/workspace', workspaceRouter);
 app.use('/api/user', userRouter);
+app.use('/api/block', blockRouter);
 app.use('/', mainRouter);
 
 app.listen(port, () => {
