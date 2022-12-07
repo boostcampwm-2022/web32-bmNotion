@@ -7,6 +7,10 @@ import { API } from '@/config/config';
 import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
 import jwt from 'jsonwebtoken';
 import { AxiosResponse } from 'axios';
+
+interface PageComponentProps {
+  selectedBlockId: string[];
+}
 interface BlockInfo {
   blockId: number;
   content: string;
@@ -38,7 +42,9 @@ const samplePageInfo: PageInfo = {
 
 const STORE_DELAY_TIME = 30 * 1000; // 30초
 
-export default function PageComponent(): React.ReactElement {
+export default function PageComponent({
+  selectedBlockId
+}:PageComponentProps): React.ReactElement {
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     title: '',
     nextId: 0,
@@ -47,9 +53,11 @@ export default function PageComponent(): React.ReactElement {
   });
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
-
+  const [selectedBlocks, setSelectedBlocks] = useState<BlockInfo[]>([]);
   const { pageid } = useParams();
-
+  useEffect(()=>{
+    setSelectedBlocks(pageInfo.blocks.filter((e)=>selectedBlockId.includes(e.blockId.toString())));
+  },[selectedBlockId])
   const storePage = () => {
     console.log('페이지 저장', pageInfo.blocks);
     timeoutInfo.isStoreWaited = false;
@@ -376,7 +384,7 @@ export default function PageComponent(): React.ReactElement {
   if (pageInfo === null) return <div>로딩중</div>;
   return (
     <>
-      <PageTitle contentEditable onInput={handleOnInput} onKeyDown={handleOnKeyDown}>
+      <PageTitle contentEditable onInput={handleOnInput} onKeyDown={handleOnKeyDown} suppressContentEditableWarning={true}>
         {pageInfo.title}
       </PageTitle>
       <DragDropContext onDragEnd={onDragEnd}>

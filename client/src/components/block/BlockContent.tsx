@@ -200,6 +200,7 @@ export default function BlockContent({
       <BlockContentBox
         // type => css
         contentEditable
+        suppressContentEditableWarning={true}
         className="content"
         onKeyDown={handleOnKeyDown}
         onInput={handleOnInput}
@@ -307,11 +308,15 @@ const BlockContainer = styled.div`
 const BlockContentBox = styled.div.attrs({})`
   height: auto;
   flex: 1;
-  background-color: rgba(55, 53, 47, 0.08);
   margin: 1px 2px;
   padding: 3px 2px;
   /* caret-color: red; // 커서 색깔,요하면 원하는 색깔로 바꾸기 */
   border-radius: 3px;
+  transition: all 0.1s linear;
+
+  &.selected {
+    background-color: rgba(35, 131, 226, 0.15);
+  }
 
   &:focus {
     outline: none;
