@@ -22,6 +22,14 @@ interface PageInfo {
   blocks: BlockInfo[];
 }
 
+interface EditInfo {
+  blockId: number;
+  task: string;
+  content: string;
+  index: number;
+  type: string;
+}
+
 interface EditedBlockInfo {
   block: BlockInfo;
   type: 'new' | 'change' | 'delete';
@@ -58,6 +66,7 @@ export default function PageComponent(): React.ReactElement {
 
   const filterTask = (blockTasks: BlockTask[]) => {
     const taskIds = {} as any;
+    console.log(blockTasks);
     return blockTasks.reduce((pre, cur) => {
       const { task, blockId } = cur;
       const target = pre[blockId];
@@ -132,7 +141,6 @@ export default function PageComponent(): React.ReactElement {
     const requestBody = {
       pageid,
       title: pageInfo.title,
-      blocks: pageInfo.blocks,
       tasks,
     };
     const onSuccess = (res: AxiosResponse) => {
@@ -182,6 +190,50 @@ export default function PageComponent(): React.ReactElement {
       window.removeEventListener('keydown', handleStore);
     };
   }, [pageInfo, blockTask]);
+  useEffect(() => {
+    const source = new EventSource(`http://localhost:8080/sse}`, {
+      withCredentials: true,
+    });
+    const onServerConnect = (e: Event) => {
+      console.log('sse connection');
+      console.log(e);
+    };
+    const onServerMsg = (e: MessageEvent) => {
+      console.log('sse msg');
+      const edits = JSON.parse(e.data);
+      console.log(edits);
+      edits.map((edit: EditInfo) => {
+        const { task, blockId, type, content, index } = edit;
+        switch (task) {
+          case 'create':
+            addBlock({ blockId, type, content, index, noSave: true });
+            break;
+          case 'edit':
+            changeBlock({ blockId, type, content, index, noSave: true });
+            break;
+          case 'delete':
+            deleteBlock({ block: { blockId, type: '', content: '', index: 1 }, noSave: true });
+            break;
+          default:
+            break;
+        }
+      });
+    };
+    const onServerError = (e: Event) => {
+      console.log('sse error');
+      console.log(e);
+    };
+    source.addEventListener('open', onServerConnect);
+    source.addEventListener('message', onServerMsg);
+    source.addEventListener('error', onServerError);
+
+    return () => {
+      source.removeEventListener('open', onServerConnect);
+      source.removeEventListener('message', onServerMsg);
+      source.removeEventListener('error', onServerError);
+      source.close();
+    };
+  }, [pageid]);
 
   useEffect(() => {
     const requestHeader = {
@@ -235,14 +287,16 @@ export default function PageComponent(): React.ReactElement {
     type,
     content,
     index,
+    noSave,
   }: {
     blockId?: number;
     type: string;
     content: string;
     index: number;
+    noSave?: boolean;
   }) => {
     console.log('addblock');
-    setBlockTask((prev) => [...prev, { blockId: pageInfo.nextId, task: 'create' }]);
+    if (!noSave) setBlockTask((prev) => [...prev, { blockId: pageInfo.nextId, task: 'create' }]);
     setPageInfo((prev) => ({
       ...prev,
       blocks: [
@@ -261,11 +315,13 @@ export default function PageComponent(): React.ReactElement {
     type,
     content,
     index,
+    noSave,
   }: {
     blockId: number;
     type: string;
     content: string;
     index: number;
+    noSave?: boolean;
   }) => {
     setPageInfo((prev) => ({
       ...prev,
@@ -273,15 +329,15 @@ export default function PageComponent(): React.ReactElement {
         block.blockId === blockId ? { ...block, type, content, ref: true } : block,
       ),
     }));
-    setBlockTask((prev) => [...prev, { blockId, task: 'edit' }]);
+    if (!noSave) setBlockTask((prev) => [...prev, { blockId, task: 'edit' }]);
     setFocusBlockId(blockId);
     storePageTrigger({ isDelay: true });
   };
 
-  const deleteBlock = ({ block }: { block: BlockInfo }) => {
+  const deleteBlock = ({ block, noSave }: { block: BlockInfo; noSave?: boolean }) => {
     console.log('🚀 ~ file: PageComponent.tsx:88 ~ PageComponent ~ deleteBlock', block);
     setEditedBlock({ block, type: 'delete' });
-    setBlockTask((prev) => [...prev, { blockId: block.blockId, task: 'delete' }]);
+    if (!noSave) setBlockTask((prev) => [...prev, { blockId: block.blockId, task: 'delete' }]);
     storePageTrigger({ isDelay: true });
   };
 
@@ -289,14 +345,21 @@ export default function PageComponent(): React.ReactElement {
   useEffect(() => {
     console.log('🚀 ~ file: PageComponent.tsx:94 ~ PageComponent ~ editedBlock', editedBlock);
     if (!editedBlock || editedBlock.block === undefined) return;
+    // const block = pageInfo.blocks.find(
+    //   (block) => block.blockId === Number(editedBlock.block.blockId),
+    // );
+    // if (block === undefined) return;
     if (editedBlock.type === 'delete') {
       editedBlock !== undefined &&
         setPageInfo((prev) => ({
           ...prev,
-          blocks: [
-            ...prev.blocks.slice(0, editedBlock.block.index - 1),
-            ...prev.blocks.slice(editedBlock.block.index).map(updateIndex(-1)),
-          ],
+          blocks: prev.blocks
+            .filter((block) => block.blockId !== editedBlock.block.blockId)
+            .map((block) =>
+              block.blockId > editedBlock.block.blockId
+                ? { ...block, blockId: block.blockId - 1 }
+                : block,
+            ),
         }));
       editedBlock.block.index !== 1 &&
         setFocusBlockId(pageInfo.blocks[editedBlock.block.index - 2].blockId ?? null);

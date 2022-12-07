@@ -1,15 +1,25 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+
 const cookieParser = require('cookie-parser');
 const mainRouter = require('./main/main.router');
 const authRouter = require('./auth/auth.router');
 const pageRouter = require('./page/page.router');
 const userRouter = require('./user/user.router');
 const workspaceRouter = require('./workspace/workspace.router');
+const sseConnect = require('./sse/sse.connect');
 
 const port = process.env.PORT || '8080';
 const app = express();
+
+const server = app.listen(port, () => {
+  console.log('http://localhost:8080');
+});
+
+const sse = sseConnect(server, app);
+app.set('sse', sse);
+
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
 require('dotenv').config();
@@ -25,7 +35,3 @@ app.use('/api/page', pageRouter);
 app.use('/api/workspace', workspaceRouter);
 app.use('/api/user', userRouter);
 app.use('/', mainRouter);
-
-app.listen(port, () => {
-  console.log('연결 성공');
-});

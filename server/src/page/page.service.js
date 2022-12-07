@@ -6,6 +6,7 @@ const responseMessage = require('../response.message.json');
 const dbConfig = require('../db.config.json');
 
 const createBulk = (pageid, editInfos) => {
+  console.log(editInfos);
   const bulks = editInfos.map((editInfo) => {
     const { task, blockId } = editInfo;
     if (task === 'delete') {
@@ -121,9 +122,9 @@ const checkPageAuthority = (page, userid) => page.participants.includes(userid);
 const editPagePipeline = async (userid, title, pageid, blocks, tasks) => {
   const page = await pageCrud.readPageById(pageid);
   if (page === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
-  const isParticipant = checkPageAuthority(page, userid);
-  if (!isParticipant) return createResponse(responseMessage.AUTH_FAIL);
-  await pageCrud.updateTasks(pageid, tasks);
+  // const isParticipant = checkPageAuthority(page, userid);
+  // if (!isParticipant) return createResponse(responseMessage.AUTH_FAIL);
+  if (tasks.length > 0) await pageCrud.updateTasks(pageid, tasks);
   // await pageCrud.updatePage(pageid, title, blocks);
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
@@ -169,8 +170,8 @@ const readPagePipeline = async (workspaceId) => {
 const loadPagePipeline = async (userid, pageid) => {
   const page = await pageCrud.readPageById(pageid);
   if (page === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
-  const authority = page.owner === userid || page.participants.includes(userid);
-  if (!authority) return createResponse(responseMessage.AUTH_FAIL);
+  // const authority = page.owner === userid || page.participants.includes(userid);
+  // if (!authority) return createResponse(responseMessage.AUTH_FAIL);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
   response.title = page.title;
   response.blocks = page.blocks;
