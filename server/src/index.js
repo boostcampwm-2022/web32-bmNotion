@@ -6,6 +6,7 @@ const mainRouter = require('./main/main.router');
 const authRouter = require('./auth/auth.router');
 const pageRouter = require('./page/page.router');
 const userRouter = require('./user/user.router');
+const blockRouter = require('./block/block.router');
 const workspaceRouter = require('./workspace/workspace.router');
 
 const port = process.env.PORT || '8080';
@@ -24,6 +25,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/page', pageRouter);
 app.use('/api/workspace', workspaceRouter);
 app.use('/api/user', userRouter);
+app.use('/api/block', blockRouter);
 app.use('/', mainRouter);
 
 app.listen(port, () => {

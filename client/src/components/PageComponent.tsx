@@ -115,7 +115,7 @@ export default function PageComponent(): React.ReactElement {
     const onSuccess = (res: AxiosResponse) => {
       setPageInfo({
         title: res.data.title,
-        nextId: Math.max(...res.data.blocks.map((e: BlockInfo) => e.blockId), 1),
+        nextId: Math.max(...res.data.blocks.map((e: BlockInfo) => e.blockId), 0) + 1,
         pageId: pageid as string,
         blocks: res.data.blocks,
       });
