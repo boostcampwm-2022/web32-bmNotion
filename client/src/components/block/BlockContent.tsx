@@ -307,7 +307,7 @@ const BlockContainer = styled.div`
 const BlockContentBox = styled.div.attrs({})`
   height: auto;
   flex: 1;
-  background-color: lightgray;
+  background-color: rgba(55, 53, 47, 0.08);
   margin: 1px 2px;
   padding: 3px 2px;
   /* caret-color: red; // 커서 색깔,요하면 원하는 색깔로 바꾸기 */
