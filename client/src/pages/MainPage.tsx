@@ -91,6 +91,11 @@ export default function MainPage(): ReactElement {
         setMouseStartPosition({...mouseStartPosition, positionX:null, positionY:null})
         setMousePosition({...mousePosition, positionX:null, positionY:null});
       }}
+      onMouseMove={(e)=>{
+        if(mouseStartPosition.positionX && mouseStartPosition.positionY) {
+          setMousePosition({...mousePosition, positionX:e.clientX, positionY:e.clientY});
+        }
+      }}
     >
       <SideBar isClicked={sideBarButtonClicked} sideBarHoverButton={reverseDoubleArrowButton}>
         <SideBarHeaderContainer>
@@ -159,24 +164,18 @@ export default function MainPage(): ReactElement {
           onMouseDown={(e)=>{
             setMouseStartPosition({...mouseStartPosition, positionX:e.clientX, positionY:e.clientY});
           }}
-          onMouseMove={(e)=>{
-            if(mouseStartPosition.positionX && mouseStartPosition.positionY) {
-              setMousePosition({...mousePosition, positionX:e.clientX, positionY:e.clientY});
-            }
-          }}
           >
           <PageContainer maxWidth={isReaderMode ? '100%' : '900px'}>
             <PageComponent />
           </PageContainer>
-          <DragRange
+        </MainContainerBody>
+      </MainContainer>
+      <DragRange
             startPositionX={mouseStartPosition.positionX} 
             startPositionY={mouseStartPosition.positionY}
             positionX={mousePosition.positionX} 
             positionY={mousePosition.positionY}
           />
-        </MainContainerBody>
-      </MainContainer>
-
     </Wrapper>
   );
 }
