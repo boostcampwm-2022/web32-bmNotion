@@ -206,6 +206,7 @@ export default function BlockContent({
         data-blockid={blockId}
         data-index={index}
         ref={refBlock}
+        onMouseDown={(e)=>{e.stopPropagation()}}
       >
         {content || ''}
       </BlockContentBox>
