@@ -191,12 +191,14 @@ export default function BlockContent({
     }
   };
 
+  const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : ''
   return (
     <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
       <BlockButtonBox>
         <BlockPlusButton onClick={handleBlockPlusButtonModal} />
         <BlockOptionButton {...provided.dragHandleProps} onClick={handleBlockOptionButtonModal} />
       </BlockButtonBox>
+      {beforeContent !== '' && <BeforeContentBox beforeContent={beforeContent} />}
       <BlockContentBox
         // type => css
         contentEditable
@@ -371,3 +373,12 @@ const H3BlockContentBox = styled.div`
   font-size: 1.25em;
   line-height: 1.3;
 `;
+
+const BeforeContentBox = styled.div<{ beforeContent: string }>`
+  display: flex;
+  align-content: center;
+  align-items: center;
+  &::before {
+    content: "${(props) => props.beforeContent}";
+  }
+`
