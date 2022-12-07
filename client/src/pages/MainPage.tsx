@@ -25,6 +25,12 @@ interface SideBarProps {
   sideBarHoverButton: string;
 }
 
+interface MousePositionInfo {
+  positionX: number|null;
+  positionY: number|null;
+}
+
+
 const threePointButton = '/assets/icons/threePoint.png';
 const hamburgerButton = '/assets/icons/hamburger.png';
 const doubleArrowButton = '/assets/icons/doubleArrow.png';
@@ -33,11 +39,11 @@ const tranParentButton = '/assets/icons/transparent.png';
 const SettingIconSvg = '/assets/icons/gear.svg';
 
 export default function MainPage(): ReactElement {
+  const [mouseStartPosition, setMouseStartPosition] = useState<MousePositionInfo>({positionX: null, positionY: null})
+  const [mousePosition, setMousePosition] = useState<MousePositionInfo>({positionX: null, positionY: null})
   const [userNickName] = useAtom(userNickNameAtom);
   const [userId] = useAtom(userIdAtom);
 
-  const [sideBarButton, setSideBarButton] = useState('/assets/icons/hamburger.png');
-  const [sideBarHoverButton, setSideBarHoverButton] = useState('/assets/icons/doubleArrow.png');
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
   const [isReaderMode, setIsReaderMode] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>(undefined);
@@ -80,7 +86,12 @@ export default function MainPage(): ReactElement {
   }, [setProfileImageUrl]);
 
   return (
-    <Wrapper>
+    <Wrapper
+      onMouseUp={(e)=>{
+        setMouseStartPosition({...mouseStartPosition, positionX:null, positionY:null})
+        setMousePosition({...mousePosition, positionX:null, positionY:null});
+      }}
+    >
       <SideBar isClicked={sideBarButtonClicked} sideBarHoverButton={reverseDoubleArrowButton}>
         <SideBarHeaderContainer>
           <SideBarHeader>
@@ -144,15 +155,69 @@ export default function MainPage(): ReactElement {
             )}
           </TopBarRight>
         </TopBar>
-        <MainContainerBody>
+        <MainContainerBody 
+          onMouseDown={(e)=>{
+            setMouseStartPosition({...mouseStartPosition, positionX:e.clientX, positionY:e.clientY});
+          }}
+          onMouseMove={(e)=>{
+            if(mouseStartPosition.positionX && mouseStartPosition.positionY) {
+              setMousePosition({...mousePosition, positionX:e.clientX, positionY:e.clientY});
+            }
+          }}
+          >
           <PageContainer maxWidth={isReaderMode ? '100%' : '900px'}>
             <PageComponent />
           </PageContainer>
+          <DragRange
+            startPositionX={mouseStartPosition.positionX} 
+            startPositionY={mouseStartPosition.positionY}
+            positionX={mousePosition.positionX} 
+            positionY={mousePosition.positionY}
+          />
         </MainContainerBody>
       </MainContainer>
+
     </Wrapper>
   );
 }
+
+interface DragRangeProps {
+  startPositionX: number|null;
+  startPositionY: number|null;
+  positionX: number|null;
+  positionY: number|null;
+}
+
+const DragRange = styled.div<DragRangeProps>`
+  background-color: red;
+  width:100%;
+  height:100%;
+  position:absolute;
+  left:${(props)=>{
+    if(props.startPositionX && props.positionX) {
+      return Math.min(props.startPositionX, props.positionX).toString()+"px"
+    }
+    return null;
+  }};
+  top: ${(props)=>{
+    if(props.startPositionY && props.positionY) {
+      return Math.min(props.startPositionY, props.positionY).toString()+"px"
+    }
+    return null;
+  }};
+  width:${(props)=>{
+    if(props.positionX && props.startPositionX) {
+      return Math.max(props.positionX - props.startPositionX, props.startPositionX - props.positionX)?.toString()+"px";
+    }
+    return 0;
+  }};
+  height:${(props)=>{
+    if(props.positionY && props.startPositionY) {
+      return Math.max(props.positionY - props.startPositionY, props.startPositionY - props.positionY)?.toString()+"px";
+    }
+    return 0;
+  }};
+`
 
 const Wrapper = styled.div`
   display: flex;
@@ -297,6 +362,7 @@ const PageContainer = styled.div<{ maxWidth: string }>`
   width: 100%;
   //버튼 클릭하면 max-width: 100%
   transition: all 0.1s linear;
+  
 `;
 
 const PageBody = styled.div`
