@@ -14,9 +14,9 @@ const port = process.env.PORT || '8080';
 const app = express();
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 
-app.use(bodyParser.raw({ type: 'application/octet-stream' }))
 require('dotenv').config();
 
+app.use(bodyParser.raw({ limit: '10mb', type: 'application/octet-stream' }));
 app.use(express.static(path.resolve(__dirname, '..', '..', 'client', 'dist')));
 // app.use('/*', express.static(path.resolve(__dirname, '..', '..', 'client', 'dist')));
 app.use(express.urlencoded({ extended: true }));

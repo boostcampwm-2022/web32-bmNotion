@@ -3,6 +3,6 @@ const { imageController } = require('./block.controller');
 
 const router = Router();
 
-router.post('/image', imageController.processImage);
+router.post('/image/:fileName', imageController.processImage);
 
 module.exports = router;
