@@ -176,6 +176,7 @@ export default function PageComponent(): React.ReactElement {
     }));
     setFocusBlockId(pageInfo.nextId);
     storePageTrigger({ isDelay: true });
+    return blockId;
   };
 
   const changeBlock = ({
@@ -213,10 +214,13 @@ export default function PageComponent(): React.ReactElement {
       editedBlock !== undefined &&
         setPageInfo((prev) => ({
           ...prev,
-          blocks: [
-            ...prev.blocks.slice(0, editedBlock.block.index - 1),
-            ...prev.blocks.slice(editedBlock.block.index).map(updateIndex(-1)),
-          ],
+          blocks: prev.blocks
+            .filter((block) => block.blockId !== editedBlock.block.blockId)
+            .map((block) =>
+              block.blockId > editedBlock.block.blockId
+                ? { ...block, blockId: block.blockId - 1 }
+                : block,
+            ),
         }));
       editedBlock.block.index !== 1 &&
         setFocusBlockId(pageInfo.blocks[editedBlock.block.index - 2].blockId ?? null);
@@ -227,7 +231,7 @@ export default function PageComponent(): React.ReactElement {
         blocks: [
           ...prev.blocks.slice(0, index - 1),
           { ...editedBlock.block, blockId: type === 'new' ? prev.nextId : blockId },
-          ...prev.blocks.slice(index - 1).map(updateIndex(1)),
+          ...(type === 'new' ? prev.blocks.slice(index - 1) : prev.blocks.slice(index - 1).map(updateIndex(1))),
         ],
         nextId: type === 'new' ? prev.nextId + 1 : prev.nextId,
       }));
@@ -333,26 +337,12 @@ export default function PageComponent(): React.ReactElement {
   useEffect(() => {
     const onFocus = (targetBlockId: string) => {
       const contents = document.querySelectorAll('div.content');
-      // console.log('🚀 ~ file: PageComponent.tsx ~ line 90 ~ onFocus ~ contents', contents);
-      // console.log(
-      //   'attr test => ',
-      //   [...contents][0].getAttribute('data-blockid'),
-      //   typeof [...contents][0].getAttribute('data-blockid'),
-      // );
       const target = [...contents].find((el) => el.getAttribute('data-blockid') === targetBlockId);
       if (target) {
-        // console.log('🚀 ~ file: PageComponent.tsx ~ line 122 ~ onFocus ~ target', target);
         (target as any).tabIndex = -1;
         (target as any).focus();
-        (target as any).tabIndex = 0;
       }
     };
-
-    // console.log(
-    //   '🚀 ~ file: PageComponent.tsx ~ line 87 ~ useLayoutEffect ~ focusBlockId',
-    //   focusBlockId,
-    // );
-
     focusBlockId && onFocus(String(focusBlockId));
     setFocusBlockId(null);
   }, [focusBlockId]);

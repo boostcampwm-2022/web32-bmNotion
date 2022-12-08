@@ -5,7 +5,7 @@ import BlockModalContent from '@/components/modal/BlockModalContent';
 import BlockOptionModalContent from '@/components/modal/BlockOptionModalContent';
 import { render } from 'react-dom';
 import DimdLayer from '@/components/modal/DimdLayer';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { axiosPostRequest } from '@/utils/axios.request';
 
 interface BlockInfo {
@@ -193,43 +193,33 @@ export default function BlockContent({
     }
   };
 
-  const handleOnPaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
-    const clipboardData = event.clipboardData;
-    console.log(clipboardData);
-    // Check if the clipboard data contains any files
+  const handleOnPaste = async (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const apiUrl = '/api/block/image';
+    const headers = { 'Content-Type': 'application/octet-stream' };
+
+    const getOnSuccess = (blockId: number, index: number) => (response: AxiosResponse<any, any>) => {
+      changeBlock({ blockId, type: 'IMG', content: response.data.url, index})
+    };
+    
+    const onFail = (err: AxiosResponse<any, any>) => console.error(err);
+
+    const clipboardData = e.clipboardData;
+    
+    console.log('🚀 ~ file: Test.tsx:7 ~ handleOnPaste ~ clipboardData', clipboardData);
+
     if (clipboardData && clipboardData.files.length > 0) {
-      console.log(clipboardData)
-      console.log(clipboardData.items)
-      console.log(Array.from(clipboardData.items).find(item => item.kind === 'file'))
-      console.log(Array.from(clipboardData.items).find(item => item.kind === 'file')?.getAsFile())
-      console.log(clipboardData.files)
-      // debugger;
-      // Get the first file from the clipboard
       const file = clipboardData.files[0];
-      console.log(file);
-      // console.log(clipboardData.items[0].getAsFile())
-      // lastModified : 1670308967640
-      // lastModifiedDate : Tue Dec 06 2022 15:42:47 GMT+0900 (한국 표준시) {}
-      // name : "image.png"
-      // size : 14759
-      // type : "image/png"
-      
-      if (!/image/.test(file.type)) return;
-      
-      
-      // debugger;
-
-      axiosPostRequest(
-        '/api/block/image',
-        (response) => { const imageUrl = response.data; console.log(imageUrl)},
-        (err) => { console.error(err); },
-        file, //body
-        { 'Content-Type': 'application/octet-stream' }, // headers
-      );
+      console.log("🚀 ~ file: BlockContent.tsx:212 ~ handleOnPaste ~ file", file)
+      if (/image/.test(file.type)) {
+        e.preventDefault();
+        const newBlockId = newBlock({ blockId, type: 'image', content: '', index: index + 1 });
+        const onSuccess = getOnSuccess(newBlockId, index + 1);
+        axiosPostRequest(apiUrl, onSuccess, onFail, file, headers);
+      }
     }
-  }
+  };
 
-  const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : ''
+  const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : '';
   return (
     <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
       <BlockButtonBox>
@@ -249,7 +239,7 @@ export default function BlockContent({
         data-tab={1}
         ref={refBlock}
       >
-        {content || ''}
+        {block.type === 'IMG' ? <img src={block.content || ''} onError={(e:any) => e.target.src = "/assets/icons/camera.png" }></img> : content || ''}
       </BlockContentBox>
       {blockPlusModalOpen && (
         <>
@@ -356,11 +346,9 @@ const BlockContentBox = styled.div`
     outline: none;
   }
 
-  
-  
   white-space: pre-wrap;
   word-break: break-word;
-  `;
+`;
 
 // &::before {
 //   /* content: ${(props) => props['data-before-content']}; */
@@ -417,6 +405,6 @@ const BeforeContentBox = styled.div<{ beforeContent: string }>`
   align-content: center;
   align-items: center;
   &::before {
-    content: "${(props) => props.beforeContent}";
+    content: '${(props) => props.beforeContent}';
   }
-`
+`;

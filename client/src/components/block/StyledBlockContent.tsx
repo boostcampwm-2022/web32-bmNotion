@@ -35,30 +35,32 @@ export default function StyledBlockContent({
   moveBlock,
   storePageTrigger,
 }: StyledBlockContentProps): ReactElement {
-  const StyleBox = {
-    'H1': H1BlockContentBox,
-    'H2': H2BlockContentBox,
-    'H3': H3BlockContentBox,
-    'TEXT': TextBlockContentBox,
-  }[type] || TextBlockContentBox;
+  const StyleBox =
+    {
+      H1: H1BlockContentBox,
+      H2: H2BlockContentBox,
+      H3: H3BlockContentBox,
+      TEXT: TextBlockContentBox,
+      IMG: IMGBlockContentBox,
+    }[type] || TextBlockContentBox;
   const renderTypeBlock = () => {
     return (
       <StyleBox>
         <BlockContent
-            key={block.blockId}
-            block={block}
-            blockId={block.blockId}
-            newBlock={newBlock}
-            changeBlock={changeBlock}
-            moveBlock={moveBlock}
-            deleteBlock={deleteBlock}
-            storePageTrigger={storePageTrigger}
-            index={block.index}
-            type={block.type}
-            provided={provided}
-          />
+          key={block.blockId}
+          block={block}
+          blockId={block.blockId}
+          newBlock={newBlock}
+          changeBlock={changeBlock}
+          moveBlock={moveBlock}
+          deleteBlock={deleteBlock}
+          storePageTrigger={storePageTrigger}
+          index={block.index}
+          type={block.type}
+          provided={provided}
+        />
       </StyleBox>
-    )
+    );
   };
   return <>{renderTypeBlock()}</>;
 }
@@ -106,4 +108,9 @@ const H3BlockContentBox = styled.div`
   font-weight: 600;
   font-size: 1.25em;
   line-height: 1.3;
+`;
+
+const IMGBlockContentBox = styled.div`
+  border-radius: 8px;
+  background-color: hsl(0,0%,89%);
 `;
