@@ -22,6 +22,9 @@ interface StyledBlockContentProps {
   provided: any;
   moveBlock: Function;
   deleteBlock: Function;
+  selectedBlocks: BlockInfo[];
+  allBlocks: BlockInfo[];
+  task: any;
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
@@ -33,32 +36,39 @@ export default function StyledBlockContent({
   type,
   provided,
   moveBlock,
+  selectedBlocks,
+  allBlocks,
   storePageTrigger,
+  task,
 }: StyledBlockContentProps): ReactElement {
-  const StyleBox = {
-    'H1': H1BlockContentBox,
-    'H2': H2BlockContentBox,
-    'H3': H3BlockContentBox,
-    'TEXT': TextBlockContentBox,
-  }[type] || TextBlockContentBox;
+  const StyleBox =
+    {
+      H1: H1BlockContentBox,
+      H2: H2BlockContentBox,
+      H3: H3BlockContentBox,
+      TEXT: TextBlockContentBox,
+    }[type] || TextBlockContentBox;
   const renderTypeBlock = () => {
     return (
       <StyleBox>
         <BlockContent
-            key={block.blockId}
-            block={block}
-            blockId={block.blockId}
-            newBlock={newBlock}
-            changeBlock={changeBlock}
-            moveBlock={moveBlock}
-            deleteBlock={deleteBlock}
-            storePageTrigger={storePageTrigger}
-            index={block.index}
-            type={block.type}
-            provided={provided}
-          />
+          key={block.blockId}
+          block={block}
+          blockId={block.blockId}
+          newBlock={newBlock}
+          changeBlock={changeBlock}
+          moveBlock={moveBlock}
+          deleteBlock={deleteBlock}
+          storePageTrigger={storePageTrigger}
+          index={block.index}
+          type={block.type}
+          provided={provided}
+          selectedBlocks={selectedBlocks}
+          task={task}
+          allBlocks={allBlocks}
+        />
       </StyleBox>
-    )
+    );
   };
   return <>{renderTypeBlock()}</>;
 }
@@ -69,7 +79,6 @@ const TextBlockContentBox = styled.div`
   white-space: pre-wrap;
   word-break: break-word;
   caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
 `;
 
 const H1BlockContentBox = styled.div`
@@ -78,10 +87,11 @@ const H1BlockContentBox = styled.div`
   white-space: pre-wrap;
   word-break: break-word;
   caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
   font-weight: 600;
   font-size: 1.875em;
   line-height: 1.3;
+  margin-top: 32px;
+  margin-bottom: 4px;
 `;
 
 const H2BlockContentBox = styled.div`
@@ -90,10 +100,10 @@ const H2BlockContentBox = styled.div`
   white-space: pre-wrap;
   word-break: break-word;
   caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
   font-weight: 600;
   font-size: 1.5em;
   line-height: 1.3;
+  margin-top: 24px;
 `;
 
 const H3BlockContentBox = styled.div`
@@ -102,8 +112,8 @@ const H3BlockContentBox = styled.div`
   white-space: pre-wrap;
   word-break: break-word;
   caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
   font-weight: 600;
   font-size: 1.25em;
   line-height: 1.3;
+  margin-top: 16px;
 `;

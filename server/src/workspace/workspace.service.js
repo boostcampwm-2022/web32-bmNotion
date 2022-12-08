@@ -50,9 +50,10 @@ const workspaceCrud = {
 
 const getWorkspacesPipeline = async (userId) => {
   const queryCriteria = {
-    $or: [{ owner: userId }, { members: { $elemMatch: { userId } } }],
+    $or: [{ owner: userId }, { members: userId }],
   };
   const workspaceList = await readAllDocument(dbConfig.COLLECTION_WORKSPACE, queryCriteria);
+  console.log(workspaceList);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
   response.workspaceList = workspaceList.map((workspace) => {
     const workspaceInfo = { id: workspace._id, title: workspace.title };

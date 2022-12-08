@@ -15,6 +15,7 @@ interface BlockOptionModalProps {
   handleType: Function;
   deleteBlock: Function;
   block: BlockInfo;
+  selectedBlocks: BlockInfo[];
   handleBlockOptionButtonModal: Function;
 }
 
@@ -22,6 +23,7 @@ export default function BlockOptionModalContent({
   handleType,
   deleteBlock,
   block,
+  selectedBlocks,
   handleBlockOptionButtonModal,
 }: BlockOptionModalProps): ReactElement {
   const [typeChangeModalOpen, setTypeChangeModalOpen] = useState(false);
@@ -32,7 +34,7 @@ export default function BlockOptionModalContent({
       handleBlockOptionButtonModal();
     }
   };
-
+  console.log(selectedBlocks);
   return (
     <OptionModalContainer>
       <OptionContainer onClick={handleChangeTypeModal}>
@@ -43,8 +45,15 @@ export default function BlockOptionModalContent({
       </OptionContainer>
       <OptionContainer
         onClick={() => {
-          console.log(block);
-          deleteBlock({ block });
+          if (selectedBlocks.length !== 0) {
+            selectedBlocks.forEach((e) => {
+              deleteBlock({ block: e });
+              console.log('여러개 삭제 : ', e);
+            });
+          } else {
+            console.log('한개 삭제 : ', block);
+            deleteBlock({ block });
+          }
         }}
       >
         <OptionImage image={'/assets/icons/trash.png'} />
@@ -56,7 +65,11 @@ export default function BlockOptionModalContent({
         <>
           <DimdLayer onClick={handleChangeTypeModal}></DimdLayer>
           <Modal width={'220px'} height={'236px'} position={['0px', '', '', '265px']}>
-            <TypeChangeModalContent handleType={handleType} />
+            <TypeChangeModalContent
+              handleType={handleType}
+              selectedBlocks={selectedBlocks}
+              block={block}
+            />
           </Modal>
         </>
       )}

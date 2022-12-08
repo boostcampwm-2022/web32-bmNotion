@@ -2,11 +2,24 @@ import React, { useState, ReactElement, useEffect } from 'react';
 import TypeChangeModalContentType from './TypeChangeModalContentType';
 import styled from 'styled-components';
 
+interface BlockInfo {
+  blockId: number;
+  content: string;
+  index: number;
+  type: string;
+  focus?: boolean;
+}
+interface TypeChangeModalContentProps {
+  handleType: Function;
+  block: BlockInfo;
+  selectedBlocks: BlockInfo[];
+}
+
 export default function TypeChangeModalContent({
   handleType,
-}: {
-  handleType: Function;
-}): ReactElement {
+  selectedBlocks,
+  block,
+}: TypeChangeModalContentProps): ReactElement {
   const contentTypeArr = [
     {
       text: '텍스트',
@@ -40,6 +53,8 @@ export default function TypeChangeModalContent({
               image={e.image}
               handleType={handleType}
               type={e.type}
+              selectedBlocks={selectedBlocks}
+              block={block}
             />
           );
         })}

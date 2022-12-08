@@ -28,6 +28,9 @@ interface BlockContentProps {
   provided: any;
   moveBlock: Function;
   deleteBlock: Function;
+  selectedBlocks: BlockInfo[];
+  allBlocks: BlockInfo[];
+  task: any;
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
@@ -85,7 +88,10 @@ export default function BlockContent({
   type,
   provided,
   moveBlock,
+  selectedBlocks,
+  allBlocks,
   storePageTrigger,
+  task,
 }: BlockContentProps): ReactElement {
   const { blockId, content, index } = block;
   const [blockPlusModalOpen, setBlockPlusModalOpen] = useState(false);
@@ -110,10 +116,23 @@ export default function BlockContent({
       e.preventDefault();
       if (!e.nativeEvent.isComposing) {
         /* 한글 입력시 isComposing이 false일때만 실행 */
-        newBlock({ blockId, type: decisionNewBlockType(type), content: '', index: index + 1 });
+        const elem = e.target as HTMLElement;
+        const totalContent = elem.textContent || '';
+        const offset = (window.getSelection() as Selection).focusOffset;
+        const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
+        console.log(preText, postText);
+        elem.textContent = preText;
+        block.content = preText;
+        newBlock({
+          blockId,
+          type: decisionNewBlockType(type),
+          content: postText,
+          index: index + 1,
+        });
       }
     }
   };
+
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     /* 현재 카렛 위치 기준으로 text 분리 */
     const elem = e.target as HTMLElement;
@@ -148,10 +167,31 @@ export default function BlockContent({
       console.log('블록 TEXT로 변경');
       const toType = 'TEXT';
       changeBlock({ blockId, type: toType, content: elem.textContent, index });
-    } else if (elem.textContent === '') {
+    } else {
+      if (index === 1) {
+        return;
+      }
+      const blocks = document.querySelectorAll('div.content');
+      const prevDomBlock = [...blocks].find(
+        (el) => el.getAttribute('data-index') === (index - 1).toString(),
+      ) as HTMLElement;
+      const prevBlock = allBlocks.find((e) => e.index === index - 1);
       e.preventDefault();
+      const text = (prevDomBlock.textContent as string) + elem.textContent;
+      prevDomBlock.textContent = text;
       console.log('블록 삭제 트리거');
+      // changeBlock({ blockId : prevBlock?.blockId, type: prevBlock?.type, content: text, index:prevBlock?.index });
       deleteBlock({ block });
+      const range = document.createRange();
+      const select = window.getSelection();
+      if (prevDomBlock.childNodes.length === 0) {
+        return;
+      }
+      range.setStart(prevDomBlock.childNodes[0], prevBlock?.content.length as number);
+      range.collapse(true);
+
+      select?.removeAllRanges();
+      select?.addRange(range);
     }
   };
 
@@ -171,15 +211,21 @@ export default function BlockContent({
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
     if (!content && type === 'TEXT') {
-      handleType(toType);
+      handleType(block, toType);
     } else {
       newBlock({ blockId, type: toType, content: '', index: index + 1 });
     }
   };
-  const handleType = (toType: string) => {
+
+  const handleType = (block: BlockInfo, toType: string) => {
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
-    changeBlock({ blockId, type: toType, content: block.content, index });
+    changeBlock({
+      blockId: block.blockId,
+      type: toType,
+      content: block.content,
+      index: block.index,
+    });
   };
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
@@ -189,6 +235,7 @@ export default function BlockContent({
     // console.log('🚀 ~ file: BlockContent.tsx ~ line 134 ~ handleOnInput ~ newContent', newContent);
     if (newContent !== null) {
       block.content = newContent;
+      task.push({ blockId: block.blockId, task: 'edit' });
       storePageTrigger({ isDelay: true });
     }
   };
@@ -231,7 +278,11 @@ export default function BlockContent({
 
   const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : ''
   return (
-    <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
+    <BlockContainer
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       <BlockButtonBox>
         <BlockPlusButton onClick={handleBlockPlusButtonModal} />
         <BlockOptionButton {...provided.dragHandleProps} onClick={handleBlockOptionButtonModal} />
@@ -240,6 +291,7 @@ export default function BlockContent({
       <BlockContentBox
         // type => css
         contentEditable
+        suppressContentEditableWarning={true}
         className="content"
         onKeyDown={handleOnKeyDown}
         onInput={handleOnInput}
@@ -248,6 +300,9 @@ export default function BlockContent({
         data-index={index}
         data-tab={1}
         ref={refBlock}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+        }}
       >
         {content || ''}
       </BlockContentBox>
@@ -255,7 +310,7 @@ export default function BlockContent({
         <>
           <DimdLayer onClick={handleBlockPlusButtonModal}></DimdLayer>
           <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-            <BlockModalContent handleType={handlePlus} />
+            <BlockModalContent block={block} handleType={handlePlus} />
           </Modal>
         </>
       )}
@@ -267,6 +322,7 @@ export default function BlockContent({
               deleteBlock={deleteBlock}
               block={block}
               handleType={handleType}
+              selectedBlocks={selectedBlocks}
               handleBlockOptionButtonModal={handleBlockOptionButtonModal}
             />
           </Modal>
@@ -301,6 +357,7 @@ const BlockButtonBox = styled.div`
   height: 24px;
   margin: 3px 0px;
 `;
+
 const BlockPlusButton = styled.button`
   background-image: url('/assets/icons/plusButton.png');
   background-repeat: no-repeat;
@@ -348,9 +405,15 @@ const BlockContainer = styled.div`
 const BlockContentBox = styled.div`
   height: auto;
   flex: 1;
-  background-color: lightgray;
-  margin: 3px 2px;
+  margin: 1px 2px;
+  padding: 3px 2px;
   /* caret-color: red; // 커서 색깔,요하면 원하는 색깔로 바꾸기 */
+  border-radius: 3px;
+  transition: all 0.1s linear;
+
+  &.selected {
+    background-color: rgba(35, 131, 226, 0.15);
+  }
 
   &:focus {
     outline: none;
@@ -360,63 +423,4 @@ const BlockContentBox = styled.div`
   
   white-space: pre-wrap;
   word-break: break-word;
-  `;
-
-// &::before {
-//   /* content: ${(props) => props['data-before-content']}; */
-//   /* margin: 0 10px; */
-//   /* color: #9b9a97; */
-// }
-const TextBlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
 `;
-
-const H1BlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
-  font-weight: 600;
-  font-size: 1.875em;
-  line-height: 1.3;
-`;
-
-const H2BlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
-  font-weight: 600;
-  font-size: 1.5em;
-  line-height: 1.3;
-`;
-
-const H3BlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
-  font-weight: 600;
-  font-size: 1.25em;
-  line-height: 1.3;
-`;
-
-const BeforeContentBox = styled.div<{ beforeContent: string }>`
-  display: flex;
-  align-content: center;
-  align-items: center;
-  &::before {
-    content: "${(props) => props.beforeContent}";
-  }
-`

@@ -93,10 +93,26 @@ const deleteOneDocument = async (collectionName, queryCriteria) => {
   }
 };
 
+const writeBulk = async (collectionName, bulks) => {
+  let mongoClient;
+
+  try {
+    mongoClient = await connectToCluster();
+
+    const db = mongoClient.db(process.env.DB_NAME);
+    const collection = db.collection(collectionName);
+
+    await collection.bulkWrite(bulks);
+  } finally {
+    mongoClient.close();
+  }
+};
+
 module.exports = {
   createDocument,
   readAllDocument,
   readOneDocument,
   deleteOneDocument,
   updateOneDocument,
+  writeBulk,
 };

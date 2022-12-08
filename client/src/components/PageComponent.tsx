@@ -7,6 +7,10 @@ import { API } from '@/config/config';
 import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
 import jwt from 'jsonwebtoken';
 import { AxiosResponse } from 'axios';
+
+interface PageComponentProps {
+  selectedBlockId: string[];
+}
 interface BlockInfo {
   blockId: number;
   content: string;
@@ -22,9 +26,22 @@ interface PageInfo {
   blocks: BlockInfo[];
 }
 
+interface EditInfo {
+  blockId: number;
+  task: string;
+  content: string;
+  index: number;
+  type: string;
+}
+
 interface EditedBlockInfo {
   block: BlockInfo;
   type: 'new' | 'change' | 'delete';
+}
+
+interface BlockTask {
+  blockId: number;
+  task: string;
 }
 
 const sampleBlocks: BlockInfo[] = [{ blockId: 1, index: 1, content: '', type: 'TEXT' }];
@@ -38,7 +55,7 @@ const samplePageInfo: PageInfo = {
 
 const STORE_DELAY_TIME = 30 * 1000; // 30초
 
-export default function PageComponent(): React.ReactElement {
+export default function PageComponent({ selectedBlockId }: PageComponentProps): React.ReactElement {
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     title: '',
     nextId: 0,
@@ -47,24 +64,105 @@ export default function PageComponent(): React.ReactElement {
   });
   const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
+  const [selectedBlocks, setSelectedBlocks] = useState<BlockInfo[]>([]);
+  const [blockTask, setBlockTask] = useState<BlockTask[]>([]);
+  // const [isUploading, setIsUploading] = useState(false);
+  let isUploading = false;
 
   const { pageid } = useParams();
 
+  useEffect(() => {
+    pageInfo.blocks.forEach((e) => console.log(e.blockId));
+    setSelectedBlocks(
+      pageInfo.blocks.filter((e) => selectedBlockId.includes(e.blockId.toString())),
+    );
+  }, [selectedBlockId]);
+  const filterTask = (blockTasks: BlockTask[]) => {
+    const taskIds = {} as any;
+    return blockTasks.reduce((pre, cur) => {
+      const { task, blockId } = cur;
+      const target = pre[blockId];
+      if (target === undefined) {
+        if (task === 'create') {
+          pre[blockId] = 'create';
+        } else if (task === 'edit') {
+          pre[blockId] = 'edit';
+        } else if (task === 'delete') {
+          pre[blockId] = 'delete';
+        }
+      } else {
+        if (target === 'delete') {
+          if (task === 'delete') {
+            pre[blockId] = 'delete';
+          } else if (task === 'edit') {
+            pre[blockId] = 'edit';
+          } else if (task === 'create') {
+            pre[blockId] = 'edit';
+          }
+        } else if (target === 'edit') {
+          if (task === 'delete') {
+            pre[blockId] = 'delete';
+          } else if (task === 'edit') {
+            pre[blockId] = 'edit';
+          } else if (task === 'create') {
+            pre[blockId] = 'edit';
+          }
+        } else if (target === 'create') {
+          if (task === 'delete') {
+            pre[blockId] = undefined;
+          } else if (task === 'edit') {
+            pre[blockId] = 'create';
+          } else if (task === 'create') {
+            pre[blockId] = 'create';
+          }
+        }
+      }
+      return pre;
+    }, taskIds);
+  };
+
+  const taskRequest = (filteredTask: Object, blocks: BlockInfo[]) => {
+    const entries = Object.entries(filteredTask);
+    return entries.map((value) => {
+      const [blockId, task] = value;
+      if (task === 'delete') {
+        return { blockId: Number(blockId), task };
+      }
+      const block = blocks.find((block) => block.blockId === Number(blockId));
+      if (block === undefined) return;
+      return {
+        blockId: Number(blockId),
+        task,
+        content: block.content,
+        index: block.index,
+        type: block.type,
+      };
+    });
+  };
+
   const storePage = () => {
-    console.log('페이지 저장', pageInfo.blocks);
+    console.log('페이지 저장');
+    isUploading = true;
+    const blockTaskTemp = blockTask.slice(0);
+    blockTask.splice(0);
     timeoutInfo.isStoreWaited = false;
+    const filteredTasks = filterTask(blockTaskTemp);
+    const tasks = taskRequest(filteredTasks, pageInfo.blocks);
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
     const requestBody = {
       pageid,
       title: pageInfo.title,
-      blocks: pageInfo.blocks,
+      tasks,
     };
     const onSuccess = (res: AxiosResponse) => {
       console.log('성공');
+      isUploading = false;
     };
     const onFail = (res: AxiosResponse) => {
+      setBlockTask((prev) => [...blockTaskTemp, ...prev]);
+      isUploading = false;
       console.log(res.data);
     };
     axiosPostRequest(API.UPDATE_PAGE, onSuccess, onFail, requestBody, requestHeader);
@@ -78,12 +176,12 @@ export default function PageComponent(): React.ReactElement {
   function storePageTrigger({ isDelay }: { isDelay: boolean }) {
     if (!isDelay) {
       clearTimeout(timeoutInfo.id);
-      storePage();
+      // storePage();
       return;
     }
     if (!timeoutInfo.isStoreWaited) {
       timeoutInfo.isStoreWaited = true;
-      timeoutInfo.id = setTimeout(storePage, STORE_DELAY_TIME);
+      // timeoutInfo.id = setTimeout(storePage, STORE_DELAY_TIME);
     }
   }
 
@@ -91,22 +189,86 @@ export default function PageComponent(): React.ReactElement {
     return () => clearTimeout(timeoutInfo.id);
   });
 
+  // useEffect(() => {
+  //   const handleStore = (e: KeyboardEvent) => {
+  //     if (e.code === 'KeyS') {
+  //       const isMac = /Mac/.test(window.clientInformation.platform);
+  //       const commandKeyPressed = isMac ? e.metaKey === true : e.ctrlKey === true;
+  //       if (commandKeyPressed === true) {
+  //         e.preventDefault();
+  //         storePageTrigger({ isDelay: false });
+  //       }
+  //     }
+  //   };
+  //   window.addEventListener('keydown', handleStore);
+  //   return () => {
+  //     window.removeEventListener('keydown', handleStore);
+  //   };
+  // }, [pageInfo, blockTask]);
   useEffect(() => {
-    const handleStore = (e: KeyboardEvent) => {
-      if (e.code === 'KeyS') {
-        const isMac = /Mac/.test(window.clientInformation.platform);
-        const commandKeyPressed = isMac ? e.metaKey === true : e.ctrlKey === true;
-        if (commandKeyPressed === true) {
-          e.preventDefault();
-          storePageTrigger({ isDelay: false });
+    const source = new EventSource(`http://localhost:8080/sse`, {
+      withCredentials: true,
+    });
+    const onServerConnect = (e: Event) => {
+      console.log('sse connection');
+      console.log(e);
+    };
+    const onServerMsg = (e: MessageEvent) => {
+      console.log('sse msg');
+      const { edits, userId, title } = JSON.parse(e.data) as {
+        edits: EditInfo[];
+        userId: string;
+        title: string;
+      };
+      if (userId === localStorage.getItem('id')) return;
+      pageInfo.title = title;
+      edits.map((edit: EditInfo) => {
+        const { task, blockId, type, content, index } = edit;
+        switch (task) {
+          case 'create':
+            addBlock({ blockId, type, content, index, noSave: true });
+            break;
+          case 'edit':
+            changeBlock({ blockId, type, content, index, noSave: true });
+            break;
+          case 'delete':
+            deleteBlock({ block: { blockId, type: '', content: '', index: 1 }, noSave: true });
+            break;
+          default:
+            break;
         }
+      });
+    };
+    const onServerError = (e: Event) => {
+      console.log('sse error');
+      console.log(e);
+    };
+    source.addEventListener('open', onServerConnect);
+    source.addEventListener('message', onServerMsg);
+    source.addEventListener('error', onServerError);
+
+    return () => {
+      source.removeEventListener('open', onServerConnect);
+      source.removeEventListener('message', onServerMsg);
+      source.removeEventListener('error', onServerError);
+      source.close();
+    };
+  }, [pageid]);
+
+  useEffect(() => {
+    const checkEdit = () => blockTask.length > 0;
+    const checkUploading = () => isUploading;
+    const syncPage = () => {
+      if (checkEdit() && !checkUploading()) {
+        storePage();
       }
     };
-    window.addEventListener('keydown', handleStore);
+    const id = setInterval(syncPage, 500);
+
     return () => {
-      window.removeEventListener('keydown', handleStore);
+      clearInterval(id);
     };
-  }, [pageInfo]);
+  }, [pageid, pageInfo]);
 
   useEffect(() => {
     const requestHeader = {
@@ -125,10 +287,13 @@ export default function PageComponent(): React.ReactElement {
     };
     axiosGetRequest(API.GET_PAGE + pageid, onSuccess, onFail, requestHeader);
   }, [pageid]);
-  const updateIndex = (diff: number) => (block: BlockInfo) => ({
-    ...block,
-    index: block.index + diff,
-  });
+  const updateIndex = (diff: number) => (block: BlockInfo) => {
+    setBlockTask((prev) => [...prev, { blockId: block.blockId, task: 'edit' }]);
+    return {
+      ...block,
+      index: block.index + diff,
+    };
+  };
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = (e.target as HTMLDivElement).textContent;
@@ -158,13 +323,16 @@ export default function PageComponent(): React.ReactElement {
     type,
     content,
     index,
+    noSave,
   }: {
     blockId?: number;
     type: string;
     content: string;
     index: number;
+    noSave?: boolean;
   }) => {
     console.log('addblock');
+    if (!noSave) setBlockTask((prev) => [...prev, { blockId: pageInfo.nextId, task: 'create' }]);
     setPageInfo((prev) => ({
       ...prev,
       blocks: [
@@ -183,11 +351,13 @@ export default function PageComponent(): React.ReactElement {
     type,
     content,
     index,
+    noSave,
   }: {
     blockId: number;
     type: string;
     content: string;
     index: number;
+    noSave?: boolean;
   }) => {
     setPageInfo((prev) => ({
       ...prev,
@@ -195,13 +365,15 @@ export default function PageComponent(): React.ReactElement {
         block.blockId === blockId ? { ...block, type, content, ref: true } : block,
       ),
     }));
-    setFocusBlockId(blockId);
+    if (!noSave) setBlockTask((prev) => [...prev, { blockId, task: 'edit' }]);
+    // setFocusBlockId(blockId);
     storePageTrigger({ isDelay: true });
   };
 
-  const deleteBlock = ({ block }: { block: BlockInfo }) => {
+  const deleteBlock = ({ block, noSave }: { block: BlockInfo; noSave?: boolean }) => {
     console.log('🚀 ~ file: PageComponent.tsx:88 ~ PageComponent ~ deleteBlock', block);
     setEditedBlock({ block, type: 'delete' });
+    if (!noSave) setBlockTask((prev) => [...prev, { blockId: block.blockId, task: 'delete' }]);
     storePageTrigger({ isDelay: true });
   };
 
@@ -209,17 +381,23 @@ export default function PageComponent(): React.ReactElement {
   useEffect(() => {
     console.log('🚀 ~ file: PageComponent.tsx:94 ~ PageComponent ~ editedBlock', editedBlock);
     if (!editedBlock || editedBlock.block === undefined) return;
+    const targetBlock = pageInfo.blocks.find(
+      (block) => block.blockId === Number(editedBlock.block.blockId),
+    );
+    if (targetBlock === undefined) return;
     if (editedBlock.type === 'delete') {
       editedBlock !== undefined &&
         setPageInfo((prev) => ({
           ...prev,
           blocks: [
-            ...prev.blocks.slice(0, editedBlock.block.index - 1),
-            ...prev.blocks.slice(editedBlock.block.index).map(updateIndex(-1)),
+            ...prev.blocks.slice(0, targetBlock.index - 1),
+            ...prev.blocks.slice(targetBlock.index).map(updateIndex(-1)),
           ],
         }));
       editedBlock.block.index !== 1 &&
-        setFocusBlockId(pageInfo.blocks[editedBlock.block.index - 2].blockId ?? null);
+        setFocusBlockId(
+          pageInfo.blocks.find((block) => block.index === targetBlock.index - 1)?.blockId ?? null,
+        );
     } else {
       const { blockId, content, index, type, focus } = editedBlock.block;
       setPageInfo((prev) => ({
@@ -359,7 +537,6 @@ export default function PageComponent(): React.ReactElement {
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    console.log(pageInfo.blocks);
     console.log('res = ', result);
 
     setPageInfo((prev) => {
@@ -367,16 +544,21 @@ export default function PageComponent(): React.ReactElement {
       const [reOrderedBlock] = blocks.splice(result.source.index - 1, 1);
       blocks.splice((result?.destination?.index as number) - 1, 0, reOrderedBlock);
       const arrayedBlocks = blocks.map((e, i) => {
+        setBlockTask((prev) => [...prev, { blockId: e.blockId, task: 'edit' }]);
         return { ...e, index: i + 1 };
       });
       return { ...prev, blocks: arrayedBlocks };
     });
   };
-
   if (pageInfo === null) return <div>로딩중</div>;
   return (
     <>
-      <PageTitle contentEditable onInput={handleOnInput} onKeyDown={handleOnKeyDown}>
+      <PageTitle
+        contentEditable
+        onInput={handleOnInput}
+        onKeyDown={handleOnKeyDown}
+        suppressContentEditableWarning={true}
+      >
         {pageInfo.title}
       </PageTitle>
       <DragDropContext onDragEnd={onDragEnd}>
@@ -403,6 +585,9 @@ export default function PageComponent(): React.ReactElement {
                         index={block.index}
                         type={block.type}
                         provided={provided}
+                        selectedBlocks={selectedBlocks}
+                        allBlocks={pageInfo.blocks}
+                        task={blockTask}
                       />
                     )}
                   </Draggable>
