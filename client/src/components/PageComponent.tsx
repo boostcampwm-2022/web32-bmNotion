@@ -75,7 +75,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   const { pageid } = useParams();
 
   useEffect(() => {
-    pageInfo.blocks.forEach((e) => console.log(e.blockId));
+    // pageInfo.blocks.forEach((e) => console.log(e.blockId));
     setSelectedBlocks(
       pageInfo.blocks.filter((e) => selectedBlockId.includes(e.blockId.toString())),
     );
@@ -132,7 +132,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         return { blockId: Number(blockId), task };
       }
       const block = blocks.find((block) => block.blockId === Number(blockId));
-      if (block === undefined) return;
+      if (block === undefined) return { blockId: Number(blockId), task: 'delete' };
       return {
         blockId: Number(blockId),
         task,
@@ -144,13 +144,14 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   };
 
   const storePage = () => {
-    console.log('페이지 저장');
+    // console.log('페이지 저장');
     isUploading = true;
     const blockTaskTemp = blockTask.slice(0);
     blockTask.splice(0);
     timeoutInfo.isStoreWaited = false;
     const filteredTasks = filterTask(blockTaskTemp);
     const tasks = taskRequest(filteredTasks, pageInfo.blocks);
+    // console.log('gogo',blockTaskTemp, filteredTasks, tasks);
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
@@ -160,7 +161,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       tasks,
     };
     const onSuccess = (res: AxiosResponse) => {
-      console.log('성공');
+      // console.log('성공');
       isUploading = false;
     };
     const onFail = (res: AxiosResponse) => {
@@ -214,7 +215,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     });
     const onServerConnect = (e: Event) => {
       console.log('sse connection');
-      console.log(e);
+      // console.log(e);
     };
     const onServerMsg = (e: MessageEvent) => {
       console.log('sse msg');
@@ -223,7 +224,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         userId: string;
         title: string;
       };
-      console.log(userId, clientId,userId === clientId)
+      // console.log(userId, clientId,userId === clientId)
       if (userId === clientId) return;
       pageInfo.title = title;
       edits.map((edit: EditInfo) => {
@@ -244,7 +245,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       });
     };
     const onServerError = (e: Event) => {
-      console.log('sse error');
+      // console.log('sse error');
       console.log(e);
     };
     source.addEventListener('open', onServerConnect);
@@ -257,13 +258,14 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       source.removeEventListener('error', onServerError);
       source.close();
     };
-  }, [pageid]);
+  }, [pageid, pageInfo]);
 
   useEffect(() => {
     const checkEdit = () => blockTask.length > 0;
     const checkUploading = () => isUploading;
     const syncPage = () => {
       if (checkEdit() && !checkUploading()) {
+        // console.log('페이지 블록',pageInfo.blocks)
         storePage();
       }
     };
@@ -283,7 +285,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         title: res.data.title,
         nextId: Math.max(...res.data.blocks.map((e: BlockInfo) => e.blockId), 0) + 1,
         pageId: pageid as string,
-        blocks: res.data.blocks,
+        blocks: res.data.blocks.sort((a:BlockInfo,b:BlockInfo)=>a.index-b.index),
       });
     };
     const onFail = (res: AxiosResponse) => {
@@ -335,7 +337,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     index: number;
     noSave?: boolean;
   }) => {
-    console.log('addblock');
+    // console.log('addblock');
     if (!noSave) setBlockTask((prev) => [...prev, { blockId: pageInfo.nextId, task: 'create' }]);
     setPageInfo((prev) => ({
       ...prev,
@@ -363,45 +365,62 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     index: number;
     noSave?: boolean;
   }) => {
-    setPageInfo((prev) => ({
+    setPageInfo((prev) => {
+      return {
       ...prev,
       blocks: prev.blocks.map((block) =>
-        block.blockId === blockId ? { ...block, type, content, ref: true } : block,
-      ),
-    }));
+        block.blockId === blockId ? { ...block, type, content, index, ref: true } : block,
+      ).sort((a,b)=>a.index-b.index),
+    }});
     if (!noSave) setBlockTask((prev) => [...prev, { blockId, task: 'edit' }]);
     setFocusBlockId(blockId);
     storePageTrigger({ isDelay: true });
   };
 
-  const deleteBlock = ({ block, noSave }: { block: BlockInfo; noSave?: boolean }) => {
-    console.log('🚀 ~ file: PageComponent.tsx:88 ~ PageComponent ~ deleteBlock', block);
-    setEditedBlock({ block, type: 'delete' });
-    if (!noSave) setBlockTask((prev) => [...prev, { blockId: block.blockId, task: 'delete' }]);
+  const deleteBlock = ({ block:targetBlockInfo, noSave }: { block: BlockInfo; noSave?: boolean }) => {
+    // console.log('delete ', targetBlockInfo.blockId);
+    setPageInfo((prev) => {
+      const targetBlock = prev.blocks.find(
+        (block) => block.blockId === Number(targetBlockInfo.blockId)
+      );
+      if (targetBlock === undefined) return prev;
+      const targetIndex = targetBlock.index;
+      return {
+        ...prev,
+        blocks: [
+          ...prev.blocks.slice(0, targetIndex-1),
+          ...prev.blocks.slice(targetIndex).map(updateIndex(-1)),
+        ],
+      } as PageInfo
+    });
+    if (!noSave) setBlockTask((prev) => [...prev, { blockId: targetBlockInfo.blockId, task: 'delete' }]);
     storePageTrigger({ isDelay: true });
   };
 
   /* editedBlock */
   useEffect(() => {
-    console.log('🚀 ~ file: PageComponent.tsx:94 ~ PageComponent ~ editedBlock', editedBlock);
+    // console.log('🚀 ~ file: PageComponent.tsx:94 ~ PageComponent ~ editedBlock', editedBlock);
     if (!editedBlock || editedBlock.block === undefined) return;
-    const targetBlock = pageInfo.blocks.find(
-      (block) => block.blockId === Number(editedBlock.block.blockId),
-    );
-    if (targetBlock === undefined) return;
     if (editedBlock.type === 'delete') {
       editedBlock !== undefined &&
-        setPageInfo((prev) => ({
-          ...prev,
-          blocks: [
-            ...prev.blocks.slice(0, targetBlock.index - 1),
-            ...prev.blocks.slice(targetBlock.index).map(updateIndex(-1)),
-          ],
-        }));
-      editedBlock.block.index !== 1 &&
-        setFocusBlockId(
-          pageInfo.blocks.find((block) => block.index === targetBlock.index - 1)?.blockId ?? null,
-        );
+        setPageInfo((prev) => {
+          const targetBlock = prev.blocks.find(
+            (block) => block.blockId === Number(editedBlock.block.blockId)
+          );
+          if (targetBlock === undefined) return prev;
+          const targetIndex = targetBlock.index;
+          (targetIndex-1) !== 0 &&
+          setFocusBlockId(
+            pageInfo.blocks.find((block) => block.index === (targetIndex-1))?.blockId ?? null,
+          );
+          return {
+            ...prev,
+            blocks: [
+              ...prev.blocks.slice(0, targetIndex-1),
+              ...prev.blocks.slice(targetIndex).map(updateIndex(-1)),
+            ],
+          } as PageInfo
+        });
     } else {
       const { blockId, content, index, type, focus } = editedBlock.block;
       setPageInfo((prev) => ({
@@ -541,7 +560,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    console.log('res = ', result);
+    // console.log('res = ', result);
 
     setPageInfo((prev) => {
       const blocks = [...prev.blocks];
