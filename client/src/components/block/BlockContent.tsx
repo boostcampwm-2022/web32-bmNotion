@@ -133,8 +133,7 @@ export default function BlockContent({
         console.log(preText, postText);
         elem.textContent = preText;
         block.content = preText;
-        handleSetCaretPositionById({targetBlockId: page, caretOffset: 0});
-        console.log("@@@@@@@@@@@@@@@@@", index);
+        handleSetCaretPositionById({targetBlockId: pageInfo.nextId, caretOffset: 0});
         newBlock({
           blockId,
           type: decisionNewBlockType(type),
@@ -161,6 +160,7 @@ export default function BlockContent({
       elem.textContent = postText;
       console.log(`toType => ${toType}, content: ${postText}`);
       changeBlock({ blockId, type: toType, content: postText, index });
+      handleSetCaretPositionById({targetBlockId: blockId, caretOffset: 0});
     }
     // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
@@ -179,6 +179,7 @@ export default function BlockContent({
       console.log('블록 TEXT로 변경');
       const toType = 'TEXT';
       changeBlock({ blockId, type: toType, content: elem.textContent, index });
+      handleSetCaretPositionById({targetBlockId: blockId, caretOffset: 0});
     } else {
       if (index === 1) {
         return;
@@ -194,6 +195,7 @@ export default function BlockContent({
       console.log('블록 삭제 트리거');
       changeBlock({ blockId : prevBlock?.blockId, type: prevBlock?.type, content: text, index:prevBlock?.index });
       deleteBlock({ block });
+      handleSetCaretPositionById({targetBlockId: prevBlock?.blockId, caretOffset: prevBlock?.content.length});
     }
   };
 

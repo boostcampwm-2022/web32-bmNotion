@@ -9,6 +9,13 @@ interface BlockInfo {
   type: string;
   focus?: boolean;
 }
+interface PageInfo {
+  title: string;
+  nextId: number;
+  pageId: string;
+  blocks: BlockInfo[];
+}
+
 
 interface StyledBlockContentProps {
   block: BlockInfo;
@@ -27,6 +34,7 @@ interface StyledBlockContentProps {
   task: any;
   handleSetCaretPositionById:Function;
   handleSetCaretPositionByIndex:Function;
+  pageInfo: PageInfo;
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
@@ -44,6 +52,7 @@ export default function StyledBlockContent({
   handleSetCaretPositionByIndex,
   storePageTrigger,
   task,
+  pageInfo,
 }: StyledBlockContentProps): ReactElement {
   const StyleBox =
     {
@@ -72,6 +81,7 @@ export default function StyledBlockContent({
           allBlocks={allBlocks}
           handleSetCaretPositionById={handleSetCaretPositionById}
           handleSetCaretPositionByIndex={handleSetCaretPositionByIndex}
+          pageInfo={pageInfo}
         />
       </StyleBox>
     );
