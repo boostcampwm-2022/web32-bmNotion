@@ -13,6 +13,12 @@ interface BlockInfo {
   type: string;
   focus?: boolean;
 }
+interface PageInfo {
+  title: string;
+  nextId: number;
+  pageId: string;
+  blocks: BlockInfo[];
+}
 
 interface BlockContentProps {
   block: BlockInfo;
@@ -29,6 +35,9 @@ interface BlockContentProps {
   selectedBlocks: BlockInfo[];
   allBlocks: BlockInfo[];
   task: any;
+  handleSetCaretPositionById:Function;
+  handleSetCaretPositionByIndex:Function;
+  pageInfo: PageInfo;
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
@@ -89,6 +98,9 @@ export default function BlockContent({
   selectedBlocks,
   allBlocks,
   storePageTrigger,
+  pageInfo,
+  handleSetCaretPositionById,
+  handleSetCaretPositionByIndex,
   task,
 }: BlockContentProps): ReactElement {
   const { blockId, content, index } = block;
@@ -121,6 +133,8 @@ export default function BlockContent({
         console.log(preText, postText);
         elem.textContent = preText;
         block.content = preText;
+        handleSetCaretPositionById({targetBlockId: page, caretOffset: 0});
+        console.log("@@@@@@@@@@@@@@@@@", index);
         newBlock({
           blockId,
           type: decisionNewBlockType(type),
@@ -178,18 +192,8 @@ export default function BlockContent({
       const text = (prevDomBlock.textContent as string) + elem.textContent;
       prevDomBlock.textContent = text;
       console.log('블록 삭제 트리거');
-      // changeBlock({ blockId : prevBlock?.blockId, type: prevBlock?.type, content: text, index:prevBlock?.index });
+      changeBlock({ blockId : prevBlock?.blockId, type: prevBlock?.type, content: text, index:prevBlock?.index });
       deleteBlock({ block });
-      const range = document.createRange();
-      const select = window.getSelection();
-      if (prevDomBlock.childNodes.length === 0) {
-        return;
-      }
-      range.setStart(prevDomBlock.childNodes[0], prevBlock?.content.length as number);
-      range.collapse(true);
-
-      select?.removeAllRanges();
-      select?.addRange(range);
     }
   };
 

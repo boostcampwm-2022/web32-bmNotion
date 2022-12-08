@@ -25,6 +25,8 @@ interface StyledBlockContentProps {
   selectedBlocks: BlockInfo[];
   allBlocks: BlockInfo[];
   task: any;
+  handleSetCaretPositionById:Function;
+  handleSetCaretPositionByIndex:Function;
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
@@ -38,6 +40,8 @@ export default function StyledBlockContent({
   moveBlock,
   selectedBlocks,
   allBlocks,
+  handleSetCaretPositionById,
+  handleSetCaretPositionByIndex,
   storePageTrigger,
   task,
 }: StyledBlockContentProps): ReactElement {
@@ -66,6 +70,8 @@ export default function StyledBlockContent({
           selectedBlocks={selectedBlocks}
           task={task}
           allBlocks={allBlocks}
+          handleSetCaretPositionById={handleSetCaretPositionById}
+          handleSetCaretPositionByIndex={handleSetCaretPositionByIndex}
         />
       </StyleBox>
     );
