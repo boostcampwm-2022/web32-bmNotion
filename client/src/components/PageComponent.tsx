@@ -79,16 +79,9 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     caretPosition.caretOffset = caretOffset;
   }
   const handleSetCaretPositionByIndex = ({targetBlockIndex, caretOffset}:{targetBlockIndex:number, caretOffset:number}) => {
-    console.log(caretPosition);
-    if(caretPosition === null){
-      console.log("caretPosition is undefined")
-      return;}
-    console.log("targetBlockIndex", targetBlockIndex);
+    if(caretPosition === null) return;
     const targetBlock = pageInfo.blocks.find((e)=>e.index === targetBlockIndex);
-    if(targetBlock === undefined) {
-      console.log("targetblock is undefined")
-      return;}
-    // setCaretPosition({targetBlockId: targetBlock.blockId, caretOffset: caretOffset});
+    if(targetBlock === undefined) return;
     caretPosition.targetBlockId = targetBlock.blockId;
     caretPosition.caretOffset = caretOffset;
   }
@@ -99,7 +92,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   const { pageid } = useParams();
 
   useEffect(() => {
-    pageInfo.blocks.forEach((e) => console.log(e.blockId));
     setSelectedBlocks(
       pageInfo.blocks.filter((e) => selectedBlockId.includes(e.blockId.toString())),
     );
@@ -289,10 +281,11 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     }
     else {
       const target = [...blocks].find(
-        (el) => el.getAttribute('data-index') === blockId.toString(),
+        (el) => el.getAttribute('data-blockid') === blockId.toString(),
       ) as HTMLElement;
       const range = document.createRange();
       const select = window.getSelection();
+      if (!target) return;
       if (target.childNodes.length === 0) {
         range.setStart(target, offset);
         range.collapse(true);
@@ -301,7 +294,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         select?.addRange(range);
         return;
       }
-      console.log("target : ", target.childNodes);
       range.setStart(target.childNodes[0], offset);
       range.collapse(true);
   
@@ -310,12 +302,10 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     }
   }
   useEffect(()=>{
-    console.log("리렌더", pageInfo.blocks);
     if(pageInfo.blocks.length===0) {
       return;
     }
     if(caretPosition === null) return ;
-    console.log("%%%%%", caretPosition);
     moveCaret(caretPosition.targetBlockId, caretPosition.caretOffset);
   },[pageInfo])
 
@@ -477,7 +467,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         nextId: type === 'new' ? prev.nextId + 1 : prev.nextId,
       }));
       // setFocusBlockId(blockId);
-      setCaretPosition({targetBlockId: blockId, caretOffset: 0});
+      // setCaretPosition({targetBlockId: blockId, caretOffset: 0});
     }
   }, [editedBlock]);
 
