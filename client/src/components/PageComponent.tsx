@@ -344,6 +344,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     }));
     setFocusBlockId(pageInfo.nextId);
     storePageTrigger({ isDelay: true });
+    return pageInfo.nextId;
   };
 
   const changeBlock = ({
@@ -368,6 +369,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     if (!noSave) setBlockTask((prev) => [...prev, { blockId, task: 'edit' }]);
     // setFocusBlockId(blockId);
     storePageTrigger({ isDelay: true });
+    return blockId;
   };
 
   const deleteBlock = ({ block, noSave }: { block: BlockInfo; noSave?: boolean }) => {

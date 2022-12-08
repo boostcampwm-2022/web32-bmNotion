@@ -5,7 +5,7 @@ import BlockModalContent from '@/components/modal/BlockModalContent';
 import BlockOptionModalContent from '@/components/modal/BlockOptionModalContent';
 import { render } from 'react-dom';
 import DimdLayer from '@/components/modal/DimdLayer';
-import axios from 'axios';
+import { AxiosResponse } from 'axios';
 import { axiosPostRequest } from '@/utils/axios.request';
 
 interface BlockInfo {
@@ -240,43 +240,53 @@ export default function BlockContent({
     }
   };
 
-  const handleOnPaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
-    const clipboardData = event.clipboardData;
-    console.log(clipboardData);
-    // Check if the clipboard data contains any files
+  const handleOnPaste = async (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const clipboardData = e.clipboardData;
+
+    console.log('🚀 ~ file: Test.tsx:7 ~ handleOnPaste ~ clipboardData', clipboardData);
+
     if (clipboardData && clipboardData.files.length > 0) {
-      console.log(clipboardData)
-      console.log(clipboardData.items)
-      console.log(Array.from(clipboardData.items).find(item => item.kind === 'file'))
-      console.log(Array.from(clipboardData.items).find(item => item.kind === 'file')?.getAsFile())
-      console.log(clipboardData.files)
-      // debugger;
-      // Get the first file from the clipboard
+      const getOnSuccess =
+        (blockId: number, index: number) => (response: AxiosResponse<any, any>) => {
+          response?.data?.url &&
+            changeBlock({ blockId, type: 'IMG', content: response.data.url, index });
+        };
+      const getOnFail = (blockId: number, index: number) => (err: AxiosResponse<any, any>) => {
+        const failImageUrl = 'https://via.placeholder.com/150.png?text=Fail+to+load';
+        console.error(err);
+        changeBlock({ blockId, type: 'IMG', content: failImageUrl, index });
+      };
+      const fileName = '샘플';
+      // const apiUrl = `/api/block/image?fileName=${fileName}`;
+      const apiUrl = `/api/block/image`;
+      const headers = { 'Content-Type': 'application/octet-stream' };
       const file = clipboardData.files[0];
-      console.log(file);
-      // console.log(clipboardData.items[0].getAsFile())
-      // lastModified : 1670308967640
-      // lastModifiedDate : Tue Dec 06 2022 15:42:47 GMT+0900 (한국 표준시) {}
-      // name : "image.png"
-      // size : 14759
-      // type : "image/png"
-      
-      if (!/image/.test(file.type)) return;
-      
-      
-      // debugger;
+      if (/image/.test(file.type)) {
+        e.preventDefault();
 
-      axiosPostRequest(
-        '/api/block/image',
-        (response) => { const imageUrl = response.data; console.log(imageUrl)},
-        (err) => { console.error(err); },
-        file, //body
-        { 'Content-Type': 'application/octet-stream' }, // headers
-      );
+        console.log(
+          '🚀 ~ file: BlockContent.tsx:218 ~ handleOnPaste ~ file.text',
+          (await file.text()).length,
+        );
+        console.log(file.size, file.type, file.name);
+
+        let newImgBlockId: number;
+        let newImgBlockIndex: number;
+        if (type === 'TEXT' && content === '') {
+          /* 비어있는 Text 블록 => 현재 블록 체인지 */
+          newImgBlockId = changeBlock({ blockId, type: 'IMG', content: '', index: index });
+          newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
+          newImgBlockIndex = index + 1;
+        } else {
+          /* 그외 블록 => 비어있는 Text 블록 => 현재 블록 체인지 */
+          newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
+          newImgBlockId = newBlock({ blockId, type: 'IMG', content: '', index: index + 2 });
+          newImgBlockIndex = index + 2;
+        }
+        axiosPostRequest(apiUrl, getOnSuccess(newImgBlockId, newImgBlockIndex), getOnFail(newImgBlockId, newImgBlockIndex), file, headers);
+      }
     }
-  }
-
-  const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : ''
+  };
   return (
     <BlockContainer
       ref={provided.innerRef}
@@ -304,7 +314,14 @@ export default function BlockContent({
           e.stopPropagation();
         }}
       >
-        {content || ''}
+        {block.type === 'IMG' ? (
+          <img
+            src={block.content || ''}
+            onError={(e: any) => (e.target.src = '/assets/icons/camera.png')}
+          ></img>
+        ) : (
+          content || ''
+        )}
       </BlockContentBox>
       {blockPlusModalOpen && (
         <>
@@ -424,3 +441,12 @@ const BlockContentBox = styled.div`
   white-space: pre-wrap;
   word-break: break-word;
 `;
+
+const BeforeContentBox = styled.div<{ beforeContent: string }>`
+  display: flex;
+  align-content: center;
+  align-items: center;
+  &::before {
+    content: "${(props) => props.beforeContent}";
+  }
+`
