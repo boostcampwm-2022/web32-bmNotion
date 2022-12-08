@@ -112,10 +112,18 @@ export default function BlockContent({
       e.preventDefault();
       if (!e.nativeEvent.isComposing) {
         /* 한글 입력시 isComposing이 false일때만 실행 */
-        newBlock({ blockId, type: decisionNewBlockType(type), content: '', index: index + 1 });
+        const elem = e.target as HTMLElement;
+        const totalContent = elem.textContent || '';
+        const offset = (window.getSelection() as Selection).focusOffset;
+        const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
+        console.log(preText, postText);
+        elem.textContent = preText;
+        block.content = preText;
+        newBlock({ blockId, type: decisionNewBlockType(type), content: postText, index: index + 1 });
       }
     }
   };
+  
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     /* 현재 카렛 위치 기준으로 text 분리 */
     const elem = e.target as HTMLElement;
