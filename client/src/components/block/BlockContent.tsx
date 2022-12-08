@@ -3,7 +3,6 @@ import styled, { keyframes } from 'styled-components';
 import Modal from '@/components/modal/Modal';
 import BlockModalContent from '@/components/modal/BlockModalContent';
 import BlockOptionModalContent from '@/components/modal/BlockOptionModalContent';
-import { render } from 'react-dom';
 import DimdLayer from '@/components/modal/DimdLayer';
 import { AxiosResponse } from 'axios';
 import { axiosPostRequest } from '@/utils/axios.request';
@@ -243,8 +242,6 @@ export default function BlockContent({
   const handleOnPaste = async (e: React.ClipboardEvent<HTMLDivElement>) => {
     const clipboardData = e.clipboardData;
 
-    console.log('🚀 ~ file: Test.tsx:7 ~ handleOnPaste ~ clipboardData', clipboardData);
-
     if (clipboardData && clipboardData.files.length > 0) {
       const getOnSuccess =
         (blockId: number, index: number) => (response: AxiosResponse<any, any>) => {
@@ -256,19 +253,11 @@ export default function BlockContent({
         console.error(err);
         changeBlock({ blockId, type: 'IMG', content: failImageUrl, index });
       };
-      const fileName = '샘플';
-      // const apiUrl = `/api/block/image?fileName=${fileName}`;
       const apiUrl = `/api/block/image`;
       const headers = { 'Content-Type': 'application/octet-stream' };
       const file = clipboardData.files[0];
       if (/image/.test(file.type)) {
         e.preventDefault();
-
-        console.log(
-          '🚀 ~ file: BlockContent.tsx:218 ~ handleOnPaste ~ file.text',
-          (await file.text()).length,
-        );
-        console.log(file.size, file.type, file.name);
 
         let newImgBlockId: number;
         let newImgBlockIndex: number;
@@ -283,10 +272,13 @@ export default function BlockContent({
           newImgBlockId = newBlock({ blockId, type: 'IMG', content: '', index: index + 2 });
           newImgBlockIndex = index + 2;
         }
-        axiosPostRequest(apiUrl, getOnSuccess(newImgBlockId, newImgBlockIndex), getOnFail(newImgBlockId, newImgBlockIndex), file, headers);
+        axiosPostRequest(`${apiUrl}/${file.name}`, getOnSuccess(newImgBlockId, newImgBlockIndex), getOnFail(newImgBlockId, newImgBlockIndex), file, headers);
       }
     }
   };
+
+  const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : '';
+
   return (
     <BlockContainer
       ref={provided.innerRef}
