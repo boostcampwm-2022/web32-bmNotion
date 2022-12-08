@@ -5,6 +5,7 @@ import Login from '@/pages/Login';
 import MainPage from '@/pages/MainPage';
 import GlobalStyle from '@/styles/GlobalStyle';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Test from './pages/Test';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
       <Provider>
         <BrowserRouter>
           <Routes>
+            <Route path="/test" element={<Test />}></Route>
             <Route path="/" element={<Login />}></Route>
             <Route path="/signin" element={<Login />}></Route>
             <Route path="/register" element={<Register />}></Route>

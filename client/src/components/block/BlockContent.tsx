@@ -5,6 +5,8 @@ import BlockModalContent from '@/components/modal/BlockModalContent';
 import BlockOptionModalContent from '@/components/modal/BlockOptionModalContent';
 import { render } from 'react-dom';
 import DimdLayer from '@/components/modal/DimdLayer';
+import { AxiosResponse } from 'axios';
+import { axiosPostRequest } from '@/utils/axios.request';
 
 interface BlockInfo {
   blockId: number;
@@ -27,6 +29,7 @@ interface BlockContentProps {
   moveBlock: Function;
   deleteBlock: Function;
   selectedBlocks: BlockInfo[];
+  allBlocks: BlockInfo[];
   task: any;
 }
 
@@ -85,6 +88,7 @@ export default function BlockContent({
   provided,
   moveBlock,
   selectedBlocks,
+  allBlocks,
   task,
 }: BlockContentProps): ReactElement {
   const { blockId, content, index } = block;
@@ -110,10 +114,23 @@ export default function BlockContent({
       e.preventDefault();
       if (!e.nativeEvent.isComposing) {
         /* 한글 입력시 isComposing이 false일때만 실행 */
-        newBlock({ blockId, type: decisionNewBlockType(type), content: '', index: index + 1 });
+        const elem = e.target as HTMLElement;
+        const totalContent = elem.textContent || '';
+        const offset = (window.getSelection() as Selection).focusOffset;
+        const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
+        console.log(preText, postText);
+        elem.textContent = preText;
+        block.content = preText;
+        newBlock({
+          blockId,
+          type: decisionNewBlockType(type),
+          content: postText,
+          index: index + 1,
+        });
       }
     }
   };
+
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     /* 현재 카렛 위치 기준으로 text 분리 */
     const elem = e.target as HTMLElement;
@@ -148,10 +165,31 @@ export default function BlockContent({
       // console.log('블록 TEXT로 변경');
       const toType = 'TEXT';
       changeBlock({ blockId, type: toType, content: elem.textContent, index });
-    } else if (elem.textContent === '') {
+    } else {
+      if (index === 1) {
+        return;
+      }
+      const blocks = document.querySelectorAll('div.content');
+      const prevDomBlock = [...blocks].find(
+        (el) => el.getAttribute('data-index') === (index - 1).toString(),
+      ) as HTMLElement;
+      const prevBlock = allBlocks.find((e) => e.index === index - 1);
       e.preventDefault();
-      // console.log('블록 삭제 트리거');
+      const text = (prevDomBlock.textContent as string) + elem.textContent;
+      prevDomBlock.textContent = text;
+      console.log('블록 삭제 트리거');
+      // changeBlock({ blockId : prevBlock?.blockId, type: prevBlock?.type, content: text, index:prevBlock?.index });
       deleteBlock({ block });
+      const range = document.createRange();
+      const select = window.getSelection();
+      if (prevDomBlock.childNodes.length === 0) {
+        return;
+      }
+      range.setStart(prevDomBlock.childNodes[0], prevBlock?.content.length as number);
+      range.collapse(true);
+
+      select?.removeAllRanges();
+      select?.addRange(range);
     }
   };
 
@@ -199,6 +237,53 @@ export default function BlockContent({
     }
   };
 
+  const handleOnPaste = async (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const clipboardData = e.clipboardData;
+
+    console.log('🚀 ~ file: Test.tsx:7 ~ handleOnPaste ~ clipboardData', clipboardData);
+
+    if (clipboardData && clipboardData.files.length > 0) {
+      const getOnSuccess =
+        (blockId: number, index: number) => (response: AxiosResponse<any, any>) => {
+          response?.data?.url &&
+            changeBlock({ blockId, type: 'IMG', content: response.data.url, index });
+        };
+      const getOnFail = (blockId: number, index: number) => (err: AxiosResponse<any, any>) => {
+        const failImageUrl = 'https://via.placeholder.com/150.png?text=Fail+to+load';
+        console.error(err);
+        changeBlock({ blockId, type: 'IMG', content: failImageUrl, index });
+      };
+      const fileName = '샘플';
+      // const apiUrl = `/api/block/image?fileName=${fileName}`;
+      const apiUrl = `/api/block/image`;
+      const headers = { 'Content-Type': 'application/octet-stream' };
+      const file = clipboardData.files[0];
+      if (/image/.test(file.type)) {
+        e.preventDefault();
+
+        console.log(
+          '🚀 ~ file: BlockContent.tsx:218 ~ handleOnPaste ~ file.text',
+          (await file.text()).length,
+        );
+        console.log(file.size, file.type, file.name);
+
+        let newImgBlockId: number;
+        let newImgBlockIndex: number;
+        if (type === 'TEXT' && content === '') {
+          /* 비어있는 Text 블록 => 현재 블록 체인지 */
+          newImgBlockId = changeBlock({ blockId, type: 'IMG', content: '', index: index });
+          newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
+          newImgBlockIndex = index + 1;
+        } else {
+          /* 그외 블록 => 비어있는 Text 블록 => 현재 블록 체인지 */
+          newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
+          newImgBlockId = newBlock({ blockId, type: 'IMG', content: '', index: index + 2 });
+          newImgBlockIndex = index + 2;
+        }
+        axiosPostRequest(apiUrl, getOnSuccess(newImgBlockId, newImgBlockIndex), getOnFail(newImgBlockId, newImgBlockIndex), file, headers);
+      }
+    }
+  };
   return (
     <BlockContainer
       ref={provided.innerRef}
@@ -209,6 +294,7 @@ export default function BlockContent({
         <BlockPlusButton onClick={handleBlockPlusButtonModal} />
         <BlockOptionButton {...provided.dragHandleProps} onClick={handleBlockOptionButtonModal} />
       </BlockButtonBox>
+      {beforeContent !== '' && <BeforeContentBox beforeContent={beforeContent} />}
       <BlockContentBox
         // type => css
         contentEditable
@@ -216,14 +302,23 @@ export default function BlockContent({
         className="content"
         onKeyDown={handleOnKeyDown}
         onInput={handleOnInput}
+        onPaste={handleOnPaste}
         data-blockid={blockId}
         data-index={index}
+        data-tab={1}
         ref={refBlock}
         onMouseDown={(e) => {
           e.stopPropagation();
         }}
       >
-        {content || ''}
+        {block.type === 'IMG' ? (
+          <img
+            src={block.content || ''}
+            onError={(e: any) => (e.target.src = '/assets/icons/camera.png')}
+          ></img>
+        ) : (
+          content || ''
+        )}
       </BlockContentBox>
       {blockPlusModalOpen && (
         <>
@@ -320,7 +415,8 @@ const BlockContainer = styled.div`
   }
 `;
 
-const BlockContentBox = styled.div.attrs({})`
+// const BlockContentBox = styled.div<{ 'data-before-content': string }>`
+const BlockContentBox = styled.div`
   height: auto;
   flex: 1;
   margin: 1px 2px;
@@ -337,16 +433,17 @@ const BlockContentBox = styled.div.attrs({})`
     outline: none;
   }
 
-  &:empty::before {
-    content: ${(props) => props.placeholder || ''};
-    margin: 0 10px;
-    color: #9b9a97;
-  }
-
-  &:empty:focus::before {
-    content: '';
-  }
-
+  
+  
   white-space: pre-wrap;
   word-break: break-word;
 `;
+
+const BeforeContentBox = styled.div<{ beforeContent: string }>`
+  display: flex;
+  align-content: center;
+  align-items: center;
+  &::before {
+    content: "${(props) => props.beforeContent}";
+  }
+`

@@ -327,6 +327,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         nextId: nextId + 1,
       }
     });
+    return nextId;
   };
 
   const changeBlock = ({
@@ -350,6 +351,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       ).sort((a,b)=>a.index-b.index),
     }});
     if (!noSave) setBlockTask((prev) => [...prev, { blockId, task: 'edit' }]);
+    return blockId;
   };
 
   const deleteBlock = ({ block:targetBlockInfo, noSave }: { block: BlockInfo; noSave?: boolean }) => {
@@ -582,6 +584,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
                         type={block.type}
                         provided={provided}
                         selectedBlocks={selectedBlocks}
+                        allBlocks={pageInfo.blocks}
                         task={blockTask}
                       />
                     )}
