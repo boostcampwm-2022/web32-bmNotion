@@ -7,6 +7,8 @@ import { API } from '@/config/config';
 import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
 import jwt from 'jsonwebtoken';
 import { AxiosResponse } from 'axios';
+import { userIdAtom } from '@/store/userAtom';
+import { useAtom } from 'jotai';
 
 interface PageComponentProps {
   selectedBlockId: string[];
@@ -66,6 +68,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
   const [selectedBlocks, setSelectedBlocks] = useState<BlockInfo[]>([]);
   const [blockTask, setBlockTask] = useState<BlockTask[]>([]);
+  const [clientId] = useAtom(userIdAtom);
   // const [isUploading, setIsUploading] = useState(false);
   let isUploading = false;
 
@@ -220,7 +223,8 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         userId: string;
         title: string;
       };
-      if (userId === localStorage.getItem('id')) return;
+      console.log(userId, clientId,userId === clientId)
+      if (userId === clientId) return;
       pageInfo.title = title;
       edits.map((edit: EditInfo) => {
         const { task, blockId, type, content, index } = edit;
