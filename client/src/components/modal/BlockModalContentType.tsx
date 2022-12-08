@@ -1,12 +1,20 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
 
+interface BlockInfo {
+  blockId: number;
+  content: string;
+  index: number;
+  type: string;
+  focus?: boolean;
+}
 interface TypeProps {
   image: string;
   title: string;
   contents: string;
   type: string;
   handleType: Function;
+  block: BlockInfo;
 }
 
 export default function BlockModalContentType({
@@ -15,9 +23,10 @@ export default function BlockModalContentType({
   contents,
   type,
   handleType,
+  block,
 }: TypeProps): ReactElement {
   return (
-    <TypeContainer onClick={() => handleType(type)}>
+    <TypeContainer onClick={() => handleType(block, type)}>
       <TypeImage image={image} />
       <TypeTextContainer>
         <TypeTextTitle>{title}</TypeTextTitle>

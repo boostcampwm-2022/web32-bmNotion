@@ -26,6 +26,7 @@ interface BlockContentProps {
   provided: any;
   moveBlock: Function;
   deleteBlock: Function;
+  selectedBlocks: BlockInfo[];
   task: any;
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
@@ -84,6 +85,7 @@ export default function BlockContent({
   type,
   provided,
   moveBlock,
+  selectedBlocks,
   storePageTrigger,
   task,
 }: BlockContentProps): ReactElement {
@@ -171,15 +173,21 @@ export default function BlockContent({
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
     if (!content && type === 'TEXT') {
-      handleType(toType);
+      handleType(block, toType);
     } else {
       newBlock({ blockId, type: toType, content: '', index: index + 1 });
     }
   };
-  const handleType = (toType: string) => {
+
+  const handleType = (block: BlockInfo, toType: string) => {
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
-    changeBlock({ blockId, type: toType, content: block.content, index });
+    changeBlock({
+      blockId: block.blockId,
+      type: toType,
+      content: block.content,
+      index: block.index,
+    });
   };
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
@@ -195,7 +203,11 @@ export default function BlockContent({
   };
 
   return (
-    <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
+    <BlockContainer
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       <BlockButtonBox>
         <BlockPlusButton onClick={handleBlockPlusButtonModal} />
         <BlockOptionButton {...provided.dragHandleProps} onClick={handleBlockOptionButtonModal} />
@@ -203,12 +215,16 @@ export default function BlockContent({
       <BlockContentBox
         // type => css
         contentEditable
+        suppressContentEditableWarning={true}
         className="content"
         onKeyDown={handleOnKeyDown}
         onInput={handleOnInput}
         data-blockid={blockId}
         data-index={index}
         ref={refBlock}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+        }}
       >
         {content || ''}
       </BlockContentBox>
@@ -216,7 +232,7 @@ export default function BlockContent({
         <>
           <DimdLayer onClick={handleBlockPlusButtonModal}></DimdLayer>
           <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-            <BlockModalContent handleType={handlePlus} />
+            <BlockModalContent block={block} handleType={handlePlus} />
           </Modal>
         </>
       )}
@@ -228,6 +244,7 @@ export default function BlockContent({
               deleteBlock={deleteBlock}
               block={block}
               handleType={handleType}
+              selectedBlocks={selectedBlocks}
               handleBlockOptionButtonModal={handleBlockOptionButtonModal}
             />
           </Modal>
@@ -262,6 +279,7 @@ const BlockButtonBox = styled.div`
   height: 24px;
   margin: 3px 0px;
 `;
+
 const BlockPlusButton = styled.button`
   background-image: url('/assets/icons/plusButton.png');
   background-repeat: no-repeat;
@@ -308,9 +326,15 @@ const BlockContainer = styled.div`
 const BlockContentBox = styled.div.attrs({})`
   height: auto;
   flex: 1;
-  background-color: lightgray;
-  margin: 3px 2px;
+  margin: 1px 2px;
+  padding: 3px 2px;
   /* caret-color: red; // 커서 색깔,요하면 원하는 색깔로 바꾸기 */
+  border-radius: 3px;
+  transition: all 0.1s linear;
+
+  &.selected {
+    background-color: rgba(35, 131, 226, 0.15);
+  }
 
   &:focus {
     outline: none;
@@ -328,49 +352,4 @@ const BlockContentBox = styled.div.attrs({})`
 
   white-space: pre-wrap;
   word-break: break-word;
-`;
-
-const TextBlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
-`;
-
-const H1BlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
-  font-weight: 600;
-  font-size: 1.875em;
-  line-height: 1.3;
-`;
-
-const H2BlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
-  font-weight: 600;
-  font-size: 1.5em;
-  line-height: 1.3;
-`;
-
-const H3BlockContentBox = styled.div`
-  max-width: 100%;
-  width: 100%;
-  white-space: pre-wrap;
-  word-break: break-word;
-  caret-color: rgb(55, 53, 47);
-  padding: 3px 2px;
-  font-weight: 600;
-  font-size: 1.25em;
-  line-height: 1.3;
 `;

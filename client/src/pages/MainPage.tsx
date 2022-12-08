@@ -25,6 +25,11 @@ interface SideBarProps {
   sideBarHoverButton: string;
 }
 
+interface MousePositionInfo {
+  positionX: number | null;
+  positionY: number | null;
+}
+
 const threePointButton = '/assets/icons/threePoint.png';
 const hamburgerButton = '/assets/icons/hamburger.png';
 const doubleArrowButton = '/assets/icons/doubleArrow.png';
@@ -33,18 +38,24 @@ const tranParentButton = '/assets/icons/transparent.png';
 const SettingIconSvg = '/assets/icons/gear.svg';
 
 export default function MainPage(): ReactElement {
+  const [mouseStartPosition, setMouseStartPosition] = useState<MousePositionInfo>({
+    positionX: null,
+    positionY: null,
+  });
+  const [mousePosition, setMousePosition] = useState<MousePositionInfo>({
+    positionX: null,
+    positionY: null,
+  });
   const [userNickName] = useAtom(userNickNameAtom);
   const [userId] = useAtom(userIdAtom);
 
-  const [sideBarButton, setSideBarButton] = useState('/assets/icons/hamburger.png');
-  const [sideBarHoverButton, setSideBarHoverButton] = useState('/assets/icons/doubleArrow.png');
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
   const [isReaderMode, setIsReaderMode] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>(undefined);
 
   const [spaceSettingModalOpen, setSpaceSettingModalOpen] = useState(false);
   const [topBarModalOpen, setTopBarModalOpen] = useState(false);
-
+  const [selectedBlockId, setSelectedBlockId] = useState<string[]>([]);
   const moveNextBlock = () => {};
   const sideBarButtonClick = () => {
     setSideBarButtonClicked(!sideBarButtonClicked);
@@ -79,8 +90,65 @@ export default function MainPage(): ReactElement {
     );
   }, [setProfileImageUrl]);
 
+  const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
+  console.log('selectedBlockId ; ', selectedBlockId);
   return (
-    <Wrapper>
+    <Wrapper
+      onMouseUp={(e) => {
+        setMouseStartPosition({ ...mouseStartPosition, positionX: null, positionY: null });
+        setMousePosition({ ...mousePosition, positionX: null, positionY: null });
+        setSelectedBlockId(
+          Array.from(document.querySelectorAll('div.selected')).map(
+            (e) => e.getAttribute('data-blockid') as string,
+          ),
+        );
+      }}
+      onMouseMove={(e) => {
+        if (mouseStartPosition.positionX && mouseStartPosition.positionY) {
+          setMousePosition({ ...mousePosition, positionX: e.clientX, positionY: e.clientY });
+          if (
+            mouseStartPosition.positionX &&
+            mouseStartPosition.positionY &&
+            mousePosition.positionX &&
+            mousePosition.positionY
+          ) {
+            const left = Math.min(mouseStartPosition.positionX, mousePosition.positionX);
+            const top = Math.min(mouseStartPosition.positionY, mousePosition.positionY);
+            const width = Math.max(
+              mouseStartPosition.positionX - mousePosition.positionX,
+              mousePosition.positionX - mouseStartPosition.positionX,
+            );
+            const height = Math.max(
+              mouseStartPosition.positionY - mousePosition.positionY,
+              mousePosition.positionY - mouseStartPosition.positionY,
+            );
+            const right = left + width;
+            const bottom = top + height;
+            blocks.forEach((e, i) => {
+              if (!e.offsetTop) {
+                return;
+              }
+              const boxTop =
+                e.offsetTop +
+                (e.offsetParent as HTMLElement).offsetTop +
+                ((e.offsetParent as HTMLElement).offsetParent as HTMLElement).offsetTop;
+              const boxBottom = boxTop + e.offsetHeight;
+              const boxLeft = e.offsetLeft + (e.offsetParent as HTMLElement).offsetLeft;
+              const boxRight = boxLeft + e.offsetWidth;
+              if (
+                ((top <= boxTop && boxTop <= bottom) ||
+                  (top <= boxBottom && boxBottom <= bottom)) &&
+                ((boxLeft <= left && left <= boxRight) || (boxLeft <= right && right <= boxRight))
+              ) {
+                e.classList.add('selected');
+              } else {
+                e.classList.remove('selected');
+              }
+            });
+          }
+        }
+      }}
+    >
       <SideBar isClicked={sideBarButtonClicked} sideBarHoverButton={reverseDoubleArrowButton}>
         <SideBarHeaderContainer>
           <SideBarHeader>
@@ -144,15 +212,78 @@ export default function MainPage(): ReactElement {
             )}
           </TopBarRight>
         </TopBar>
-        <MainContainerBody>
+        <MainContainerBody
+          onMouseDown={(e) => {
+            setMouseStartPosition({
+              ...mouseStartPosition,
+              positionX: e.clientX,
+              positionY: e.clientY,
+            });
+            blocks.forEach((e) => e.classList.remove('selected'));
+          }}
+        >
           <PageContainer maxWidth={isReaderMode ? '100%' : '900px'}>
-            <PageComponent />
+            <PageComponent selectedBlockId={selectedBlockId} />
           </PageContainer>
         </MainContainerBody>
       </MainContainer>
+      <DragRange
+        startPositionX={mouseStartPosition.positionX}
+        startPositionY={mouseStartPosition.positionY}
+        positionX={mousePosition.positionX}
+        positionY={mousePosition.positionY}
+      />
     </Wrapper>
   );
 }
+
+interface DragRangeProps {
+  startPositionX: number | null;
+  startPositionY: number | null;
+  positionX: number | null;
+  positionY: number | null;
+}
+
+const DragRange = styled.div<DragRangeProps>`
+  background-color: rgba(35, 131, 226, 0.15);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: ${(props) => {
+    if (props.startPositionX && props.positionX) {
+      return Math.min(props.startPositionX, props.positionX).toString() + 'px';
+    }
+    return null;
+  }};
+  top: ${(props) => {
+    if (props.startPositionY && props.positionY) {
+      return Math.min(props.startPositionY, props.positionY).toString() + 'px';
+    }
+    return null;
+  }};
+  width: ${(props) => {
+    if (props.positionX && props.startPositionX) {
+      return (
+        Math.max(
+          props.positionX - props.startPositionX,
+          props.startPositionX - props.positionX,
+        )?.toString() + 'px'
+      );
+    }
+    return 0;
+  }};
+  height: ${(props) => {
+    if (props.positionY && props.startPositionY) {
+      return (
+        Math.max(
+          props.positionY - props.startPositionY,
+          props.startPositionY - props.positionY,
+        )?.toString() + 'px'
+      );
+    }
+    return 0;
+  }};
+`;
 
 const Wrapper = styled.div`
   display: flex;
