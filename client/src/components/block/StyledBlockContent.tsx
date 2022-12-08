@@ -120,5 +120,4 @@ const IMGBlockContentBox = styled.div`
   overflow: hidden;
   cursor: pointer;
   width: 100%;
-  height: 100%;
 `;
