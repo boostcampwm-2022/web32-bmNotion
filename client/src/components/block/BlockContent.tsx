@@ -31,7 +31,6 @@ interface BlockContentProps {
   selectedBlocks: BlockInfo[];
   allBlocks: BlockInfo[];
   task: any;
-  storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
 interface BlockContentBoxProps {
@@ -90,7 +89,6 @@ export default function BlockContent({
   moveBlock,
   selectedBlocks,
   allBlocks,
-  storePageTrigger,
   task,
 }: BlockContentProps): ReactElement {
   const { blockId, content, index } = block;
@@ -136,7 +134,7 @@ export default function BlockContent({
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     /* 현재 카렛 위치 기준으로 text 분리 */
     const elem = e.target as HTMLElement;
-    console.log('텍스트 비교', block.content, ' vs ', elem.textContent);
+    // console.log('텍스트 비교', block.content, ' vs ', elem.textContent);
     const totalContent = elem.textContent || '';
     const offset = (window.getSelection() as Selection).focusOffset;
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
@@ -147,7 +145,7 @@ export default function BlockContent({
       /* toType으로 타입변경 */
       e.preventDefault();
       elem.textContent = postText;
-      console.log(`toType => ${toType}, content: ${postText}`);
+      // console.log(`toType => ${toType}, content: ${postText}`);
       changeBlock({ blockId, type: toType, content: postText, index });
     }
     // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
@@ -164,7 +162,7 @@ export default function BlockContent({
     if ((window.getSelection() as Selection).focusOffset !== 0) return;
     if (type !== 'TEXT') {
       e.preventDefault();
-      console.log('블록 TEXT로 변경');
+      // console.log('블록 TEXT로 변경');
       const toType = 'TEXT';
       changeBlock({ blockId, type: toType, content: elem.textContent, index });
     } else {
@@ -236,7 +234,6 @@ export default function BlockContent({
     if (newContent !== null) {
       block.content = newContent;
       task.push({ blockId: block.blockId, task: 'edit' });
-      storePageTrigger({ isDelay: true });
     }
   };
 

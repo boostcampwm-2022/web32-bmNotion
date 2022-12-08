@@ -114,6 +114,14 @@ const pageCrud = {
       { $set: { title, blocks } },
     );
   },
+  updatePageInfo: async (pageid, userid) => {
+    const now = new Date().toUTCString();
+    await updateOneDocument(
+      dbConfig.COLLECTION_PAGE,
+      { _id: ObjectId(pageid) },
+      { $set: { lasteditedtime: now }, $addToSet: { participants: userid } },
+    );
+  },
   deletePage: async (pageid) => {
     await updateOneDocument(
       dbConfig.COLLECTION_PAGE,
@@ -135,6 +143,7 @@ const editPagePipeline = async (userid, title, pageid, blocks, tasks) => {
   // const isParticipant = checkPageAuthority(page, userid);
   // if (!isParticipant) return createResponse(responseMessage.AUTH_FAIL);
   if (tasks.length > 0) await pageCrud.updateTasks(pageid, tasks, title);
+  await pageCrud.updatePageInfo(pageid, userid);
   // await pageCrud.updatePage(pageid, title, blocks);
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
