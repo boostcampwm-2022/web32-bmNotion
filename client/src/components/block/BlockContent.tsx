@@ -5,6 +5,8 @@ import BlockModalContent from '@/components/modal/BlockModalContent';
 import BlockOptionModalContent from '@/components/modal/BlockOptionModalContent';
 import { render } from 'react-dom';
 import DimdLayer from '@/components/modal/DimdLayer';
+import { AxiosResponse } from 'axios';
+import { axiosPostRequest } from '@/utils/axios.request';
 
 interface BlockInfo {
   blockId: number;
@@ -202,6 +204,54 @@ export default function BlockContent({
     }
   };
 
+  const handleOnPaste = async (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const clipboardData = e.clipboardData;
+
+    console.log('🚀 ~ file: Test.tsx:7 ~ handleOnPaste ~ clipboardData', clipboardData);
+
+    if (clipboardData && clipboardData.files.length > 0) {
+      const getOnSuccess =
+        (blockId: number, index: number) => (response: AxiosResponse<any, any>) => {
+          response?.data?.url &&
+            changeBlock({ blockId, type: 'IMG', content: response.data.url, index });
+        };
+      const getOnFail = (blockId: number, index: number) => (err: AxiosResponse<any, any>) => {
+        const failImageUrl = 'https://via.placeholder.com/150.png?text=Fail+to+load';
+        console.error(err);
+        changeBlock({ blockId, type: 'IMG', content: failImageUrl, index });
+      };
+      const fileName = '샘플';
+      // const apiUrl = `/api/block/image?fileName=${fileName}`;
+      const apiUrl = `/api/block/image`;
+      const headers = { 'Content-Type': 'application/octet-stream' };
+      const file = clipboardData.files[0];
+      if (/image/.test(file.type)) {
+        e.preventDefault();
+
+        console.log(
+          '🚀 ~ file: BlockContent.tsx:218 ~ handleOnPaste ~ file.text',
+          (await file.text()).length,
+        );
+        console.log(file.size, file.type, file.name);
+
+        let newImgBlockId: number;
+        let newImgBlockIndex: number;
+        if (type === 'TEXT' && content === '') {
+          /* 비어있는 Text 블록 => 현재 블록 체인지 */
+          newImgBlockId = changeBlock({ blockId, type: 'IMG', content: '', index: index });
+          newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
+          newImgBlockIndex = index + 1;
+        } else {
+          /* 그외 블록 => 비어있는 Text 블록 => 현재 블록 체인지 */
+          newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
+          newImgBlockId = newBlock({ blockId, type: 'IMG', content: '', index: index + 2 });
+          newImgBlockIndex = index + 2;
+        }
+        axiosPostRequest(apiUrl, getOnSuccess(newImgBlockId, newImgBlockIndex), getOnFail(newImgBlockId, newImgBlockIndex), file, headers);
+      }
+    }
+  };
+
   return (
     <BlockContainer
       ref={provided.innerRef}
@@ -219,6 +269,7 @@ export default function BlockContent({
         className="content"
         onKeyDown={handleOnKeyDown}
         onInput={handleOnInput}
+        onPaste={handleOnPaste}
         data-blockid={blockId}
         data-index={index}
         ref={refBlock}
@@ -226,7 +277,14 @@ export default function BlockContent({
           e.stopPropagation();
         }}
       >
-        {content || ''}
+        {block.type === 'IMG' ? (
+          <img
+            src={block.content || ''}
+            onError={(e: any) => (e.target.src = '/assets/icons/camera.png')}
+          ></img>
+        ) : (
+          content || ''
+        )}
       </BlockContentBox>
       {blockPlusModalOpen && (
         <>

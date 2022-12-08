@@ -45,6 +45,7 @@ export default function StyledBlockContent({
       H2: H2BlockContentBox,
       H3: H3BlockContentBox,
       TEXT: TextBlockContentBox,
+      IMG: IMGBlockContentBox,
     }[type] || TextBlockContentBox;
   const renderTypeBlock = () => {
     return (
@@ -113,4 +114,11 @@ const H3BlockContentBox = styled.div`
   font-size: 1.25em;
   line-height: 1.3;
   margin-top: 16px;
+`;
+
+const IMGBlockContentBox = styled.div`
+  overflow: hidden;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
 `;
