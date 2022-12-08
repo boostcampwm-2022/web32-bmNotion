@@ -5,6 +5,8 @@ import BlockModalContent from '@/components/modal/BlockModalContent';
 import BlockOptionModalContent from '@/components/modal/BlockOptionModalContent';
 import { render } from 'react-dom';
 import DimdLayer from '@/components/modal/DimdLayer';
+import axios from 'axios';
+import { axiosPostRequest } from '@/utils/axios.request';
 
 interface BlockInfo {
   blockId: number;
@@ -238,6 +240,43 @@ export default function BlockContent({
     }
   };
 
+  const handleOnPaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
+    const clipboardData = event.clipboardData;
+    console.log(clipboardData);
+    // Check if the clipboard data contains any files
+    if (clipboardData && clipboardData.files.length > 0) {
+      console.log(clipboardData)
+      console.log(clipboardData.items)
+      console.log(Array.from(clipboardData.items).find(item => item.kind === 'file'))
+      console.log(Array.from(clipboardData.items).find(item => item.kind === 'file')?.getAsFile())
+      console.log(clipboardData.files)
+      // debugger;
+      // Get the first file from the clipboard
+      const file = clipboardData.files[0];
+      console.log(file);
+      // console.log(clipboardData.items[0].getAsFile())
+      // lastModified : 1670308967640
+      // lastModifiedDate : Tue Dec 06 2022 15:42:47 GMT+0900 (한국 표준시) {}
+      // name : "image.png"
+      // size : 14759
+      // type : "image/png"
+      
+      if (!/image/.test(file.type)) return;
+      
+      
+      // debugger;
+
+      axiosPostRequest(
+        '/api/block/image',
+        (response) => { const imageUrl = response.data; console.log(imageUrl)},
+        (err) => { console.error(err); },
+        file, //body
+        { 'Content-Type': 'application/octet-stream' }, // headers
+      );
+    }
+  }
+
+  const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : ''
   return (
     <BlockContainer
       ref={provided.innerRef}
@@ -248,6 +287,7 @@ export default function BlockContent({
         <BlockPlusButton onClick={handleBlockPlusButtonModal} />
         <BlockOptionButton {...provided.dragHandleProps} onClick={handleBlockOptionButtonModal} />
       </BlockButtonBox>
+      {beforeContent !== '' && <BeforeContentBox beforeContent={beforeContent} />}
       <BlockContentBox
         // type => css
         contentEditable
@@ -255,8 +295,10 @@ export default function BlockContent({
         className="content"
         onKeyDown={handleOnKeyDown}
         onInput={handleOnInput}
+        onPaste={handleOnPaste}
         data-blockid={blockId}
         data-index={index}
+        data-tab={1}
         ref={refBlock}
         onMouseDown={(e) => {
           e.stopPropagation();
@@ -359,7 +401,8 @@ const BlockContainer = styled.div`
   }
 `;
 
-const BlockContentBox = styled.div.attrs({})`
+// const BlockContentBox = styled.div<{ 'data-before-content': string }>`
+const BlockContentBox = styled.div`
   height: auto;
   flex: 1;
   margin: 1px 2px;
@@ -376,16 +419,8 @@ const BlockContentBox = styled.div.attrs({})`
     outline: none;
   }
 
-  &:empty::before {
-    content: ${(props) => props.placeholder || ''};
-    margin: 0 10px;
-    color: #9b9a97;
-  }
-
-  &:empty:focus::before {
-    content: '';
-  }
-
+  
+  
   white-space: pre-wrap;
   word-break: break-word;
 `;

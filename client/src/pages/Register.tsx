@@ -177,7 +177,7 @@ export default function Register(): ReactElement {
               <input
                 type="file"
                 style={{ display: 'none' }}
-                accept="image/jpg,impge/png,image/jpeg"
+                // accept="image/jpg,impge/png,image/jpeg"
                 name="profile_img"
                 ref={fileInput}
                 onChange={handleInputImage}
