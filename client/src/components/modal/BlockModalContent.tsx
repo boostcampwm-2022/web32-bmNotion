@@ -2,7 +2,23 @@ import React, { useState, ReactElement, useEffect } from 'react';
 import BlockModalContentType from './BlockModalContentType';
 import styled from 'styled-components';
 
-export default function BlockModalContent({ handleType }: { handleType: Function }): ReactElement {
+interface BlockInfo {
+  blockId: number;
+  content: string;
+  index: number;
+  type: string;
+  focus?: boolean;
+}
+
+interface BlockModalContentProps {
+  handleType: Function;
+  block: BlockInfo;
+}
+
+export default function BlockModalContent({
+  handleType,
+  block,
+}: BlockModalContentProps): ReactElement {
   const contentTypeArr = [
     {
       title: '텍스트',
@@ -41,6 +57,7 @@ export default function BlockModalContent({ handleType }: { handleType: Function
               image={e.image}
               handleType={handleType}
               type={e.type}
+              block={block}
             />
           );
         })}

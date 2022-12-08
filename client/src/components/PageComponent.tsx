@@ -42,9 +42,7 @@ const samplePageInfo: PageInfo = {
 
 const STORE_DELAY_TIME = 30 * 1000; // 30초
 
-export default function PageComponent({
-  selectedBlockId
-}:PageComponentProps): React.ReactElement {
+export default function PageComponent({ selectedBlockId }: PageComponentProps): React.ReactElement {
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     title: '',
     nextId: 0,
@@ -55,9 +53,12 @@ export default function PageComponent({
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
   const [selectedBlocks, setSelectedBlocks] = useState<BlockInfo[]>([]);
   const { pageid } = useParams();
-  useEffect(()=>{
-    setSelectedBlocks(pageInfo.blocks.filter((e)=>selectedBlockId.includes(e.blockId.toString())));
-  },[selectedBlockId])
+  useEffect(() => {
+    pageInfo.blocks.forEach((e) => console.log(e.blockId));
+    setSelectedBlocks(
+      pageInfo.blocks.filter((e) => selectedBlockId.includes(e.blockId.toString())),
+    );
+  }, [selectedBlockId]);
   const storePage = () => {
     console.log('페이지 저장', pageInfo.blocks);
     timeoutInfo.isStoreWaited = false;
@@ -380,11 +381,15 @@ export default function PageComponent({
       return { ...prev, blocks: arrayedBlocks };
     });
   };
-
   if (pageInfo === null) return <div>로딩중</div>;
   return (
     <>
-      <PageTitle contentEditable onInput={handleOnInput} onKeyDown={handleOnKeyDown} suppressContentEditableWarning={true}>
+      <PageTitle
+        contentEditable
+        onInput={handleOnInput}
+        onKeyDown={handleOnKeyDown}
+        suppressContentEditableWarning={true}
+      >
         {pageInfo.title}
       </PageTitle>
       <DragDropContext onDragEnd={onDragEnd}>
@@ -411,6 +416,7 @@ export default function PageComponent({
                         index={block.index}
                         type={block.type}
                         provided={provided}
+                        selectedBlocks={selectedBlocks}
                       />
                     )}
                   </Draggable>

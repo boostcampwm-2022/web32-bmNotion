@@ -26,6 +26,7 @@ interface BlockContentProps {
   provided: any;
   moveBlock: Function;
   deleteBlock: Function;
+  selectedBlocks: BlockInfo[];
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
@@ -83,6 +84,7 @@ export default function BlockContent({
   type,
   provided,
   moveBlock,
+  selectedBlocks,
   storePageTrigger,
 }: BlockContentProps): ReactElement {
   const { blockId, content, index } = block;
@@ -169,15 +171,21 @@ export default function BlockContent({
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
     if (!content && type === 'TEXT') {
-      handleType(toType);
+      handleType(block, toType);
     } else {
       newBlock({ blockId, type: toType, content: '', index: index + 1 });
     }
   };
-  const handleType = (toType: string) => {
+
+  const handleType = (block: BlockInfo, toType: string) => {
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
-    changeBlock({ blockId, type: toType, content: block.content, index });
+    changeBlock({
+      blockId: block.blockId,
+      type: toType,
+      content: block.content,
+      index: block.index,
+    });
   };
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
@@ -192,7 +200,11 @@ export default function BlockContent({
   };
 
   return (
-    <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
+    <BlockContainer
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       <BlockButtonBox>
         <BlockPlusButton onClick={handleBlockPlusButtonModal} />
         <BlockOptionButton {...provided.dragHandleProps} onClick={handleBlockOptionButtonModal} />
@@ -207,7 +219,9 @@ export default function BlockContent({
         data-blockid={blockId}
         data-index={index}
         ref={refBlock}
-        onMouseDown={(e)=>{e.stopPropagation()}}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+        }}
       >
         {content || ''}
       </BlockContentBox>
@@ -215,7 +229,7 @@ export default function BlockContent({
         <>
           <DimdLayer onClick={handleBlockPlusButtonModal}></DimdLayer>
           <Modal width={'324px'} height={'336px'} position={['', '', '-336px', '44px']}>
-            <BlockModalContent handleType={handlePlus} />
+            <BlockModalContent block={block} handleType={handlePlus} />
           </Modal>
         </>
       )}
@@ -227,6 +241,7 @@ export default function BlockContent({
               deleteBlock={deleteBlock}
               block={block}
               handleType={handleType}
+              selectedBlocks={selectedBlocks}
               handleBlockOptionButtonModal={handleBlockOptionButtonModal}
             />
           </Modal>

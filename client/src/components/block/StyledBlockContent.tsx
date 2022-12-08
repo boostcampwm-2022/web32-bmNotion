@@ -22,6 +22,7 @@ interface StyledBlockContentProps {
   provided: any;
   moveBlock: Function;
   deleteBlock: Function;
+  selectedBlocks: BlockInfo[];
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
@@ -33,32 +34,35 @@ export default function StyledBlockContent({
   type,
   provided,
   moveBlock,
+  selectedBlocks,
   storePageTrigger,
 }: StyledBlockContentProps): ReactElement {
-  const StyleBox = {
-    'H1': H1BlockContentBox,
-    'H2': H2BlockContentBox,
-    'H3': H3BlockContentBox,
-    'TEXT': TextBlockContentBox,
-  }[type] || TextBlockContentBox;
+  const StyleBox =
+    {
+      H1: H1BlockContentBox,
+      H2: H2BlockContentBox,
+      H3: H3BlockContentBox,
+      TEXT: TextBlockContentBox,
+    }[type] || TextBlockContentBox;
   const renderTypeBlock = () => {
     return (
       <StyleBox>
         <BlockContent
-            key={block.blockId}
-            block={block}
-            blockId={block.blockId}
-            newBlock={newBlock}
-            changeBlock={changeBlock}
-            moveBlock={moveBlock}
-            deleteBlock={deleteBlock}
-            storePageTrigger={storePageTrigger}
-            index={block.index}
-            type={block.type}
-            provided={provided}
-          />
+          key={block.blockId}
+          block={block}
+          blockId={block.blockId}
+          newBlock={newBlock}
+          changeBlock={changeBlock}
+          moveBlock={moveBlock}
+          deleteBlock={deleteBlock}
+          storePageTrigger={storePageTrigger}
+          index={block.index}
+          type={block.type}
+          provided={provided}
+          selectedBlocks={selectedBlocks}
+        />
       </StyleBox>
-    )
+    );
   };
   return <>{renderTypeBlock()}</>;
 }
@@ -93,7 +97,7 @@ const H2BlockContentBox = styled.div`
   font-weight: 600;
   font-size: 1.5em;
   line-height: 1.3;
-  margin-top:24px;
+  margin-top: 24px;
 `;
 
 const H3BlockContentBox = styled.div`
@@ -105,5 +109,5 @@ const H3BlockContentBox = styled.div`
   font-weight: 600;
   font-size: 1.25em;
   line-height: 1.3;
-  margin-top:16px;
+  margin-top: 16px;
 `;

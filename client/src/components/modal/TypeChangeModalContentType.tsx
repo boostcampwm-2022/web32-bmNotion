@@ -1,11 +1,20 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
 
+interface BlockInfo {
+  blockId: number;
+  content: string;
+  index: number;
+  type: string;
+  focus?: boolean;
+}
 interface TypeProps {
   image: string;
   text: string;
   type: string;
   handleType: Function;
+  block: BlockInfo;
+  selectedBlocks: BlockInfo[];
 }
 
 export default function TypeChangeModalContentType({
@@ -13,9 +22,21 @@ export default function TypeChangeModalContentType({
   text,
   type,
   handleType,
+  selectedBlocks,
+  block,
 }: TypeProps): ReactElement {
   return (
-    <TypeContainer onClick={() => handleType(type)}>
+    <TypeContainer
+      onClick={() => {
+        if (selectedBlocks.length !== 0) {
+          selectedBlocks.forEach((e) => handleType(e, type));
+          console.log('여러 개');
+        } else {
+          handleType(block, type);
+          console.log('한 개');
+        }
+      }}
+    >
       <TypeImage image={image} />
       <TypeTextContainer>
         <TypeText>{text}</TypeText>
