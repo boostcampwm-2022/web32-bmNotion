@@ -367,7 +367,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       ),
     }));
     if (!noSave) setBlockTask((prev) => [...prev, { blockId, task: 'edit' }]);
-    setFocusBlockId(blockId);
+    // setFocusBlockId(blockId);
     storePageTrigger({ isDelay: true });
     return blockId;
   };
@@ -588,6 +588,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
                         type={block.type}
                         provided={provided}
                         selectedBlocks={selectedBlocks}
+                        allBlocks={pageInfo.blocks}
                         task={blockTask}
                       />
                     )}

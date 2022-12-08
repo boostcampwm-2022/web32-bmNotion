@@ -29,6 +29,7 @@ interface BlockContentProps {
   moveBlock: Function;
   deleteBlock: Function;
   selectedBlocks: BlockInfo[];
+  allBlocks: BlockInfo[];
   task: any;
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
@@ -88,6 +89,7 @@ export default function BlockContent({
   provided,
   moveBlock,
   selectedBlocks,
+  allBlocks,
   storePageTrigger,
   task,
 }: BlockContentProps): ReactElement {
@@ -114,10 +116,23 @@ export default function BlockContent({
       e.preventDefault();
       if (!e.nativeEvent.isComposing) {
         /* 한글 입력시 isComposing이 false일때만 실행 */
-        newBlock({ blockId, type: decisionNewBlockType(type), content: '', index: index + 1 });
+        const elem = e.target as HTMLElement;
+        const totalContent = elem.textContent || '';
+        const offset = (window.getSelection() as Selection).focusOffset;
+        const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
+        console.log(preText, postText);
+        elem.textContent = preText;
+        block.content = preText;
+        newBlock({
+          blockId,
+          type: decisionNewBlockType(type),
+          content: postText,
+          index: index + 1,
+        });
       }
     }
   };
+
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     /* 현재 카렛 위치 기준으로 text 분리 */
     const elem = e.target as HTMLElement;
@@ -152,10 +167,31 @@ export default function BlockContent({
       console.log('블록 TEXT로 변경');
       const toType = 'TEXT';
       changeBlock({ blockId, type: toType, content: elem.textContent, index });
-    } else if (elem.textContent === '') {
+    } else {
+      if (index === 1) {
+        return;
+      }
+      const blocks = document.querySelectorAll('div.content');
+      const prevDomBlock = [...blocks].find(
+        (el) => el.getAttribute('data-index') === (index - 1).toString(),
+      ) as HTMLElement;
+      const prevBlock = allBlocks.find((e) => e.index === index - 1);
       e.preventDefault();
+      const text = (prevDomBlock.textContent as string) + elem.textContent;
+      prevDomBlock.textContent = text;
       console.log('블록 삭제 트리거');
+      // changeBlock({ blockId : prevBlock?.blockId, type: prevBlock?.type, content: text, index:prevBlock?.index });
       deleteBlock({ block });
+      const range = document.createRange();
+      const select = window.getSelection();
+      if (prevDomBlock.childNodes.length === 0) {
+        return;
+      }
+      range.setStart(prevDomBlock.childNodes[0], prevBlock?.content.length as number);
+      range.collapse(true);
+
+      select?.removeAllRanges();
+      select?.addRange(range);
     }
   };
 
@@ -251,7 +287,6 @@ export default function BlockContent({
       }
     }
   };
-
   return (
     <BlockContainer
       ref={provided.innerRef}
@@ -262,6 +297,7 @@ export default function BlockContent({
         <BlockPlusButton onClick={handleBlockPlusButtonModal} />
         <BlockOptionButton {...provided.dragHandleProps} onClick={handleBlockOptionButtonModal} />
       </BlockButtonBox>
+      {beforeContent !== '' && <BeforeContentBox beforeContent={beforeContent} />}
       <BlockContentBox
         // type => css
         contentEditable
@@ -272,6 +308,7 @@ export default function BlockContent({
         onPaste={handleOnPaste}
         data-blockid={blockId}
         data-index={index}
+        data-tab={1}
         ref={refBlock}
         onMouseDown={(e) => {
           e.stopPropagation();
@@ -381,7 +418,8 @@ const BlockContainer = styled.div`
   }
 `;
 
-const BlockContentBox = styled.div.attrs({})`
+// const BlockContentBox = styled.div<{ 'data-before-content': string }>`
+const BlockContentBox = styled.div`
   height: auto;
   flex: 1;
   margin: 1px 2px;
@@ -398,16 +436,17 @@ const BlockContentBox = styled.div.attrs({})`
     outline: none;
   }
 
-  &:empty::before {
-    content: ${(props) => props.placeholder || ''};
-    margin: 0 10px;
-    color: #9b9a97;
-  }
-
-  &:empty:focus::before {
-    content: '';
-  }
-
+  
+  
   white-space: pre-wrap;
   word-break: break-word;
 `;
+
+const BeforeContentBox = styled.div<{ beforeContent: string }>`
+  display: flex;
+  align-content: center;
+  align-items: center;
+  &::before {
+    content: "${(props) => props.beforeContent}";
+  }
+`
