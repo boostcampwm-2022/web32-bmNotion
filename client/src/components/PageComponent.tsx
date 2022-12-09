@@ -45,6 +45,11 @@ interface BlockTask {
   task: string;
 }
 
+interface CaretPosition {
+  targetBlockId: number;
+  caretOffset: number;
+}
+
 const sampleBlocks: BlockInfo[] = [{ blockId: 1, index: 1, content: '', type: 'TEXT' }];
 
 export default function PageComponent({ selectedBlockId }: PageComponentProps): React.ReactElement {
@@ -58,13 +63,41 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
   const [selectedBlocks, setSelectedBlocks] = useState<BlockInfo[]>([]);
   const [blockTask, setBlockTask] = useState<BlockTask[]>([]);
+  const [caretPosition, setCaretPosition] = useState<CaretPosition | null>(null);
   const [clientId] = useAtom(userIdAtom);
+  
+  const handleSetCaretPositionById = ({
+    targetBlockId,
+    caretOffset,
+  }: {
+    targetBlockId: number;
+    caretOffset: number;
+  }) => {
+    if (caretPosition === null) return;
+    caretPosition.targetBlockId = targetBlockId;
+    caretPosition.caretOffset = caretOffset;
+  };
+  const handleSetCaretPositionByIndex = ({
+    targetBlockIndex,
+    caretOffset,
+  }: {
+    targetBlockIndex: number;
+    caretOffset: number;
+  }) => {
+    console.log('targetBlockIndex :', targetBlockIndex);
+    if (caretPosition === null) return;
+    const targetBlock = pageInfo.blocks.find((e) => e.index === targetBlockIndex);
+    if (targetBlock === undefined) return;
+    caretPosition.targetBlockId = targetBlock.blockId;
+    caretPosition.caretOffset = caretOffset;
+  };
+
+  // const [isUploading, setIsUploading] = useState(false);
   let isUploading = false;
 
   const { pageid } = useParams();
 
   useEffect(() => {
-    // pageInfo.blocks.forEach((e) => console.log(e.blockId));
     setSelectedBlocks(
       pageInfo.blocks.filter((e) => selectedBlockId.includes(e.blockId.toString())),
     );
@@ -236,6 +269,41 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     };
   }, [pageid, pageInfo]);
 
+  const moveCaret = (blockId: number, offset: number) => {
+    const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
+    if (!blocks) {
+      return;
+    } else {
+      const target = [...blocks].find(
+        (el) => el.getAttribute('data-blockid') === blockId.toString(),
+      ) as HTMLElement;
+      const range = document.createRange();
+      const select = window.getSelection();
+      if (!target) return;
+      if (target.childNodes.length === 0) {
+        range.setStart(target, offset);
+        range.collapse(true);
+
+        select?.removeAllRanges();
+        select?.addRange(range);
+        return;
+      }
+      range.setStart(target.childNodes[0], offset);
+      range.collapse(true);
+
+      select?.removeAllRanges();
+      select?.addRange(range);
+    }
+  };
+  useEffect(() => {
+    console.log('리렌더링');
+    if (pageInfo.blocks.length === 0) {
+      return;
+    }
+    if (caretPosition === null) return;
+    moveCaret(caretPosition.targetBlockId, caretPosition.caretOffset);
+  }, [pageInfo]);
+
   useEffect(() => {
     const checkEdit = () => blockTask.length > 0;
     const checkUploading = () => isUploading;
@@ -290,6 +358,13 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
     if (e.key === 'Enter') {
       e.preventDefault();
+      setCaretPosition({ targetBlockId: 1, caretOffset: 0 });
+      handleSetCaretPositionByIndex({ targetBlockIndex: 1, caretOffset: 0 });
+
+      // if(caretPosition === null) return ;
+      // handleSetCaretPositionByIndex({targetBlockIndex: 1, caretOffset: 0});
+      // caretPosition.targetBlockId = 1;
+      // caretPosition.caretOffset = 0;
       if (e.nativeEvent.isComposing) return;
       if (totalContent.length === offset) {
         addBlock({ type: 'TEXT', content: '', index: 1 });
@@ -300,6 +375,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       }
     }
   };
+
   const addBlock = ({
     blockId,
     type,
@@ -408,7 +484,8 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         ],
         nextId: type === 'new' ? prev.nextId + 1 : prev.nextId,
       }));
-      setFocusBlockId(blockId);
+      // setFocusBlockId(blockId);
+      // setCaretPosition({targetBlockId: blockId, caretOffset: 0});
     }
   }, [editedBlock]);
 
@@ -531,7 +608,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     // );
 
     focusBlockId && onFocus(String(focusBlockId));
-    setFocusBlockId(null);
+    // setFocusBlockId(null);
   }, [focusBlockId]);
 
   const onDragEnd = (result: DropResult) => {
@@ -586,6 +663,9 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
                         selectedBlocks={selectedBlocks}
                         allBlocks={pageInfo.blocks}
                         task={blockTask}
+                        pageInfo={pageInfo}
+                        handleSetCaretPositionById={handleSetCaretPositionById}
+                        handleSetCaretPositionByIndex={handleSetCaretPositionByIndex}
                       />
                     )}
                   </Draggable>

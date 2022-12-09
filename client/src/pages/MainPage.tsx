@@ -91,7 +91,6 @@ export default function MainPage(): ReactElement {
   }, [setProfileImageUrl]);
 
   const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
-  console.log('selectedBlockId ; ', selectedBlockId);
   return (
     <Wrapper
       onMouseUp={(e) => {
