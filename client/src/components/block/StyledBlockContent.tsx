@@ -34,7 +34,6 @@ interface StyledBlockContentProps {
   handleSetCaretPositionById: Function;
   handleSetCaretPositionByIndex: Function;
   pageInfo: PageInfo;
-  storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
 
 export default function StyledBlockContent({
@@ -49,7 +48,6 @@ export default function StyledBlockContent({
   allBlocks,
   handleSetCaretPositionById,
   handleSetCaretPositionByIndex,
-  storePageTrigger,
   task,
   pageInfo,
 }: StyledBlockContentProps): ReactElement {
@@ -59,6 +57,7 @@ export default function StyledBlockContent({
       H2: H2BlockContentBox,
       H3: H3BlockContentBox,
       TEXT: TextBlockContentBox,
+      IMG: IMGBlockContentBox,
     }[type] || TextBlockContentBox;
   const renderTypeBlock = () => {
     return (
@@ -71,7 +70,6 @@ export default function StyledBlockContent({
           changeBlock={changeBlock}
           moveBlock={moveBlock}
           deleteBlock={deleteBlock}
-          storePageTrigger={storePageTrigger}
           index={block.index}
           type={block.type}
           provided={provided}
@@ -131,4 +129,10 @@ const H3BlockContentBox = styled.div`
   font-size: 1.25em;
   line-height: 1.3;
   margin-top: 16px;
+`;
+
+const IMGBlockContentBox = styled.div`
+  overflow: hidden;
+  cursor: pointer;
+  width: 100%;
 `;
