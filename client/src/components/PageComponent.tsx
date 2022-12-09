@@ -45,8 +45,8 @@ interface BlockTask {
 }
 
 interface CaretPosition {
-  targetBlockId : number;
-  caretOffset : number;
+  targetBlockId: number;
+  caretOffset: number;
 }
 
 const sampleBlocks: BlockInfo[] = [{ blockId: 1, index: 1, content: '', type: 'TEXT' }];
@@ -71,20 +71,33 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
   const [selectedBlocks, setSelectedBlocks] = useState<BlockInfo[]>([]);
   const [blockTask, setBlockTask] = useState<BlockTask[]>([]);
-  const [caretPosition, setCaretPosition] = useState<CaretPosition|null>(null);
+  const [caretPosition, setCaretPosition] = useState<CaretPosition | null>(null);
 
-  const handleSetCaretPositionById = ({targetBlockId, caretOffset}:{targetBlockId:number, caretOffset:number}) => {
-    if(caretPosition === null) return;
+  const handleSetCaretPositionById = ({
+    targetBlockId,
+    caretOffset,
+  }: {
+    targetBlockId: number;
+    caretOffset: number;
+  }) => {
+    if (caretPosition === null) return;
     caretPosition.targetBlockId = targetBlockId;
     caretPosition.caretOffset = caretOffset;
-  }
-  const handleSetCaretPositionByIndex = ({targetBlockIndex, caretOffset}:{targetBlockIndex:number, caretOffset:number}) => {
-    if(caretPosition === null) return;
-    const targetBlock = pageInfo.blocks.find((e)=>e.index === targetBlockIndex);
-    if(targetBlock === undefined) return;
+  };
+  const handleSetCaretPositionByIndex = ({
+    targetBlockIndex,
+    caretOffset,
+  }: {
+    targetBlockIndex: number;
+    caretOffset: number;
+  }) => {
+    console.log('targetBlockIndex :', targetBlockIndex);
+    if (caretPosition === null) return;
+    const targetBlock = pageInfo.blocks.find((e) => e.index === targetBlockIndex);
+    if (targetBlock === undefined) return;
     caretPosition.targetBlockId = targetBlock.blockId;
     caretPosition.caretOffset = caretOffset;
-  }
+  };
 
   // const [isUploading, setIsUploading] = useState(false);
   let isUploading = false;
@@ -276,10 +289,9 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
 
   const moveCaret = (blockId: number, offset: number) => {
     const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
-    if(!blocks) {
-      return ;
-    }
-    else {
+    if (!blocks) {
+      return;
+    } else {
       const target = [...blocks].find(
         (el) => el.getAttribute('data-blockid') === blockId.toString(),
       ) as HTMLElement;
@@ -289,25 +301,26 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       if (target.childNodes.length === 0) {
         range.setStart(target, offset);
         range.collapse(true);
-    
+
         select?.removeAllRanges();
         select?.addRange(range);
         return;
       }
       range.setStart(target.childNodes[0], offset);
       range.collapse(true);
-  
+
       select?.removeAllRanges();
       select?.addRange(range);
     }
-  }
-  useEffect(()=>{
-    if(pageInfo.blocks.length===0) {
+  };
+  useEffect(() => {
+    console.log('리렌더링');
+    if (pageInfo.blocks.length === 0) {
       return;
     }
-    if(caretPosition === null) return ;
+    if (caretPosition === null) return;
     moveCaret(caretPosition.targetBlockId, caretPosition.caretOffset);
-  },[pageInfo])
+  }, [pageInfo]);
 
   useEffect(() => {
     const checkEdit = () => blockTask.length > 0;
@@ -362,12 +375,17 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
     if (e.key === 'Enter') {
       e.preventDefault();
-      setCaretPosition({targetBlockId: 1, caretOffset: 0});
+      setCaretPosition({ targetBlockId: 1, caretOffset: 0 });
+      handleSetCaretPositionByIndex({ targetBlockIndex: 1, caretOffset: 0 });
+
+      // if(caretPosition === null) return ;
+      // handleSetCaretPositionByIndex({targetBlockIndex: 1, caretOffset: 0});
+      // caretPosition.targetBlockId = 1;
+      // caretPosition.caretOffset = 0;
       if (e.nativeEvent.isComposing) return;
       if (totalContent.length === offset) {
         addBlock({ type: 'TEXT', content: '', index: 1 });
-      } 
-      else {
+      } else {
         pageInfo.title = preText;
         elem.textContent = preText;
         addBlock({ type: 'TEXT', content: postText, index: 1 });
@@ -647,8 +665,8 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
                         allBlocks={pageInfo.blocks}
                         task={blockTask}
                         pageInfo={pageInfo}
-                        handleSetCaretPositionById = {handleSetCaretPositionById}
-                        handleSetCaretPositionByIndex = {handleSetCaretPositionByIndex}
+                        handleSetCaretPositionById={handleSetCaretPositionById}
+                        handleSetCaretPositionByIndex={handleSetCaretPositionByIndex}
                       />
                     )}
                   </Draggable>

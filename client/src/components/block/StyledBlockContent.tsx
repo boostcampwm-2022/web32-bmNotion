@@ -16,7 +16,6 @@ interface PageInfo {
   blocks: BlockInfo[];
 }
 
-
 interface StyledBlockContentProps {
   block: BlockInfo;
   blockId?: number; // page - Id 불변
@@ -32,8 +31,8 @@ interface StyledBlockContentProps {
   selectedBlocks: BlockInfo[];
   allBlocks: BlockInfo[];
   task: any;
-  handleSetCaretPositionById:Function;
-  handleSetCaretPositionByIndex:Function;
+  handleSetCaretPositionById: Function;
+  handleSetCaretPositionByIndex: Function;
   pageInfo: PageInfo;
   storePageTrigger: ({ isDelay }: { isDelay: boolean }) => void;
 }
