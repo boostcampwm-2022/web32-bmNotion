@@ -187,6 +187,9 @@ const PageListContentWrapper = styled.div`
 
 const PageListContentSpan = styled.span`
   font-size: 13px;
+  overflow-x: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `;
 
 const PageListContentDeleteButton = styled.button`
