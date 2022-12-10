@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import DimdLayer from '@/components/modal/DimdLayer';
 
 interface BlockInfo {
-  blockId: number;
+  blockId: string;
   content: string;
   index: number;
   type: string;

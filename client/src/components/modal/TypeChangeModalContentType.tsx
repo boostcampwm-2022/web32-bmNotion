@@ -2,7 +2,7 @@ import React, { useState, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
 
 interface BlockInfo {
-  blockId: number;
+  blockId: string;
   content: string;
   index: number;
   type: string;

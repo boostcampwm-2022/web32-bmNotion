@@ -3,7 +3,7 @@ import BlockModalContentType from './BlockModalContentType';
 import styled from 'styled-components';
 
 interface BlockInfo {
-  blockId: number;
+  blockId: string;
   content: string;
   index: number;
   type: string;

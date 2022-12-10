@@ -8,7 +8,7 @@ import { AxiosResponse } from 'axios';
 import { axiosPostRequest } from '@/utils/axios.request';
 
 interface BlockInfo {
-  blockId: number;
+  blockId: string;
   content: string;
   index: number;
   type: string;
@@ -16,14 +16,14 @@ interface BlockInfo {
 }
 interface PageInfo {
   title: string;
-  nextId: number;
+  nextId: string;
   pageId: string;
   blocks: BlockInfo[];
 }
 
 interface BlockContentProps {
   block: BlockInfo;
-  blockId?: number; // page - Id 불변
+  blockId?: string; // page - Id 불변
   index?: number; // page - Index 변하는값
   content?: string; // 눈에 보이는 텍스트 내용
   type: string;
@@ -283,7 +283,13 @@ export default function BlockContent({
           newImgBlockId = newBlock({ blockId, type: 'IMG', content: '', index: index + 2 });
           newImgBlockIndex = index + 2;
         }
-        axiosPostRequest(`${apiUrl}/${file.name}`, getOnSuccess(newImgBlockId, newImgBlockIndex), getOnFail(newImgBlockId, newImgBlockIndex), file, headers);
+        axiosPostRequest(
+          `${apiUrl}/${file.name}`,
+          getOnSuccess(newImgBlockId, newImgBlockIndex),
+          getOnFail(newImgBlockId, newImgBlockIndex),
+          file,
+          headers,
+        );
       }
     }
   };
@@ -439,8 +445,6 @@ const BlockContentBox = styled.div`
     outline: none;
   }
 
-  
-  
   white-space: pre-wrap;
   word-break: break-word;
 `;
@@ -450,6 +454,6 @@ const BeforeContentBox = styled.div<{ beforeContent: string }>`
   align-content: center;
   align-items: center;
   &::before {
-    content: "${(props) => props.beforeContent}";
+    content: '${(props) => props.beforeContent}';
   }
-`
+`;
