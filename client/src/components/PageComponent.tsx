@@ -84,9 +84,12 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     caretOffset: number;
   }) => {
     console.log('targetBlockIndex :', targetBlockIndex);
-    if (caretPosition === null) return;
     const targetBlock = pageInfo.blocks.find((e) => e.index === targetBlockIndex);
     if (targetBlock === undefined) return;
+    if (caretPosition === null) {
+      setCaretPosition({ targetBlockId: targetBlock.blockId, caretOffset: caretOffset });
+      return;
+    }
     caretPosition.targetBlockId = targetBlock.blockId;
     caretPosition.caretOffset = caretOffset;
   };
@@ -345,7 +348,12 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleSetCaretPositionByIndex({ targetBlockIndex: 1, caretOffset: 0 });
+      if (caretPosition === null) {
+        setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
+        return;
+      }
+      caretPosition.targetBlockId = pageInfo.nextId;
+      caretPosition.caretOffset = 0;
 
       // if(caretPosition === null) return ;
       // handleSetCaretPositionByIndex({targetBlockIndex: 1, caretOffset: 0});
