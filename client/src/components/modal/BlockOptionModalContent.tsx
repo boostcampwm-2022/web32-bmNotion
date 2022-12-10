@@ -9,11 +9,25 @@ interface BlockInfo {
   content: string;
   index: number;
   type: string;
-  focus?: boolean;
+  createdAt: string;
 }
+
+interface PageInfo {
+  title: string;
+  nextId: string;
+  pageId: string;
+  blocks: BlockInfo[];
+}
+
+interface DeleteBlockParam {
+  blockId: string;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
+}
+
 interface BlockOptionModalProps {
   handleType: Function;
-  deleteBlock: Function;
+  deleteBlock: (param: DeleteBlockParam) => string;
   block: BlockInfo;
   selectedBlocks: BlockInfo[];
   handleBlockOptionButtonModal: Function;
@@ -47,12 +61,12 @@ export default function BlockOptionModalContent({
         onClick={() => {
           if (selectedBlocks.length !== 0) {
             selectedBlocks.forEach((e) => {
-              deleteBlock({ block: e });
+              deleteBlock({ blockId: e.blockId });
               console.log('여러개 삭제 : ', e);
             });
           } else {
             console.log('한개 삭제 : ', block);
-            deleteBlock({ block });
+            deleteBlock({ blockId: block.blockId });
           }
         }}
       >

@@ -37,6 +37,7 @@ const config = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(dirname, '../dist'),
+    publicPath: '/',
   },
 
   stats: {

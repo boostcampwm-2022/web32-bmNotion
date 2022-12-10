@@ -7,13 +7,42 @@ interface BlockInfo {
   content: string;
   index: number;
   type: string;
-  focus?: boolean;
+  createdAt: string;
 }
 interface PageInfo {
   title: string;
   nextId: string;
   pageId: string;
   blocks: BlockInfo[];
+}
+
+interface CreateBlockParam {
+  prevBlockId?: string;
+  index: number;
+  content: string;
+  type: string;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
+}
+
+interface ChangeBlockInfo {
+  blockId: string;
+  content?: string;
+  index?: number;
+  type?: string;
+  createdAt?: string;
+}
+
+interface ChangeBlockParam {
+  block: ChangeBlockInfo;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
+}
+
+interface DeleteBlockParam {
+  blockId: string;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
 }
 
 interface StyledBlockContentProps {
@@ -23,11 +52,11 @@ interface StyledBlockContentProps {
   content?: string; // 눈에 보이는 텍스트 내용
   type: string;
   focus?: boolean;
-  newBlock: Function;
-  changeBlock: Function;
+  createBlock: (param: CreateBlockParam) => string;
+  changeBlock: (param: ChangeBlockParam) => string;
   provided: any;
   moveBlock: Function;
-  deleteBlock: Function;
+  deleteBlock: (param: DeleteBlockParam) => string;
   selectedBlocks: BlockInfo[];
   allBlocks: BlockInfo[];
   task: any;
@@ -38,7 +67,7 @@ interface StyledBlockContentProps {
 
 export default function StyledBlockContent({
   block,
-  newBlock,
+  createBlock,
   changeBlock,
   deleteBlock,
   type,
@@ -66,7 +95,7 @@ export default function StyledBlockContent({
           key={block.blockId}
           block={block}
           blockId={block.blockId}
-          newBlock={newBlock}
+          createBlock={createBlock}
           changeBlock={changeBlock}
           moveBlock={moveBlock}
           deleteBlock={deleteBlock}

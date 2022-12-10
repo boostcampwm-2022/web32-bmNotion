@@ -73,7 +73,6 @@ export default function SettingModalContent() {
     e.stopPropagation();
     const clickedUser = e.currentTarget as clickedUser;
     const nickname = clickedUser.dataset.nickname;
-    console.log(clickedUser, nickname, inputNicknameRef.current);
     if (inputNicknameRef.current === null) return;
     inputNicknameRef.current.value = nickname;
   };

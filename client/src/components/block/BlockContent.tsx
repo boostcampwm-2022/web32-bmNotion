@@ -12,13 +12,42 @@ interface BlockInfo {
   content: string;
   index: number;
   type: string;
-  focus?: boolean;
+  createdAt: string;
 }
 interface PageInfo {
   title: string;
   nextId: string;
   pageId: string;
   blocks: BlockInfo[];
+}
+
+interface CreateBlockParam {
+  prevBlockId?: string;
+  index: number;
+  content: string;
+  type: string;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
+}
+
+interface ChangeBlockInfo {
+  blockId: string;
+  content?: string;
+  index?: number;
+  type?: string;
+  createdAt?: string;
+}
+
+interface ChangeBlockParam {
+  block: ChangeBlockInfo;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
+}
+
+interface DeleteBlockParam {
+  blockId: string;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
 }
 
 interface BlockContentProps {
@@ -28,11 +57,11 @@ interface BlockContentProps {
   content?: string; // 눈에 보이는 텍스트 내용
   type: string;
   focus?: boolean;
-  newBlock: Function;
-  changeBlock: Function;
+  createBlock: (param: CreateBlockParam) => string;
+  changeBlock: (param: ChangeBlockParam) => string;
   provided: any;
   moveBlock: Function;
-  deleteBlock: Function;
+  deleteBlock: (param: DeleteBlockParam) => string;
   selectedBlocks: BlockInfo[];
   allBlocks: BlockInfo[];
   task: any;
@@ -89,7 +118,7 @@ const checkMarkDownGrammer = (text: string) => {
 
 export default function BlockContent({
   block,
-  newBlock,
+  createBlock,
   changeBlock,
   deleteBlock,
   type,
@@ -129,15 +158,18 @@ export default function BlockContent({
         const totalContent = elem.textContent || '';
         const offset = (window.getSelection() as Selection).focusOffset;
         const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
-        console.log(preText, postText);
         elem.textContent = preText;
         block.content = preText;
-        handleSetCaretPositionById({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
-        newBlock({
-          blockId,
+        const handleCaret = (page: PageInfo) => {
+          handleSetCaretPositionById({ targetBlockId: page.nextId, caretOffset: 0 });
+        };
+        task.push({ blockId: block.blockId, task: 'edit' });
+        createBlock({
+          prevBlockId: blockId,
+          index: index + 1,
           type: decisionNewBlockType(type),
           content: postText,
-          index: index + 1,
+          callBack: handleCaret,
         });
       }
     }
@@ -158,8 +190,10 @@ export default function BlockContent({
       e.preventDefault();
       elem.textContent = postText;
       // console.log(`toType => ${toType}, content: ${postText}`);
-      changeBlock({ blockId, type: toType, content: postText, index });
-      handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: 0 });
+      const handleCaret = () => {
+        handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: 0 });
+      };
+      changeBlock({ block: { ...block, type: toType, content: postText }, callBack: handleCaret });
     }
     // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
@@ -177,8 +211,13 @@ export default function BlockContent({
       e.preventDefault();
       // console.log('블록 TEXT로 변경');
       const toType = 'TEXT';
-      changeBlock({ blockId, type: toType, content: elem.textContent, index });
-      handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: 0 });
+      const handleCaret = () => {
+        handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: 0 });
+      };
+      changeBlock({
+        block: { ...block, type: toType, content: elem.textContent || '' },
+        callBack: handleCaret,
+      });
     } else {
       if (index === 1) {
         return;
@@ -191,18 +230,18 @@ export default function BlockContent({
       e.preventDefault();
       const text = (prevDomBlock.textContent as string) + elem.textContent;
       prevDomBlock.textContent = text;
-      console.log('블록 삭제 트리거');
-      changeBlock({
-        blockId: prevBlock?.blockId,
-        type: prevBlock?.type,
-        content: text,
-        index: prevBlock?.index,
-      });
-      deleteBlock({ block });
-      handleSetCaretPositionById({
-        targetBlockId: prevBlock?.blockId,
-        caretOffset: prevBlock?.content.length,
-      });
+      const handleCaret = () => {
+        handleSetCaretPositionById({
+          targetBlockId: prevBlock?.blockId,
+          caretOffset: prevBlock?.content.length,
+        });
+      };
+      if (prevBlock !== undefined)
+        changeBlock({
+          block: { ...prevBlock, content: text },
+          callBack: handleCaret,
+        });
+      deleteBlock({ blockId });
     }
   };
 
@@ -218,24 +257,26 @@ export default function BlockContent({
     }
   };
 
-  const handlePlus = (toType: string) => {
+  const handlePlus = (targetBlock: BlockInfo, toType: string) => {
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
     if (!content && type === 'TEXT') {
-      handleType(block, toType);
+      handleType(targetBlock, toType);
     } else {
-      newBlock({ blockId, type: toType, content: '', index: index + 1 });
+      createBlock({
+        prevBlockId: targetBlock.blockId,
+        index: index + 1,
+        type: toType,
+        content: '',
+      });
     }
   };
 
-  const handleType = (block: BlockInfo, toType: string) => {
+  const handleType = (targetBlock: BlockInfo, toType: string) => {
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
     changeBlock({
-      blockId: block.blockId,
-      type: toType,
-      content: block.content,
-      index: block.index,
+      block: { ...targetBlock, type: toType },
     });
   };
 
@@ -254,15 +295,14 @@ export default function BlockContent({
     const clipboardData = e.clipboardData;
 
     if (clipboardData && clipboardData.files.length > 0) {
-      const getOnSuccess =
-        (blockId: number, index: number) => (response: AxiosResponse<any, any>) => {
-          response?.data?.url &&
-            changeBlock({ blockId, type: 'IMG', content: response.data.url, index });
-        };
-      const getOnFail = (blockId: number, index: number) => (err: AxiosResponse<any, any>) => {
+      const getOnSuccess = (blockId: string) => (response: AxiosResponse<any, any>) => {
+        response?.data?.url &&
+          changeBlock({ block: { blockId, type: 'IMG', content: response.data.url } });
+      };
+      const getOnFail = (blockId: string) => (err: AxiosResponse<any, any>) => {
         const failImageUrl = 'https://via.placeholder.com/150.png?text=Fail+to+load';
         console.error(err);
-        changeBlock({ blockId, type: 'IMG', content: failImageUrl, index });
+        changeBlock({ block: { blockId, type: 'IMG', content: failImageUrl } });
       };
       const apiUrl = `/api/block/image`;
       const headers = { 'Content-Type': 'application/octet-stream' };
@@ -270,23 +310,38 @@ export default function BlockContent({
       if (/image/.test(file.type)) {
         e.preventDefault();
 
-        let newImgBlockId: number;
-        let newImgBlockIndex: number;
+        let newImgBlockId: string;
         if (type === 'TEXT' && content === '') {
           /* 비어있는 Text 블록 => 현재 블록 체인지 */
-          newImgBlockId = changeBlock({ blockId, type: 'IMG', content: '', index: index });
-          newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
-          newImgBlockIndex = index + 1;
+          newImgBlockId = changeBlock({ block: { blockId, type: 'IMG', content: '', index } });
+          createBlock({
+            prevBlockId: blockId,
+            index: index + 1,
+            type: 'TEXT',
+            content: '',
+          });
         } else {
           /* 그외 블록 => 비어있는 Text 블록 => 현재 블록 체인지 */
-          newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
-          newImgBlockId = newBlock({ blockId, type: 'IMG', content: '', index: index + 2 });
-          newImgBlockIndex = index + 2;
+          const createTrailingBlock = (page: PageInfo) => {
+            createBlock({
+              prevBlockId: page.nextId,
+              index: index + 2,
+              type: 'Text',
+              content: '',
+            });
+          };
+          newImgBlockId = createBlock({
+            prevBlockId: blockId,
+            index: index + 1,
+            type: 'IMG',
+            content: '',
+            callBack: createTrailingBlock,
+          });
         }
         axiosPostRequest(
           `${apiUrl}/${file.name}`,
-          getOnSuccess(newImgBlockId, newImgBlockIndex),
-          getOnFail(newImgBlockId, newImgBlockIndex),
+          getOnSuccess(newImgBlockId),
+          getOnFail(newImgBlockId),
           file,
           headers,
         );
