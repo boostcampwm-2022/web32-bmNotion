@@ -3,7 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import BlockContent from '@/components/block/BlockContent';
 
 interface BlockInfo {
-  blockId: number;
+  blockId: string;
   content: string;
   index: number;
   type: string;
@@ -11,14 +11,14 @@ interface BlockInfo {
 }
 interface PageInfo {
   title: string;
-  nextId: number;
+  nextId: string;
   pageId: string;
   blocks: BlockInfo[];
 }
 
 interface StyledBlockContentProps {
   block: BlockInfo;
-  blockId?: number; // page - Id 불변
+  blockId?: string; // page - Id 불변
   index?: number; // page - Index 변하는값
   content?: string; // 눈에 보이는 텍스트 내용
   type: string;

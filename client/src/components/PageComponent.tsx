@@ -8,12 +8,13 @@ import { axiosGetRequest, axiosPostRequest } from '@/utils/axios.request';
 import { AxiosResponse } from 'axios';
 import { userIdAtom } from '@/store/userAtom';
 import { useAtom } from 'jotai';
+import { v4 as uuid } from 'uuid';
 
 interface PageComponentProps {
   selectedBlockId: string[];
 }
 interface BlockInfo {
-  blockId: number;
+  blockId: string;
   content: string;
   index: number;
   type: string;
@@ -22,13 +23,13 @@ interface BlockInfo {
 
 interface PageInfo {
   title: string;
-  nextId: number;
+  nextId: string;
   pageId: string;
   blocks: BlockInfo[];
 }
 
 interface EditInfo {
-  blockId: number;
+  blockId: string;
   task: string;
   content: string;
   index: number;
@@ -41,36 +42,34 @@ interface EditedBlockInfo {
 }
 
 interface BlockTask {
-  blockId: number;
+  blockId: string;
   task: string;
 }
 
 interface CaretPosition {
-  targetBlockId: number;
+  targetBlockId: string;
   caretOffset: number;
 }
-
-const sampleBlocks: BlockInfo[] = [{ blockId: 1, index: 1, content: '', type: 'TEXT' }];
 
 export default function PageComponent({ selectedBlockId }: PageComponentProps): React.ReactElement {
   const [pageInfo, setPageInfo] = useState<PageInfo>({
     title: '',
-    nextId: 0,
+    nextId: '',
     pageId: '',
     blocks: [],
   });
-  const [focusBlockId, setFocusBlockId] = useState<number | null>(null);
+  const [focusBlockId, setFocusBlockId] = useState<string | null>(null);
   const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
   const [selectedBlocks, setSelectedBlocks] = useState<BlockInfo[]>([]);
   const [blockTask, setBlockTask] = useState<BlockTask[]>([]);
   const [caretPosition, setCaretPosition] = useState<CaretPosition | null>(null);
   const [clientId] = useAtom(userIdAtom);
-  
+
   const handleSetCaretPositionById = ({
     targetBlockId,
     caretOffset,
   }: {
-    targetBlockId: number;
+    targetBlockId: string;
     caretOffset: number;
   }) => {
     if (caretPosition === null) return;
@@ -102,6 +101,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       pageInfo.blocks.filter((e) => selectedBlockId.includes(e.blockId.toString())),
     );
   }, [selectedBlockId]);
+
   const filterTask = (blockTasks: BlockTask[]) => {
     const taskIds = {} as any;
     return blockTasks.reduce((pre, cur) => {
@@ -151,12 +151,12 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     return entries.map((value) => {
       const [blockId, task] = value;
       if (task === 'delete') {
-        return { blockId: Number(blockId), task };
+        return { blockId: blockId, task };
       }
-      const block = blocks.find((block) => block.blockId === Number(blockId));
-      if (block === undefined) return { blockId: Number(blockId), task: 'delete' };
+      const block = blocks.find((block) => block.blockId === blockId);
+      if (block === undefined) return { blockId: blockId, task: 'delete' };
       return {
-        blockId: Number(blockId),
+        blockId: blockId,
         task,
         content: block.content,
         index: block.index,
@@ -166,15 +166,12 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   };
 
   const storePage = () => {
-    // console.log('페이지 저장');
-    console.log('페이지 블록',pageInfo.blocks)
+    console.log('페이지 블록', pageInfo.blocks);
     isUploading = true;
     const blockTaskTemp = blockTask.slice(0);
     blockTask.splice(0);
-    timeoutInfo.isStoreWaited = false;
     const filteredTasks = filterTask(blockTaskTemp);
     const tasks = taskRequest(filteredTasks, pageInfo.blocks);
-    // console.log('gogo',blockTaskTemp, filteredTasks, tasks);
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
@@ -184,24 +181,14 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       tasks,
     };
     const onSuccess = (res: AxiosResponse) => {
-      // console.log('성공');
       isUploading = false;
     };
     const onFail = (res: AxiosResponse) => {
       setBlockTask((prev) => [...blockTaskTemp, ...prev]);
       isUploading = false;
-      // console.log(res.data);
     };
     axiosPostRequest(API.UPDATE_PAGE, onSuccess, onFail, requestBody, requestHeader);
   };
-
-  const timeoutInfo: { id: NodeJS.Timeout; isStoreWaited: boolean } = {
-    id: setTimeout(() => {}),
-    isStoreWaited: false,
-  };
-  useEffect(() => {
-    return () => clearTimeout(timeoutInfo.id);
-  });
 
   // useEffect(() => {
   //   const handleStore = (e: KeyboardEvent) => {
@@ -218,8 +205,9 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   //     window.removeEventListener('keydown', handleStore);
   //   };
   // }, [pageInfo, blockTask]);
+
   useEffect(() => {
-    const source = new EventSource(`http://localhost:8080/sse`, {
+    const source = new EventSource(API.CONNECT_SSE, {
       withCredentials: true,
     });
     const onServerConnect = (e: Event) => {
@@ -227,13 +215,11 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       // console.log(e);
     };
     const onServerMsg = (e: MessageEvent) => {
-      // console.log('sse msg');
       const { edits, userId, title } = JSON.parse(e.data) as {
         edits: EditInfo[];
         userId: string;
         title: string;
       };
-      // console.log(userId, clientId,userId === clientId)
       if (userId === clientId) return;
       pageInfo.title = title;
       edits.map((edit: EditInfo) => {
@@ -269,13 +255,13 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     };
   }, [pageid, pageInfo]);
 
-  const moveCaret = (blockId: number, offset: number) => {
+  const moveCaret = (blockId: string, offset: number) => {
     const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
     if (!blocks) {
       return;
     } else {
       const target = [...blocks].find(
-        (el) => el.getAttribute('data-blockid') === blockId.toString(),
+        (el) => el.getAttribute('data-blockid') === blockId,
       ) as HTMLElement;
       const range = document.createRange();
       const select = window.getSelection();
@@ -309,7 +295,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const checkUploading = () => isUploading;
     const syncPage = () => {
       if (checkEdit() && !checkUploading()) {
-        // console.log('페이지 블록',pageInfo.blocks)
         storePage();
       }
     };
@@ -327,9 +312,9 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const onSuccess = (res: AxiosResponse) => {
       setPageInfo({
         title: res.data.title,
-        nextId: Math.max(...res.data.blocks.map((e: BlockInfo) => e.blockId), 0) + 1,
+        nextId: uuid(),
         pageId: pageid as string,
-        blocks: res.data.blocks.sort((a:BlockInfo,b:BlockInfo)=>a.index-b.index),
+        blocks: res.data.blocks.sort((a: BlockInfo, b: BlockInfo) => a.index - b.index),
       });
     };
     const onFail = (res: AxiosResponse) => {
@@ -337,6 +322,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     };
     axiosGetRequest(API.GET_PAGE + pageid, onSuccess, onFail, requestHeader);
   }, [pageid]);
+
   const updateIndex = (diff: number) => (block: BlockInfo) => {
     setBlockTask((prev) => [...prev, { blockId: block.blockId, task: 'edit' }]);
     return {
@@ -351,6 +337,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       pageInfo.title = newContent;
     }
   };
+
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const elem = e.target as HTMLElement;
     const totalContent = elem.textContent || '';
@@ -358,7 +345,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
     if (e.key === 'Enter') {
       e.preventDefault();
-      setCaretPosition({ targetBlockId: 1, caretOffset: 0 });
       handleSetCaretPositionByIndex({ targetBlockIndex: 1, caretOffset: 0 });
 
       // if(caretPosition === null) return ;
@@ -383,27 +369,27 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     index,
     noSave,
   }: {
-    blockId?: number;
+    blockId?: string;
     type: string;
     content: string;
     index: number;
     noSave?: boolean;
   }) => {
-    // console.log('addblock');
-    const nextId = (blockId===undefined)||(pageInfo.nextId>blockId)?pageInfo.nextId:blockId;
-    if (!noSave) setBlockTask((prev) => [...prev, { blockId: nextId, task: 'create' }]);
+    if (!noSave) setBlockTask((prev) => [...prev, { blockId: pageInfo.nextId, task: 'create' }]);
     setPageInfo((prev) => {
       return {
         ...prev,
         blocks: [
           ...prev.blocks.slice(0, index - 1),
-          { content, type, index, blockId: nextId },
-          ...!noSave?prev.blocks.slice(index - 1).map(updateIndex(1)):prev.blocks.slice(index - 1),
-        ].sort((a,b)=>a.index-b.index),
-        nextId: nextId + 1,
-      }
+          { content, type, index, blockId: prev.nextId },
+          ...(!noSave
+            ? prev.blocks.slice(index - 1).map(updateIndex(1))
+            : prev.blocks.slice(index - 1)),
+        ].sort((a, b) => a.index - b.index),
+        nextId: uuid(),
+      };
     });
-    return nextId;
+    return pageInfo.nextId;
   };
 
   const changeBlock = ({
@@ -413,7 +399,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     index,
     noSave,
   }: {
-    blockId: number;
+    blockId: string;
     type: string;
     content: string;
     index: number;
@@ -421,32 +407,39 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   }) => {
     setPageInfo((prev) => {
       return {
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.blockId === blockId ? { ...block, type, content, index, ref: true } : block,
-      ).sort((a,b)=>a.index-b.index),
-    }});
+        ...prev,
+        blocks: prev.blocks
+          .map((block) => (block.blockId === blockId ? { ...block, type, content, index } : block))
+          .sort((a, b) => a.index - b.index),
+      };
+    });
     if (!noSave) setBlockTask((prev) => [...prev, { blockId, task: 'edit' }]);
     return blockId;
   };
 
-  const deleteBlock = ({ block:targetBlockInfo, noSave }: { block: BlockInfo; noSave?: boolean }) => {
+  const deleteBlock = ({
+    block: targetBlockInfo,
+    noSave,
+  }: {
+    block: BlockInfo;
+    noSave?: boolean;
+  }) => {
     // console.log('delete ', targetBlockInfo.blockId);
     setPageInfo((prev) => {
-      const targetBlock = prev.blocks.find(
-        (block) => block.blockId === Number(targetBlockInfo.blockId)
+      const targetIndex = prev.blocks.findIndex(
+        (block) => block.blockId === targetBlockInfo.blockId,
       );
-      if (targetBlock === undefined) return prev;
-      const targetIndex = targetBlock.index;
+      if (targetIndex === -1) return prev;
       return {
         ...prev,
         blocks: [
-          ...prev.blocks.slice(0, targetIndex-1),
-          ...prev.blocks.slice(targetIndex).map(updateIndex(-1)),
+          ...prev.blocks.slice(0, targetIndex),
+          ...prev.blocks.slice(targetIndex + 1).map(updateIndex(-1)),
         ],
-      } as PageInfo
+      } as PageInfo;
     });
-    if (!noSave) setBlockTask((prev) => [...prev, { blockId: targetBlockInfo.blockId, task: 'delete' }]);
+    if (!noSave)
+      setBlockTask((prev) => [...prev, { blockId: targetBlockInfo.blockId, task: 'delete' }]);
   };
 
   /* editedBlock */
@@ -457,21 +450,21 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       editedBlock !== undefined &&
         setPageInfo((prev) => {
           const targetBlock = prev.blocks.find(
-            (block) => block.blockId === Number(editedBlock.block.blockId)
+            (block) => block.blockId === editedBlock.block.blockId,
           );
           if (targetBlock === undefined) return prev;
           const targetIndex = targetBlock.index;
-          (targetIndex-1) !== 0 &&
-          setFocusBlockId(
-            pageInfo.blocks.find((block) => block.index === (targetIndex-1))?.blockId ?? null,
-          );
+          targetIndex - 1 !== 0 &&
+            setFocusBlockId(
+              pageInfo.blocks.find((block) => block.index === targetIndex - 1)?.blockId ?? null,
+            );
           return {
             ...prev,
             blocks: [
-              ...prev.blocks.slice(0, targetIndex-1),
+              ...prev.blocks.slice(0, targetIndex - 1),
               ...prev.blocks.slice(targetIndex).map(updateIndex(-1)),
             ],
-          } as PageInfo
+          } as PageInfo;
         });
     } else {
       const { blockId, content, index, type, focus } = editedBlock.block;
@@ -482,7 +475,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
           { ...editedBlock.block, blockId: type === 'new' ? prev.nextId : blockId },
           ...prev.blocks.slice(index - 1).map(updateIndex(1)),
         ],
-        nextId: type === 'new' ? prev.nextId + 1 : prev.nextId,
+        nextId: type === 'new' ? uuid() : prev.nextId,
       }));
       // setFocusBlockId(blockId);
       // setCaretPosition({targetBlockId: blockId, caretOffset: 0});
