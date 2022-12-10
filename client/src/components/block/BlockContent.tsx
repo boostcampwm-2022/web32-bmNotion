@@ -12,13 +12,22 @@ interface BlockInfo {
   content: string;
   index: number;
   type: string;
-  focus?: boolean;
+  createdAt: string;
 }
 interface PageInfo {
   title: string;
   nextId: string;
   pageId: string;
   blocks: BlockInfo[];
+}
+
+interface createBlockParam {
+  prevBlockId?: string;
+  index: number;
+  content: string;
+  type: string;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
 }
 
 interface BlockContentProps {
@@ -28,7 +37,7 @@ interface BlockContentProps {
   content?: string; // 눈에 보이는 텍스트 내용
   type: string;
   focus?: boolean;
-  newBlock: Function;
+  createBlock: (param: createBlockParam) => string;
   changeBlock: Function;
   provided: any;
   moveBlock: Function;
@@ -89,7 +98,7 @@ const checkMarkDownGrammer = (text: string) => {
 
 export default function BlockContent({
   block,
-  newBlock,
+  createBlock,
   changeBlock,
   deleteBlock,
   type,
@@ -129,15 +138,17 @@ export default function BlockContent({
         const totalContent = elem.textContent || '';
         const offset = (window.getSelection() as Selection).focusOffset;
         const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
-        console.log(preText, postText);
         elem.textContent = preText;
         block.content = preText;
-        handleSetCaretPositionById({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
-        newBlock({
-          blockId,
+        const handleCaret = (page: PageInfo) => {
+          handleSetCaretPositionById({ targetBlockId: page.nextId, caretOffset: 0 });
+        };
+        createBlock({
+          prevBlockId: blockId,
+          index: index + 1,
           type: decisionNewBlockType(type),
           content: postText,
-          index: index + 1,
+          callBack: handleCaret,
         });
       }
     }
@@ -191,7 +202,6 @@ export default function BlockContent({
       e.preventDefault();
       const text = (prevDomBlock.textContent as string) + elem.textContent;
       prevDomBlock.textContent = text;
-      console.log('블록 삭제 트리거');
       changeBlock({
         blockId: prevBlock?.blockId,
         type: prevBlock?.type,
@@ -218,24 +228,29 @@ export default function BlockContent({
     }
   };
 
-  const handlePlus = (toType: string) => {
+  const handlePlus = (targetBlock: BlockInfo, toType: string) => {
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
     if (!content && type === 'TEXT') {
-      handleType(block, toType);
+      handleType(targetBlock, toType);
     } else {
-      newBlock({ blockId, type: toType, content: '', index: index + 1 });
+      createBlock({
+        prevBlockId: targetBlock.blockId,
+        index: index + 1,
+        type: toType,
+        content: '',
+      });
     }
   };
 
-  const handleType = (block: BlockInfo, toType: string) => {
+  const handleType = (targetBlock: BlockInfo, toType: string) => {
     setBlockPlusModalOpen(false);
     setBlockOptionModalOpen(false);
     changeBlock({
-      blockId: block.blockId,
+      blockId: targetBlock.blockId,
       type: toType,
-      content: block.content,
-      index: block.index,
+      content: targetBlock.content,
+      index: targetBlock.index,
     });
   };
 
@@ -255,11 +270,11 @@ export default function BlockContent({
 
     if (clipboardData && clipboardData.files.length > 0) {
       const getOnSuccess =
-        (blockId: number, index: number) => (response: AxiosResponse<any, any>) => {
+        (blockId: string, index: number) => (response: AxiosResponse<any, any>) => {
           response?.data?.url &&
             changeBlock({ blockId, type: 'IMG', content: response.data.url, index });
         };
-      const getOnFail = (blockId: number, index: number) => (err: AxiosResponse<any, any>) => {
+      const getOnFail = (blockId: string, index: number) => (err: AxiosResponse<any, any>) => {
         const failImageUrl = 'https://via.placeholder.com/150.png?text=Fail+to+load';
         console.error(err);
         changeBlock({ blockId, type: 'IMG', content: failImageUrl, index });
@@ -270,18 +285,36 @@ export default function BlockContent({
       if (/image/.test(file.type)) {
         e.preventDefault();
 
-        let newImgBlockId: number;
+        let newImgBlockId: string;
         let newImgBlockIndex: number;
         if (type === 'TEXT' && content === '') {
           /* 비어있는 Text 블록 => 현재 블록 체인지 */
           newImgBlockId = changeBlock({ blockId, type: 'IMG', content: '', index: index });
-          newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
+          createBlock({
+            prevBlockId: blockId,
+            index: index + 1,
+            type: 'TEXT',
+            content: '',
+          });
           newImgBlockIndex = index + 1;
         } else {
           /* 그외 블록 => 비어있는 Text 블록 => 현재 블록 체인지 */
-          newBlock({ blockId, type: 'TEXT', content: '', index: index + 1 });
-          newImgBlockId = newBlock({ blockId, type: 'IMG', content: '', index: index + 2 });
-          newImgBlockIndex = index + 2;
+          const createTrailingBlock = (page: PageInfo) => {
+            createBlock({
+              prevBlockId: page.nextId,
+              index: index + 2,
+              type: 'Text',
+              content: '',
+            });
+          };
+          newImgBlockId = createBlock({
+            prevBlockId: blockId,
+            index: index + 1,
+            type: 'IMG',
+            content: '',
+            callBack: createTrailingBlock,
+          });
+          newImgBlockIndex = index + 1;
         }
         axiosPostRequest(
           `${apiUrl}/${file.name}`,

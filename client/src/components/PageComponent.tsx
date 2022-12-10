@@ -13,12 +13,13 @@ import { v4 as uuid } from 'uuid';
 interface PageComponentProps {
   selectedBlockId: string[];
 }
+
 interface BlockInfo {
   blockId: string;
   content: string;
   index: number;
   type: string;
-  focus?: boolean;
+  createdAt: string;
 }
 
 interface PageInfo {
@@ -26,6 +27,22 @@ interface PageInfo {
   nextId: string;
   pageId: string;
   blocks: BlockInfo[];
+}
+
+interface createBlockParam {
+  prevBlockId?: string;
+  index: number;
+  content: string;
+  type: string;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
+}
+
+interface AddBlockParam {
+  block: BlockInfo;
+  prevBlockId: string | undefined;
+  saveOption?: boolean;
+  callBack?: (block: BlockInfo) => void;
 }
 
 interface EditInfo {
@@ -36,14 +53,10 @@ interface EditInfo {
   type: string;
 }
 
-interface EditedBlockInfo {
-  block: BlockInfo;
-  type: 'new' | 'change' | 'delete';
-}
-
 interface BlockTask {
   blockId: string;
   task: string;
+  prevBlockId?: string;
 }
 
 interface CaretPosition {
@@ -51,19 +64,135 @@ interface CaretPosition {
   caretOffset: number;
 }
 
+const emptyPage = { title: '', nextId: '', pageId: '', blocks: [] } as PageInfo;
+
 export default function PageComponent({ selectedBlockId }: PageComponentProps): React.ReactElement {
-  const [pageInfo, setPageInfo] = useState<PageInfo>({
-    title: '',
-    nextId: '',
-    pageId: '',
-    blocks: [],
-  });
+  const [pageInfo, setPageInfo] = useState<PageInfo>(emptyPage);
+
   const [focusBlockId, setFocusBlockId] = useState<string | null>(null);
-  const [editedBlock, setEditedBlock] = useState<EditedBlockInfo | null>(null);
-  const [selectedBlocks, setSelectedBlocks] = useState<BlockInfo[]>([]);
-  const [blockTask, setBlockTask] = useState<BlockTask[]>([]);
   const [caretPosition, setCaretPosition] = useState<CaretPosition | null>(null);
+
+  const [editTasks, setEditTasks] = useState<BlockTask[]>([]);
+  const [selectedBlocks, setSelectedBlocks] = useState<BlockInfo[]>([]);
+
   const [clientId] = useAtom(userIdAtom);
+  const { pageid } = useParams();
+  let isUploading = false;
+
+  const addTask = (blockId: string, task: string, prevBlockId?: string) =>
+    setEditTasks((prevTasks) => {
+      const newTask =
+        prevBlockId === undefined ? { blockId, task } : { blockId, task, prevBlockId };
+      prevTasks.push(newTask);
+      return prevTasks;
+    });
+
+  const getIndexByPrevId = ({
+    prevBlockId,
+    blocks,
+  }: {
+    prevBlockId: string;
+    blocks: BlockInfo[];
+  }) => {
+    const prevBlock = blocks.find((block) => block.blockId === prevBlockId);
+    if (prevBlock === undefined) return;
+    return prevBlock.index + 1;
+  };
+
+  const updateIndex = (diff: number, targetIndex: number) => (block: BlockInfo, index: number) => {
+    if (index < targetIndex) return block;
+    setEditTasks((prev) => [...prev, { blockId: block.blockId, task: 'edit' }]);
+    return {
+      ...block,
+      index: index + diff,
+    };
+  };
+
+  const createBlock = ({
+    prevBlockId,
+    index,
+    content,
+    type,
+    notSaveOption,
+    callBack,
+  }: createBlockParam) => {
+    setPageInfo((prevPage) => {
+      const targetIndex =
+        prevBlockId === undefined
+          ? index
+          : getIndexByPrevId({ prevBlockId, blocks: prevPage.blocks });
+      if (targetIndex === undefined) return prevPage;
+      const newBlocks = prevPage.blocks.map(updateIndex(1, targetIndex));
+      const newBlock = {
+        blockId: prevPage.nextId,
+        content,
+        index: targetIndex,
+        type,
+        createdAt: new Date().toUTCString(),
+      };
+      newBlocks.push(newBlock);
+      newBlocks.sort((a, b) => a.index - b.index);
+      if (notSaveOption !== true) addTask(prevPage.nextId, 'create');
+      if (callBack !== undefined) callBack(prevPage);
+      return {
+        ...prevPage,
+        blocks: newBlocks,
+        nextId: uuid(),
+      };
+    });
+    return pageInfo.nextId;
+  };
+
+  const getFirstAddedIndex = (createdAt: string, index: number, blocks: BlockInfo[]): number => {
+    const target = blocks[index];
+    if (target === undefined) return index;
+    return Date.parse(blocks[index].createdAt) > Date.parse(createdAt)
+      ? getFirstAddedIndex(createdAt, index + 1, blocks)
+      : index;
+  };
+
+  const getTargetIndex = ({
+    block,
+    prevBlockId,
+    blocks,
+  }: {
+    block: BlockInfo;
+    prevBlockId: string | undefined;
+    blocks: BlockInfo[];
+  }) => {
+    if (prevBlockId === undefined) {
+      if (block.index !== 0) return;
+      return getFirstAddedIndex(block.createdAt, 0, blocks);
+    }
+    const prevBlock = blocks.find((block) => block.blockId === prevBlockId);
+    if (prevBlock === undefined) return block.index;
+    const originIndex = prevBlock.index + 1;
+    return originIndex === blocks.length
+      ? originIndex
+      : getFirstAddedIndex(block.createdAt, originIndex, blocks);
+  };
+
+  const addBlock = ({ block, prevBlockId, saveOption, callBack }: AddBlockParam) => {
+    setPageInfo((prevPage) => {
+      const targetIndex = getTargetIndex({
+        prevBlockId,
+        block,
+        blocks: prevPage.blocks,
+      });
+      if (targetIndex === undefined) return prevPage;
+      block.index = targetIndex;
+      const newBlocks = prevPage.blocks.map(updateIndex(1, targetIndex));
+      newBlocks.push(block);
+      newBlocks.sort((a, b) => a.index - b.index);
+      if (saveOption === true) addTask(prevPage.nextId, 'create');
+      if (callBack !== undefined) callBack(block);
+      return {
+        ...prevPage,
+        blocks: newBlocks,
+      };
+    });
+    return block.blockId;
+  };
 
   const handleSetCaretPositionById = ({
     targetBlockId,
@@ -90,11 +219,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     caretPosition.targetBlockId = targetBlock.blockId;
     caretPosition.caretOffset = caretOffset;
   };
-
-  // const [isUploading, setIsUploading] = useState(false);
-  let isUploading = false;
-
-  const { pageid } = useParams();
 
   useEffect(() => {
     setSelectedBlocks(
@@ -168,9 +292,9 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   const storePage = () => {
     console.log('페이지 블록', pageInfo.blocks);
     isUploading = true;
-    const blockTaskTemp = blockTask.slice(0);
-    blockTask.splice(0);
-    const filteredTasks = filterTask(blockTaskTemp);
+    const editTasksTemp = editTasks.slice(0);
+    editTasks.splice(0);
+    const filteredTasks = filterTask(editTasksTemp);
     const tasks = taskRequest(filteredTasks, pageInfo.blocks);
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
@@ -184,10 +308,12 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       isUploading = false;
     };
     const onFail = (res: AxiosResponse) => {
-      setBlockTask((prev) => [...blockTaskTemp, ...prev]);
+      setEditTasks((prev) => [...editTasksTemp, ...prev]);
       isUploading = false;
     };
-    axiosPostRequest(API.UPDATE_PAGE, onSuccess, onFail, requestBody, requestHeader);
+    const dummy = {} as AxiosResponse;
+    onSuccess(dummy);
+    // axiosPostRequest(API.UPDATE_PAGE, onSuccess, onFail, requestBody, requestHeader);
   };
 
   // useEffect(() => {
@@ -206,54 +332,54 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   //   };
   // }, [pageInfo, blockTask]);
 
-  useEffect(() => {
-    const source = new EventSource(API.CONNECT_SSE, {
-      withCredentials: true,
-    });
-    const onServerConnect = (e: Event) => {
-      //console.log('sse connection');
-      // console.log(e);
-    };
-    const onServerMsg = (e: MessageEvent) => {
-      const { edits, userId, title } = JSON.parse(e.data) as {
-        edits: EditInfo[];
-        userId: string;
-        title: string;
-      };
-      if (userId === clientId) return;
-      pageInfo.title = title;
-      edits.map((edit: EditInfo) => {
-        const { task, blockId, type, content, index } = edit;
-        switch (task) {
-          case 'create':
-            addBlock({ blockId, type, content, index, noSave: true });
-            break;
-          case 'edit':
-            changeBlock({ blockId, type, content, index, noSave: true });
-            break;
-          case 'delete':
-            deleteBlock({ block: { blockId, type: '', content: '', index: 1 }, noSave: true });
-            break;
-          default:
-            break;
-        }
-      });
-    };
-    const onServerError = (e: Event) => {
-      // console.log('sse error');
-      // console.log(e);
-    };
-    source.addEventListener('open', onServerConnect);
-    source.addEventListener('message', onServerMsg);
-    source.addEventListener('error', onServerError);
+  // useEffect(() => {
+  //   const source = new EventSource(API.CONNECT_SSE, {
+  //     withCredentials: true,
+  //   });
+  //   const onServerConnect = (e: Event) => {
+  //     //console.log('sse connection');
+  //     // console.log(e);
+  //   };
+  //   const onServerMsg = (e: MessageEvent) => {
+  //     const { edits, userId, title } = JSON.parse(e.data) as {
+  //       edits: EditInfo[];
+  //       userId: string;
+  //       title: string;
+  //     };
+  //     if (userId === clientId) return;
+  //     pageInfo.title = title;
+  //     edits.map((edit: EditInfo) => {
+  //       const { task, blockId, type, content, index } = edit;
+  //       switch (task) {
+  //         case 'create':
+  //           addBlock({ blockId, type, content, index, noSave: true });
+  //           break;
+  //         case 'edit':
+  //           changeBlock({ blockId, type, content, index, noSave: true });
+  //           break;
+  //         case 'delete':
+  //           deleteBlock({ block: { blockId, type: '', content: '', index: 1 }, noSave: true });
+  //           break;
+  //         default:
+  //           break;
+  //       }
+  //     });
+  //   };
+  //   const onServerError = (e: Event) => {
+  //     // console.log('sse error');
+  //     // console.log(e);
+  //   };
+  //   source.addEventListener('open', onServerConnect);
+  //   source.addEventListener('message', onServerMsg);
+  //   source.addEventListener('error', onServerError);
 
-    return () => {
-      source.removeEventListener('open', onServerConnect);
-      source.removeEventListener('message', onServerMsg);
-      source.removeEventListener('error', onServerError);
-      source.close();
-    };
-  }, [pageid, pageInfo]);
+  //   return () => {
+  //     source.removeEventListener('open', onServerConnect);
+  //     source.removeEventListener('message', onServerMsg);
+  //     source.removeEventListener('error', onServerError);
+  //     source.close();
+  //   };
+  // }, [pageid, pageInfo]);
 
   const moveCaret = (blockId: string, offset: number) => {
     const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
@@ -291,7 +417,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   }, [pageInfo]);
 
   useEffect(() => {
-    const checkEdit = () => blockTask.length > 0;
+    const checkEdit = () => editTasks.length > 0;
     const checkUploading = () => isUploading;
     const syncPage = () => {
       if (checkEdit() && !checkUploading()) {
@@ -323,14 +449,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     axiosGetRequest(API.GET_PAGE + pageid, onSuccess, onFail, requestHeader);
   }, [pageid]);
 
-  const updateIndex = (diff: number) => (block: BlockInfo) => {
-    setBlockTask((prev) => [...prev, { blockId: block.blockId, task: 'edit' }]);
-    return {
-      ...block,
-      index: block.index + diff,
-    };
-  };
-
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const newContent = (e.target as HTMLDivElement).textContent;
     if (newContent) {
@@ -345,7 +463,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleSetCaretPositionByIndex({ targetBlockIndex: 1, caretOffset: 0 });
+      handleSetCaretPositionByIndex({ targetBlockIndex: 0, caretOffset: 0 });
 
       // if(caretPosition === null) return ;
       // handleSetCaretPositionByIndex({targetBlockIndex: 1, caretOffset: 0});
@@ -353,43 +471,13 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       // caretPosition.caretOffset = 0;
       if (e.nativeEvent.isComposing) return;
       if (totalContent.length === offset) {
-        addBlock({ type: 'TEXT', content: '', index: 1 });
+        createBlock({ prevBlockId: undefined, index: 0, content: '', type: 'TEXT' });
       } else {
         pageInfo.title = preText;
         elem.textContent = preText;
-        addBlock({ type: 'TEXT', content: postText, index: 1 });
+        createBlock({ prevBlockId: undefined, index: 0, content: preText, type: 'TEXT' });
       }
     }
-  };
-
-  const addBlock = ({
-    blockId,
-    type,
-    content,
-    index,
-    noSave,
-  }: {
-    blockId?: string;
-    type: string;
-    content: string;
-    index: number;
-    noSave?: boolean;
-  }) => {
-    if (!noSave) setBlockTask((prev) => [...prev, { blockId: pageInfo.nextId, task: 'create' }]);
-    setPageInfo((prev) => {
-      return {
-        ...prev,
-        blocks: [
-          ...prev.blocks.slice(0, index - 1),
-          { content, type, index, blockId: prev.nextId },
-          ...(!noSave
-            ? prev.blocks.slice(index - 1).map(updateIndex(1))
-            : prev.blocks.slice(index - 1)),
-        ].sort((a, b) => a.index - b.index),
-        nextId: uuid(),
-      };
-    });
-    return pageInfo.nextId;
   };
 
   const changeBlock = ({
@@ -413,7 +501,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
           .sort((a, b) => a.index - b.index),
       };
     });
-    if (!noSave) setBlockTask((prev) => [...prev, { blockId, task: 'edit' }]);
+    if (!noSave) setEditTasks((prev) => [...prev, { blockId, task: 'edit' }]);
     return blockId;
   };
 
@@ -434,53 +522,13 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         ...prev,
         blocks: [
           ...prev.blocks.slice(0, targetIndex),
-          ...prev.blocks.slice(targetIndex + 1).map(updateIndex(-1)),
+          ...prev.blocks.slice(targetIndex + 1).map(updateIndex(-1, 0)),
         ],
       } as PageInfo;
     });
     if (!noSave)
-      setBlockTask((prev) => [...prev, { blockId: targetBlockInfo.blockId, task: 'delete' }]);
+      setEditTasks((prev) => [...prev, { blockId: targetBlockInfo.blockId, task: 'delete' }]);
   };
-
-  /* editedBlock */
-  useEffect(() => {
-    // console.log('🚀 ~ file: PageComponent.tsx:94 ~ PageComponent ~ editedBlock', editedBlock);
-    if (!editedBlock || editedBlock.block === undefined) return;
-    if (editedBlock.type === 'delete') {
-      editedBlock !== undefined &&
-        setPageInfo((prev) => {
-          const targetBlock = prev.blocks.find(
-            (block) => block.blockId === editedBlock.block.blockId,
-          );
-          if (targetBlock === undefined) return prev;
-          const targetIndex = targetBlock.index;
-          targetIndex - 1 !== 0 &&
-            setFocusBlockId(
-              pageInfo.blocks.find((block) => block.index === targetIndex - 1)?.blockId ?? null,
-            );
-          return {
-            ...prev,
-            blocks: [
-              ...prev.blocks.slice(0, targetIndex - 1),
-              ...prev.blocks.slice(targetIndex).map(updateIndex(-1)),
-            ],
-          } as PageInfo;
-        });
-    } else {
-      const { blockId, content, index, type, focus } = editedBlock.block;
-      setPageInfo((prev) => ({
-        ...prev,
-        blocks: [
-          ...prev.blocks.slice(0, index - 1),
-          { ...editedBlock.block, blockId: type === 'new' ? prev.nextId : blockId },
-          ...prev.blocks.slice(index - 1).map(updateIndex(1)),
-        ],
-        nextId: type === 'new' ? uuid() : prev.nextId,
-      }));
-      // setFocusBlockId(blockId);
-      // setCaretPosition({targetBlockId: blockId, caretOffset: 0});
-    }
-  }, [editedBlock]);
 
   const onFocusIndex = (
     e: React.KeyboardEvent<HTMLDivElement>,
@@ -613,7 +661,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       const [reOrderedBlock] = blocks.splice(result.source.index - 1, 1);
       blocks.splice((result?.destination?.index as number) - 1, 0, reOrderedBlock);
       const arrayedBlocks = blocks.map((e, i) => {
-        setBlockTask((prev) => [...prev, { blockId: e.blockId, task: 'edit' }]);
+        setEditTasks((prev) => [...prev, { blockId: e.blockId, task: 'edit' }]);
         return { ...e, index: i + 1 };
       });
       return { ...prev, blocks: arrayedBlocks };
@@ -646,7 +694,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
                         key={block.blockId}
                         block={block}
                         blockId={block.blockId}
-                        newBlock={addBlock}
+                        createBlock={createBlock}
                         changeBlock={changeBlock}
                         moveBlock={moveBlock}
                         deleteBlock={deleteBlock}
@@ -655,7 +703,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
                         provided={provided}
                         selectedBlocks={selectedBlocks}
                         allBlocks={pageInfo.blocks}
-                        task={blockTask}
+                        task={editTasks}
                         pageInfo={pageInfo}
                         handleSetCaretPositionById={handleSetCaretPositionById}
                         handleSetCaretPositionByIndex={handleSetCaretPositionByIndex}

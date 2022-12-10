@@ -53,7 +53,6 @@ const getWorkspacesPipeline = async (userId) => {
     $or: [{ owner: userId }, { members: userId }],
   };
   const workspaceList = await readAllDocument(dbConfig.COLLECTION_WORKSPACE, queryCriteria);
-  console.log(workspaceList);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
   response.workspaceList = workspaceList.map((workspace) => {
     const workspaceInfo = { id: workspace._id, title: workspace.title };

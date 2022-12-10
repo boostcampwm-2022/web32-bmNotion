@@ -6,8 +6,9 @@ interface BlockInfo {
   content: string;
   index: number;
   type: string;
-  focus?: boolean;
+  createdAt: string;
 }
+
 interface TypeProps {
   image: string;
   title: string;
@@ -26,7 +27,11 @@ export default function BlockModalContentType({
   block,
 }: TypeProps): ReactElement {
   return (
-    <TypeContainer onClick={() => handleType(block, type)}>
+    <TypeContainer
+      onClick={() => {
+        handleType(block, type);
+      }}
+    >
       <TypeImage image={image} />
       <TypeTextContainer>
         <TypeTextTitle>{title}</TypeTextTitle>

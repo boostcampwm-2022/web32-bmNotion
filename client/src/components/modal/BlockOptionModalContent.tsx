@@ -9,8 +9,9 @@ interface BlockInfo {
   content: string;
   index: number;
   type: string;
-  focus?: boolean;
+  createdAt: string;
 }
+
 interface BlockOptionModalProps {
   handleType: Function;
   deleteBlock: Function;
