@@ -29,7 +29,7 @@ interface PageInfo {
   blocks: BlockInfo[];
 }
 
-interface createBlockParam {
+interface CreateBlockParam {
   prevBlockId?: string;
   index: number;
   content: string;
@@ -41,13 +41,26 @@ interface createBlockParam {
 interface AddBlockParam {
   block: BlockInfo;
   prevBlockId: string | undefined;
-  saveOption?: boolean;
-  callBack?: (block: BlockInfo) => void;
+  callBack?: (page: PageInfo) => void;
+}
+
+interface ChangeBlockInfo {
+  blockId: string;
+  content?: string;
+  index?: number;
+  type?: string;
+  createdAt?: string;
+}
+
+interface ChangeBlockParam {
+  block: ChangeBlockInfo;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
 }
 
 interface EditInfo {
   blockId: string;
-  task: string;
+  task: 'create' | 'edit' | 'delete';
   content: string;
   index: number;
   type: string;
@@ -55,7 +68,7 @@ interface EditInfo {
 
 interface BlockTask {
   blockId: string;
-  task: string;
+  task: 'create' | 'edit' | 'delete';
   prevBlockId?: string;
 }
 
@@ -79,7 +92,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   const { pageid } = useParams();
   let isUploading = false;
 
-  const addTask = (blockId: string, task: string, prevBlockId?: string) =>
+  const addTask = (blockId: string, task: 'create' | 'edit' | 'delete', prevBlockId?: string) =>
     setEditTasks((prevTasks) => {
       const newTask =
         prevBlockId === undefined ? { blockId, task } : { blockId, task, prevBlockId };
@@ -100,11 +113,13 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   };
 
   const updateIndex = (diff: number, targetIndex: number) => (block: BlockInfo, index: number) => {
-    if (index < targetIndex) return block;
-    setEditTasks((prev) => [...prev, { blockId: block.blockId, task: 'edit' }]);
+    if (block.index < targetIndex) return block;
+    const newIndex = index + diff;
+    if (newIndex !== block.index)
+      setEditTasks((prev) => [...prev, { blockId: block.blockId, task: 'edit' }]);
     return {
       ...block,
-      index: index + diff,
+      index: newIndex,
     };
   };
 
@@ -115,7 +130,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     type,
     notSaveOption,
     callBack,
-  }: createBlockParam) => {
+  }: CreateBlockParam) => {
     setPageInfo((prevPage) => {
       const targetIndex =
         prevBlockId === undefined
@@ -132,7 +147,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       };
       newBlocks.push(newBlock);
       newBlocks.sort((a, b) => a.index - b.index);
-      if (notSaveOption !== true) addTask(prevPage.nextId, 'create');
+      if (notSaveOption !== true) addTask(prevPage.nextId, 'create', prevBlockId);
       if (callBack !== undefined) callBack(prevPage);
       return {
         ...prevPage,
@@ -172,7 +187,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       : getFirstAddedIndex(block.createdAt, originIndex, blocks);
   };
 
-  const addBlock = ({ block, prevBlockId, saveOption, callBack }: AddBlockParam) => {
+  const addBlock = ({ block, prevBlockId, callBack }: AddBlockParam) => {
     setPageInfo((prevPage) => {
       const targetIndex = getTargetIndex({
         prevBlockId,
@@ -184,14 +199,30 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       const newBlocks = prevPage.blocks.map(updateIndex(1, targetIndex));
       newBlocks.push(block);
       newBlocks.sort((a, b) => a.index - b.index);
-      if (saveOption === true) addTask(prevPage.nextId, 'create');
-      if (callBack !== undefined) callBack(block);
+      if (callBack !== undefined) callBack(prevPage);
       return {
         ...prevPage,
         blocks: newBlocks,
       };
     });
     return block.blockId;
+  };
+
+  const changeBlock = ({ block: targetBlock, notSaveOption, callBack }: ChangeBlockParam) => {
+    setPageInfo((prevPage) => {
+      if (notSaveOption !== true) addTask(targetBlock.blockId, 'edit');
+      if (callBack !== undefined) callBack(prevPage);
+      return {
+        ...prevPage,
+        blocks: prevPage.blocks
+          .map((block) =>
+            block.blockId === targetBlock.blockId ? { ...block, ...targetBlock } : block,
+          )
+          .sort((a, b) => a.index - b.index)
+          .map(updateIndex(0, 0)),
+      };
+    });
+    return targetBlock.blockId;
   };
 
   const handleSetCaretPositionById = ({
@@ -478,31 +509,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         createBlock({ prevBlockId: undefined, index: 0, content: preText, type: 'TEXT' });
       }
     }
-  };
-
-  const changeBlock = ({
-    blockId,
-    type,
-    content,
-    index,
-    noSave,
-  }: {
-    blockId: string;
-    type: string;
-    content: string;
-    index: number;
-    noSave?: boolean;
-  }) => {
-    setPageInfo((prev) => {
-      return {
-        ...prev,
-        blocks: prev.blocks
-          .map((block) => (block.blockId === blockId ? { ...block, type, content, index } : block))
-          .sort((a, b) => a.index - b.index),
-      };
-    });
-    if (!noSave) setEditTasks((prev) => [...prev, { blockId, task: 'edit' }]);
-    return blockId;
   };
 
   const deleteBlock = ({
