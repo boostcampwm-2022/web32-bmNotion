@@ -91,6 +91,7 @@ export default function MainPage(): ReactElement {
   }, [setProfileImageUrl]);
 
   const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
+  const dragRangeStyle = 'red';
   return (
     <Wrapper
       onMouseUp={(e) => {
@@ -104,7 +105,7 @@ export default function MainPage(): ReactElement {
       }}
       onMouseMove={(e) => {
         if (mouseStartPosition.positionX && mouseStartPosition.positionY) {
-          setMousePosition({ ...mousePosition, positionX: e.clientX, positionY: e.clientY });
+          setMousePosition({ ...mousePosition, positionX: e.pageX, positionY: e.pageY });
           if (
             mouseStartPosition.positionX &&
             mouseStartPosition.positionY &&
@@ -215,8 +216,8 @@ export default function MainPage(): ReactElement {
           onMouseDown={(e) => {
             setMouseStartPosition({
               ...mouseStartPosition,
-              positionX: e.clientX,
-              positionY: e.clientY,
+              positionX: e.pageX,
+              positionY: e.pageY,
             });
             blocks.forEach((e) => e.classList.remove('selected'));
           }}
@@ -227,10 +228,30 @@ export default function MainPage(): ReactElement {
         </MainContainerBody>
       </MainContainer>
       <DragRange
-        startPositionX={mouseStartPosition.positionX}
-        startPositionY={mouseStartPosition.positionY}
-        positionX={mousePosition.positionX}
-        positionY={mousePosition.positionY}
+        style={{
+          left:
+            mouseStartPosition.positionX && mousePosition.positionX
+              ? Math.min(mouseStartPosition.positionX, mousePosition.positionX).toString() + 'px'
+              : '0px',
+          top:
+            mouseStartPosition.positionY && mousePosition.positionY
+              ? Math.min(mouseStartPosition.positionY, mousePosition.positionY).toString() + 'px'
+              : '0px',
+          width:
+            mouseStartPosition.positionX && mousePosition.positionX
+              ? Math.max(
+                  mouseStartPosition.positionX - mousePosition.positionX,
+                  mousePosition.positionX - mouseStartPosition.positionX,
+                ).toString() + 'px'
+              : '0px',
+          height:
+            mouseStartPosition.positionY && mousePosition.positionY
+              ? Math.max(
+                  mouseStartPosition.positionY - mousePosition.positionY,
+                  mousePosition.positionY - mouseStartPosition.positionY,
+                ).toString() + 'px'
+              : '0px',
+        }}
       />
     </Wrapper>
   );
@@ -243,45 +264,9 @@ interface DragRangeProps {
   positionY: number | null;
 }
 
-const DragRange = styled.div<DragRangeProps>`
+const DragRange = styled.div`
   background-color: rgba(35, 131, 226, 0.15);
-  width: 100%;
-  height: 100%;
   position: absolute;
-  left: ${(props) => {
-    if (props.startPositionX && props.positionX) {
-      return Math.min(props.startPositionX, props.positionX).toString() + 'px';
-    }
-    return null;
-  }};
-  top: ${(props) => {
-    if (props.startPositionY && props.positionY) {
-      return Math.min(props.startPositionY, props.positionY).toString() + 'px';
-    }
-    return null;
-  }};
-  width: ${(props) => {
-    if (props.positionX && props.startPositionX) {
-      return (
-        Math.max(
-          props.positionX - props.startPositionX,
-          props.startPositionX - props.positionX,
-        )?.toString() + 'px'
-      );
-    }
-    return 0;
-  }};
-  height: ${(props) => {
-    if (props.positionY && props.startPositionY) {
-      return (
-        Math.max(
-          props.positionY - props.startPositionY,
-          props.startPositionY - props.positionY,
-        )?.toString() + 'px'
-      );
-    }
-    return 0;
-  }};
 `;
 
 const Wrapper = styled.div`

@@ -635,6 +635,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         onInput={handleOnInput}
         onKeyDown={handleOnKeyDown}
         suppressContentEditableWarning={true}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         {pageInfo.title}
       </PageTitle>
