@@ -350,6 +350,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       e.preventDefault();
       if (caretPosition === null) {
         setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
+        moveCaret(pageInfo.nextId, 0);
         return;
       }
       caretPosition.targetBlockId = pageInfo.nextId;
