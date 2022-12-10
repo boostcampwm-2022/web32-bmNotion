@@ -70,6 +70,8 @@ interface EditInfo {
   content: string;
   index: number;
   type: string;
+  createdAt: string;
+  prevBlockId?: string;
 }
 
 interface BlockTask {
@@ -224,8 +226,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
           .map((block) =>
             block.blockId === targetBlock.blockId ? { ...block, ...targetBlock } : block,
           )
-          .sort((a, b) => a.index - b.index)
-          .map(updateIndex(0, 0)),
+          .sort((a, b) => a.index - b.index),
       };
     });
     return targetBlock.blockId;
@@ -357,54 +358,57 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   //   };
   // }, [pageInfo, blockTask]);
 
-  // useEffect(() => {
-  //   const source = new EventSource(API.CONNECT_SSE, {
-  //     withCredentials: true,
-  //   });
-  //   const onServerConnect = (e: Event) => {
-  //     //console.log('sse connection');
-  //     // console.log(e);
-  //   };
-  //   const onServerMsg = (e: MessageEvent) => {
-  //     const { edits, userId, title } = JSON.parse(e.data) as {
-  //       edits: EditInfo[];
-  //       userId: string;
-  //       title: string;
-  //     };
-  //     if (userId === clientId) return;
-  //     pageInfo.title = title;
-  //     edits.map((edit: EditInfo) => {
-  //       const { task, blockId, type, content, index } = edit;
-  //       switch (task) {
-  //         case 'create':
-  //           addBlock({ blockId, type, content, index, noSave: true });
-  //           break;
-  //         case 'edit':
-  //           changeBlock({ blockId, type, content, index, noSave: true });
-  //           break;
-  //         case 'delete':
-  //           deleteBlock({ block: { blockId, type: '', content: '', index: 1 }, noSave: true });
-  //           break;
-  //         default:
-  //           break;
-  //       }
-  //     });
-  //   };
-  //   const onServerError = (e: Event) => {
-  //     // console.log('sse error');
-  //     // console.log(e);
-  //   };
-  //   source.addEventListener('open', onServerConnect);
-  //   source.addEventListener('message', onServerMsg);
-  //   source.addEventListener('error', onServerError);
+  useEffect(() => {
+    const source = new EventSource(API.CONNECT_SSE, {
+      withCredentials: true,
+    });
+    const onServerConnect = (e: Event) => {
+      //console.log('sse connection');
+      // console.log(e);
+    };
+    const onServerMsg = (e: MessageEvent) => {
+      const { edits, userId, title } = JSON.parse(e.data) as {
+        edits: EditInfo[];
+        userId: string;
+        title: string;
+      };
+      if (userId === clientId) return;
+      pageInfo.title = title;
+      edits.map((edit: EditInfo) => {
+        const { task, blockId, type, content, index, createdAt, prevBlockId } = edit;
+        switch (task) {
+          case 'create':
+            addBlock({ block: { blockId, content, createdAt, index, type }, prevBlockId });
+            break;
+          case 'edit':
+            changeBlock({
+              block: { blockId, content, index, type },
+              notSaveOption: true,
+            });
+            break;
+          case 'delete':
+            deleteBlock({ blockId, notSaveOption: true });
+            break;
+          default:
+            break;
+        }
+      });
+    };
+    const onServerError = (e: Event) => {
+      // console.log('sse error');
+      // console.log(e);
+    };
+    source.addEventListener('open', onServerConnect);
+    source.addEventListener('message', onServerMsg);
+    source.addEventListener('error', onServerError);
 
-  //   return () => {
-  //     source.removeEventListener('open', onServerConnect);
-  //     source.removeEventListener('message', onServerMsg);
-  //     source.removeEventListener('error', onServerError);
-  //     source.close();
-  //   };
-  // }, [pageid, pageInfo]);
+    return () => {
+      source.removeEventListener('open', onServerConnect);
+      source.removeEventListener('message', onServerMsg);
+      source.removeEventListener('error', onServerError);
+      source.close();
+    };
+  }, [pageid, pageInfo]);
 
   const moveCaret = (blockId: string, offset: number) => {
     const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
@@ -659,11 +663,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
             <PageBox className="blocks" {...provided.droppableProps} ref={provided.innerRef}>
               {pageInfo?.blocks &&
                 pageInfo.blocks.map((block, idx) => (
-                  <Draggable
-                    key={block.blockId}
-                    draggableId={block.blockId.toString()}
-                    index={idx + 1}
-                  >
+                  <Draggable key={uuid()} draggableId={block.blockId.toString()} index={idx + 1}>
                     {(provided) => (
                       <StyledBlockContent
                         key={block.blockId}

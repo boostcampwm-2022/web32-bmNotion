@@ -163,6 +163,7 @@ export default function BlockContent({
         const handleCaret = (page: PageInfo) => {
           handleSetCaretPositionById({ targetBlockId: page.nextId, caretOffset: 0 });
         };
+        task.push({ blockId: block.blockId, task: 'edit' });
         createBlock({
           prevBlockId: blockId,
           index: index + 1,
