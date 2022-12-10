@@ -284,42 +284,13 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   const filterTask = (blockTasks: BlockTask[]) => {
     const taskIds = {} as any;
     return blockTasks.reduce((pre, cur) => {
-      const { task, blockId } = cur;
+      const { task, blockId, prevBlockId } = cur;
       const target = pre[blockId];
       if (target === undefined) {
-        if (task === 'create') {
-          pre[blockId] = 'create';
-        } else if (task === 'edit') {
-          pre[blockId] = 'edit';
-        } else if (task === 'delete') {
-          pre[blockId] = 'delete';
-        }
+        pre[blockId] = [task, prevBlockId];
       } else {
-        if (target === 'delete') {
-          if (task === 'delete') {
-            pre[blockId] = 'delete';
-          } else if (task === 'edit') {
-            pre[blockId] = 'edit';
-          } else if (task === 'create') {
-            pre[blockId] = 'edit';
-          }
-        } else if (target === 'edit') {
-          if (task === 'delete') {
-            pre[blockId] = 'delete';
-          } else if (task === 'edit') {
-            pre[blockId] = 'edit';
-          } else if (task === 'create') {
-            pre[blockId] = 'edit';
-          }
-        } else if (target === 'create') {
-          if (task === 'delete') {
-            pre[blockId] = undefined;
-          } else if (task === 'edit') {
-            pre[blockId] = 'create';
-          } else if (task === 'create') {
-            pre[blockId] = 'create';
-          }
-        }
+        if (target === 'edit' && task === 'delete') pre[blockId][0] = 'delete';
+        if (target === 'create' && task === 'delete') pre[blockId][0] = undefined;
       }
       return pre;
     }, taskIds);
@@ -328,18 +299,17 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   const taskRequest = (filteredTask: Object, blocks: BlockInfo[]) => {
     const entries = Object.entries(filteredTask);
     return entries.map((value) => {
-      const [blockId, task] = value;
+      const [blockId, taskArr] = value;
+      const [task, prevBlockId] = taskArr;
       if (task === 'delete') {
         return { blockId: blockId, task };
       }
       const block = blocks.find((block) => block.blockId === blockId);
       if (block === undefined) return { blockId: blockId, task: 'delete' };
       return {
-        blockId: blockId,
         task,
-        content: block.content,
-        index: block.index,
-        type: block.type,
+        prevBlockId,
+        ...block,
       };
     });
   };
@@ -352,6 +322,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     editTasks.splice(0);
     const filteredTasks = filterTask(editTasksTemp);
     const tasks = taskRequest(filteredTasks, pageInfo.blocks);
+    console.log('테스크', tasks);
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
@@ -367,9 +338,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       setEditTasks((prev) => [...editTasksTemp, ...prev]);
       isUploading = false;
     };
-    const dummy = {} as AxiosResponse;
-    onSuccess(dummy);
-    // axiosPostRequest(API.UPDATE_PAGE, onSuccess, onFail, requestBody, requestHeader);
+    axiosPostRequest(API.UPDATE_PAGE, onSuccess, onFail, requestBody, requestHeader);
   };
 
   // useEffect(() => {

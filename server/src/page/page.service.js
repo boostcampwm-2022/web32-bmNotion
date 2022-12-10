@@ -31,7 +31,7 @@ const createBulk = (pageid, editInfos, title) => {
         },
       };
     }
-    const { content, index, type } = editInfo;
+    const { content, index, type, createdAt } = editInfo;
     if (task === 'create') {
       return {
         updateOne: {
@@ -43,6 +43,7 @@ const createBulk = (pageid, editInfos, title) => {
               blocks: {
                 blockId,
                 content,
+                createdAt,
                 index,
                 type,
               },
@@ -137,7 +138,7 @@ const pageCrud = {
 
 const checkPageAuthority = (page, userid) => page.participants.includes(userid);
 
-const editPagePipeline = async (userid, title, pageid, blocks, tasks) => {
+const editPagePipeline = async (userid, title, pageid, tasks) => {
   const page = await pageCrud.readPageById(pageid);
   if (page === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
   // const isParticipant = checkPageAuthority(page, userid);
