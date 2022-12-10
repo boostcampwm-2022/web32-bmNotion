@@ -58,6 +58,12 @@ interface ChangeBlockParam {
   callBack?: (page: PageInfo) => void;
 }
 
+interface DeleteBlockParam {
+  blockId: string;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
+}
+
 interface EditInfo {
   blockId: string;
   task: 'create' | 'edit' | 'delete';
@@ -225,6 +231,21 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     return targetBlock.blockId;
   };
 
+  const deleteBlock = ({ blockId, notSaveOption, callBack }: DeleteBlockParam) => {
+    setPageInfo((prevPage) => {
+      const newBlocks = prevPage.blocks
+        .filter((block) => block.blockId !== blockId)
+        .map(updateIndex(0, 0));
+      if (notSaveOption !== true) setEditTasks((prev) => [...prev, { blockId, task: 'delete' }]);
+      if (callBack !== undefined) callBack(prevPage);
+      return {
+        ...prevPage,
+        blocks: newBlocks,
+      };
+    });
+    return blockId;
+  };
+
   const handleSetCaretPositionById = ({
     targetBlockId,
     caretOffset,
@@ -244,7 +265,10 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     caretOffset: number;
   }) => {
     console.log('targetBlockIndex :', targetBlockIndex);
-    if (caretPosition === null) return;
+    if (caretPosition === null) {
+      setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
+      return;
+    }
     const targetBlock = pageInfo.blocks.find((e) => e.index === targetBlockIndex);
     if (targetBlock === undefined) return;
     caretPosition.targetBlockId = targetBlock.blockId;
@@ -322,6 +346,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
 
   const storePage = () => {
     console.log('페이지 블록', pageInfo.blocks);
+    console.log('카렛', caretPosition);
     isUploading = true;
     const editTasksTemp = editTasks.slice(0);
     editTasks.splice(0);
@@ -509,31 +534,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         createBlock({ prevBlockId: undefined, index: 0, content: preText, type: 'TEXT' });
       }
     }
-  };
-
-  const deleteBlock = ({
-    block: targetBlockInfo,
-    noSave,
-  }: {
-    block: BlockInfo;
-    noSave?: boolean;
-  }) => {
-    // console.log('delete ', targetBlockInfo.blockId);
-    setPageInfo((prev) => {
-      const targetIndex = prev.blocks.findIndex(
-        (block) => block.blockId === targetBlockInfo.blockId,
-      );
-      if (targetIndex === -1) return prev;
-      return {
-        ...prev,
-        blocks: [
-          ...prev.blocks.slice(0, targetIndex),
-          ...prev.blocks.slice(targetIndex + 1).map(updateIndex(-1, 0)),
-        ],
-      } as PageInfo;
-    });
-    if (!noSave)
-      setEditTasks((prev) => [...prev, { blockId: targetBlockInfo.blockId, task: 'delete' }]);
   };
 
   const onFocusIndex = (

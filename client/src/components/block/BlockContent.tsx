@@ -44,6 +44,12 @@ interface ChangeBlockParam {
   callBack?: (page: PageInfo) => void;
 }
 
+interface DeleteBlockParam {
+  blockId: string;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
+}
+
 interface BlockContentProps {
   block: BlockInfo;
   blockId?: string; // page - Id 불변
@@ -55,7 +61,7 @@ interface BlockContentProps {
   changeBlock: (param: ChangeBlockParam) => string;
   provided: any;
   moveBlock: Function;
-  deleteBlock: Function;
+  deleteBlock: (param: DeleteBlockParam) => string;
   selectedBlocks: BlockInfo[];
   allBlocks: BlockInfo[];
   task: any;
@@ -234,7 +240,7 @@ export default function BlockContent({
           block: { ...prevBlock, content: text },
           callBack: handleCaret,
         });
-      deleteBlock({ block });
+      deleteBlock({ blockId });
     }
   };
 

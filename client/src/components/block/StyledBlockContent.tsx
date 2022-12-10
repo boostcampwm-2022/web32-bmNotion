@@ -39,6 +39,12 @@ interface ChangeBlockParam {
   callBack?: (page: PageInfo) => void;
 }
 
+interface DeleteBlockParam {
+  blockId: string;
+  notSaveOption?: boolean;
+  callBack?: (page: PageInfo) => void;
+}
+
 interface StyledBlockContentProps {
   block: BlockInfo;
   blockId?: string; // page - Id 불변
@@ -50,7 +56,7 @@ interface StyledBlockContentProps {
   changeBlock: (param: ChangeBlockParam) => string;
   provided: any;
   moveBlock: Function;
-  deleteBlock: Function;
+  deleteBlock: (param: DeleteBlockParam) => string;
   selectedBlocks: BlockInfo[];
   allBlocks: BlockInfo[];
   task: any;
