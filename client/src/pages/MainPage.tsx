@@ -14,6 +14,7 @@ import WorkspaceList from '@/components/WorkspaceList';
 import PageList from '@/components/PageList';
 import { useAtom } from 'jotai';
 import { userNickNameAtom, userIdAtom } from '@/store/userAtom';
+import { workSpaceNameAtom } from '@/store/workSpaceAtom';
 interface SideBarButtonProps {
   isClicked: boolean;
   sideBarButton: string;
@@ -25,6 +26,9 @@ interface SideBarProps {
   sideBarHoverButton: string;
 }
 
+interface MovingBoxProps {
+  isClicked: boolean;
+}
 interface MousePositionInfo {
   positionX: number | null;
   positionY: number | null;
@@ -56,6 +60,9 @@ export default function MainPage(): ReactElement {
   const [spaceSettingModalOpen, setSpaceSettingModalOpen] = useState(false);
   const [topBarModalOpen, setTopBarModalOpen] = useState(false);
   const [selectedBlockId, setSelectedBlockId] = useState<string[]>([]);
+  const [workSpaceName, setWorkSpaceName] = useAtom(workSpaceNameAtom);
+  const [listButtonCilcked, setListButtonCilcked] = useState(false);
+
   const moveNextBlock = () => {};
   const sideBarButtonClick = () => {
     setSideBarButtonClicked(!sideBarButtonClicked);
@@ -70,6 +77,10 @@ export default function MainPage(): ReactElement {
   };
   const readerModeButtonClick = () => {
     setIsReaderMode(!isReaderMode);
+  };
+
+  const onListButtonClick = () => {
+    setListButtonCilcked(!listButtonCilcked);
   };
 
   useEffect(() => {
@@ -149,10 +160,45 @@ export default function MainPage(): ReactElement {
         }
       }}
     >
+      <TopBar>
+        <TopBarLeft>
+          <SideBarButton
+            isClicked={sideBarButtonClicked}
+            sideBarButton={hamburgerButton}
+            sideBarHoverButton={doubleArrowButton}
+            onClick={sideBarButtonClick}
+          ></SideBarButton>
+        </TopBarLeft>
+        <TopBarRight>
+          <UserProfileWrapper>
+            <ProfileImage
+              src={`${
+                profileImageUrl === undefined ? '/assets/icons/profileImage.png' : profileImageUrl
+              }`}
+            />
+            <span>{userNickName}</span>
+          </UserProfileWrapper>
+          <TopBarOptionButton onClick={handleTopBarModal}></TopBarOptionButton>
+          {topBarModalOpen && (
+            <>
+              <DimdLayer onClick={handleTopBarModal}></DimdLayer>
+              <Modal width={'230px'} height={'500px'} position={['', '12px', '', '']}>
+                <TopBarModalContent
+                  readerMode={readerModeButtonClick}
+                  isReaderMode={isReaderMode}
+                />
+              </Modal>
+            </>
+          )}
+        </TopBarRight>
+      </TopBar>
       <SideBar isClicked={sideBarButtonClicked} sideBarHoverButton={reverseDoubleArrowButton}>
         <SideBarHeaderContainer>
           <SideBarHeader>
-            <WorkspaceList />
+            <WorkspaceHeadContent>
+              <WorkSpaceTitle>{workSpaceName}</WorkSpaceTitle>
+              <OpenWorkspaceButton onClick={onListButtonClick}></OpenWorkspaceButton>
+            </WorkspaceHeadContent>
             <SideBarButton
               isClicked={!sideBarButtonClicked}
               sideBarButton={tranParentButton}
@@ -163,6 +209,7 @@ export default function MainPage(): ReactElement {
         </SideBarHeaderContainer>
         <SideBarBodyContainer>
           <SideBarBody>
+            <WorkspaceList listButtonCilcked={listButtonCilcked} />
             <SpaceSettingButton onClick={spaceSettingButtonClicked}>
               <SettingIcon />
               <span>설정</span>
@@ -179,39 +226,8 @@ export default function MainPage(): ReactElement {
           </SideBarBody>
         </SideBarBodyContainer>
       </SideBar>
+      <MovingBox isClicked={sideBarButtonClicked} />
       <MainContainer>
-        <TopBar>
-          <TopBarLeft>
-            <SideBarButton
-              isClicked={sideBarButtonClicked}
-              sideBarButton={hamburgerButton}
-              sideBarHoverButton={doubleArrowButton}
-              onClick={sideBarButtonClick}
-            ></SideBarButton>
-          </TopBarLeft>
-          <TopBarRight>
-            <UserProfileWrapper>
-              <ProfileImage
-                src={`${
-                  profileImageUrl === undefined ? '/assets/icons/profileImage.png' : profileImageUrl
-                }`}
-              />
-              <span>{userNickName}</span>
-            </UserProfileWrapper>
-            <TopBarOptionButton onClick={handleTopBarModal}></TopBarOptionButton>
-            {topBarModalOpen && (
-              <>
-                <DimdLayer onClick={handleTopBarModal}></DimdLayer>
-                <Modal width={'230px'} height={'500px'} position={['', '12px', '', '']}>
-                  <TopBarModalContent
-                    readerMode={readerModeButtonClick}
-                    isReaderMode={isReaderMode}
-                  />
-                </Modal>
-              </>
-            )}
-          </TopBarRight>
-        </TopBar>
         <MainContainerBody
           onMouseDown={(e) => {
             setMouseStartPosition({
@@ -257,13 +273,6 @@ export default function MainPage(): ReactElement {
   );
 }
 
-interface DragRangeProps {
-  startPositionX: number | null;
-  startPositionY: number | null;
-  positionX: number | null;
-  positionY: number | null;
-}
-
 const DragRange = styled.div`
   background-color: rgba(35, 131, 226, 0.15);
   position: absolute;
@@ -288,6 +297,7 @@ const TopBar = styled.div`
   width: 100%;
   height: 45px;
   top: 0;
+  background-color: white;
 `;
 
 const TopBarLeft = styled.div`
@@ -340,12 +350,23 @@ const SideBarButton = styled.button<SideBarButtonProps>`
   }
 `;
 
+const MovingBox = styled.div<MovingBoxProps>`
+  margin-left: ${(props) => (props.isClicked ? '0px' : '-240px')};
+  width: 240px;
+  height: 100%;
+  transition: 0.3s;
+`;
+
 const SideBar = styled.div<SideBarProps>`
   margin-left: ${(props) => (props.isClicked ? '0px' : '-240px')};
   width: 240px;
   height: 100%;
   transition: 0.3s;
   background-color: #fbfbfa;
+  z-index: 10;
+  position: fixed;
+  top: 0;
+  border-right: 1.2px rgba(225, 225, 225, 0.4) solid;
 
   &:hover {
     ${SideBarButton} {
@@ -360,6 +381,7 @@ const SideBarHeaderContainer = styled.div`
   align-items: center;
   width: 100%;
   height: auto;
+  z-index: 10;
 
   &:hover {
     background-color: #ebebea;
@@ -388,7 +410,7 @@ const SideBarBody = styled.div`
   align-items: center;
   height: 100%;
   width: 100%;
-  padding: 12px;
+  padding: 0px 12px;
 `;
 
 const SpaceSettingButton = styled.button`
@@ -443,4 +465,37 @@ const SettingIcon = styled.div`
   background-image: url('/assets/icons/gear.svg');
   background-size: 12px 12px;
   margin: 8px;
+`;
+
+const WorkspaceHeadContent = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 45px;
+  gap: 8px;
+`;
+
+const WorkSpaceTitle = styled.div`
+  width: 120px;
+  overflow-x: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-left: 8px;
+`;
+
+const OpenWorkspaceButton = styled.button`
+  display: flex;
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  background-image: url('/assets/icons/moreWorkSpace.png');
+  background-size: 9px 11px;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin: 8px;
+  opacity: 0.5;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
 `;
