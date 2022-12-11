@@ -497,14 +497,14 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
     if (e.key === 'Enter') {
       e.preventDefault();
-      // handleSetCaretPositionByIndex({ targetBlockIndex: 0, caretOffset: 0 });
-      if (caretPosition === null) {
-        setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
-        moveCaret(pageInfo.nextId, 0);
-        return;
-      }
-      caretPosition.targetBlockId = pageInfo.nextId;
-      caretPosition.caretOffset = 0;
+      handleSetCaretPositionByIndex({ targetBlockIndex: 0, caretOffset: 0 });
+      // if (caretPosition === null) {
+      //   setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
+      //   moveCaret(pageInfo.nextId, 0);
+      //   return;
+      // }
+      // caretPosition.targetBlockId = pageInfo.nextId;
+      // caretPosition.caretOffset = 0;
 
       // if(caretPosition === null) return ;
       // handleSetCaretPositionByIndex({targetBlockIndex: 1, caretOffset: 0});
@@ -676,7 +676,11 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
             <PageBox className="blocks" {...provided.droppableProps} ref={provided.innerRef}>
               {pageInfo?.blocks &&
                 pageInfo.blocks.map((block, idx) => (
-                  <Draggable key={uuid()} draggableId={block.blockId.toString()} index={idx + 1}>
+                  <Draggable
+                    key={block.blockId}
+                    draggableId={block.blockId.toString()}
+                    index={idx + 1}
+                  >
                     {(provided) => (
                       <StyledBlockContent
                         key={block.blockId}
