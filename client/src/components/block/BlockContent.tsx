@@ -370,7 +370,7 @@ export default function BlockContent({
       {beforeContent !== '' && <BeforeContentBox beforeContent={beforeContent} />}
       <BlockContentBox
         // type => css
-        contentEditable
+        contentEditable={type === 'IMG' ? false : true}
         suppressContentEditableWarning={true}
         className="content"
         onKeyDown={handleOnKeyDown}
