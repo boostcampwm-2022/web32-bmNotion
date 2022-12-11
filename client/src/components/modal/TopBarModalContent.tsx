@@ -25,12 +25,15 @@ const TopBarModalContainer = styled.div`
   flex-direction: column;
 `;
 const ReaderModeButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
   height: 28px;
   width: 100%;
-  padding: 2px;
   min-height: 28px;
   font-size: 14px;
   line-height: 120%;
+  padding: 20px 2px;
 
   &:hover {
     background-color: #ebebea;

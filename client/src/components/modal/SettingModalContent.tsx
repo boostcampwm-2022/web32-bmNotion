@@ -111,7 +111,7 @@ export default function SettingModalContent() {
           placeholder={workSpaceName}
           name="name"
         ></SpaceNameInput>
-        <SubmitButton onClick={()=>submitSpaceName}>확인</SubmitButton>
+        <SubmitButton onClick={() => submitSpaceName}>확인</SubmitButton>
       </SetSpaceNameForm>
       <h3>사용자 초대</h3>
       <InviteUserForm onSubmit={submitInviteUser}>
