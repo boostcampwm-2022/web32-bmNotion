@@ -100,7 +100,10 @@ export default function SettingModalContent() {
   };
   return (
     <SettingModalContainer>
-      <h2>설정</h2>
+      <SettingModalTitle>
+        <SettingIcon />
+        설정
+      </SettingModalTitle>
       <h3>워크스페이스 이름 변경</h3>
       <SetSpaceNameForm onSubmit={submitSpaceName}>
         <SpaceNameInput
@@ -108,6 +111,7 @@ export default function SettingModalContent() {
           placeholder={workSpaceName}
           name="name"
         ></SpaceNameInput>
+        <SubmitButton onClick={()=>submitSpaceName}>확인</SubmitButton>
       </SetSpaceNameForm>
       <h3>사용자 초대</h3>
       <InviteUserForm onSubmit={submitInviteUser}>
@@ -117,6 +121,7 @@ export default function SettingModalContent() {
           name="nickname"
           onChange={onSearchNameChange}
         ></UserNameInput>
+        <SubmitButton>확인</SubmitButton>
       </InviteUserForm>
       <SearchResults>
         {searchResult.map((user, index) => (
@@ -140,42 +145,70 @@ const SettingModalContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   gap: 8px;
-  padding: 12px;
+  padding: 20px;
 `;
+
+const SettingModalTitle = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 10px;
+`;
+
 const SetSpaceNameForm = styled.form`
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   height: 28px;
   width: 100%;
+  margin-bottom: 10px;
 `;
 const SpaceNameInput = styled.input`
+  width: 300px;
   height: 100%;
   font-size: 14px;
+  border: none;
+  border-bottom: 1.2px rgba(225, 225, 225, 0.6) solid;
 `;
 const InviteUserForm = styled.form`
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  align-items: center;
   height: 28px;
   width: 100%;
+  margin-bottom: 10px;
 `;
 const UserNameInput = styled.input`
   height: 100%;
+  width: 300px;
   font-size: 14px;
+  border: none;
+  border-bottom: 1.2px rgba(225, 225, 225, 0.6) solid;
 `;
 const SearchResults = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 8px;
-  height: 100%;
+  height: 200px;
+  padding-top: 20px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+  }
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+  }
 `;
 const SearchedUserWrapper = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  width: 100%;
+  width: 540px;
   height: 36px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 5px;
@@ -189,4 +222,31 @@ const ProfileImage = styled.img`
   border-radius: 12px;
   background: gray;
   border: 1px solid gray;
+`;
+const SettingIcon = styled.div`
+  width: 20px;
+  height: 20px;
+  background-image: url('/assets/icons/gear.svg');
+  background-size: 20px 20px;
+  background-repeat: no-repeat;
+  margin-right: 8px;
+`;
+
+const SubmitButton = styled.button`
+  width: 60px;
+  height: 30px;
+  border-radius: 6px;
+  color: rgba(0, 0, 0, 0.7);
+  border: 1.2px solid rgba(225, 225, 225, 1);
+
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  transition: all 0.1s linear;
+  margin-left: 4px;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+  }
 `;

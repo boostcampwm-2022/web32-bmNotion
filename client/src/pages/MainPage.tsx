@@ -417,8 +417,12 @@ const SpaceSettingButton = styled.button`
   display: flex;
   flex-direction: row;
   align-items: center;
+  font-size: 14px;
   width: 100%;
   height: 24px;
+  padding-left: 2px;
+  margin-bottom: 8px;
+  border-radius: 4px;
   &:hover {
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 2px;
