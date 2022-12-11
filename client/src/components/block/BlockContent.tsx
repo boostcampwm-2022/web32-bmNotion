@@ -292,9 +292,10 @@ export default function BlockContent({
   };
 
   const handleOnPaste = async (e: React.ClipboardEvent<HTMLDivElement>) => {
+    e.preventDefault();
     const clipboardData = e.clipboardData;
 
-    if (clipboardData && clipboardData.files.length > 0) {
+    if (clipboardData.files.length > 0) {
       const getOnSuccess = (blockId: string) => (response: AxiosResponse<any, any>) => {
         response?.data?.url &&
           changeBlock({ block: { blockId, type: 'IMG', content: response.data.url } });
@@ -308,8 +309,6 @@ export default function BlockContent({
       const headers = { 'Content-Type': 'application/octet-stream' };
       const file = clipboardData.files[0];
       if (/image/.test(file.type)) {
-        e.preventDefault();
-
         let newImgBlockId: string;
         if (type === 'TEXT' && content === '') {
           /* 비어있는 Text 블록 => 현재 블록 체인지 */
@@ -326,7 +325,7 @@ export default function BlockContent({
             createBlock({
               prevBlockId: page.nextId,
               index: index + 2,
-              type: 'Text',
+              type: 'TEXT',
               content: '',
             });
           };
@@ -346,6 +345,13 @@ export default function BlockContent({
           headers,
         );
       }
+    } else if (clipboardData.getData('text') !== '') {
+      changeBlock({
+        block: {
+          ...block,
+          content: (e.target as HTMLElement).textContent || '' + clipboardData.getData('text'),
+        },
+      });
     }
   };
 
@@ -364,7 +370,7 @@ export default function BlockContent({
       {beforeContent !== '' && <BeforeContentBox beforeContent={beforeContent} />}
       <BlockContentBox
         // type => css
-        contentEditable
+        contentEditable={type === 'IMG' ? false : true}
         suppressContentEditableWarning={true}
         className="content"
         onKeyDown={handleOnKeyDown}
