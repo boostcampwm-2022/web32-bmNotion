@@ -254,7 +254,10 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     targetBlockId: string;
     caretOffset: number;
   }) => {
-    if (caretPosition === null) return;
+    if (caretPosition === null) {
+      setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
+      return;
+    }
     caretPosition.targetBlockId = targetBlockId;
     caretPosition.caretOffset = caretOffset;
   };
@@ -266,10 +269,10 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     caretOffset: number;
   }) => {
     console.log('targetBlockIndex :', targetBlockIndex);
-    // if (caretPosition === null) {
-    //   setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
-    //   return;
-    // }
+    if (caretPosition === null) {
+      setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
+      return;
+    }
 
     const targetBlock = pageInfo.blocks.find((e) => e.index === targetBlockIndex);
     if (targetBlock === undefined) return;
@@ -415,14 +418,24 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     };
   }, [pageid, pageInfo]);
 
-  const moveCaret = (blockId: string, offset: number) => {
-    const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
+  const moveCaret = (blockId: string, nowOffset: number) => {
+    const blocks = document.querySelectorAll('div.content, div.title') as NodeListOf<HTMLElement>;
     if (!blocks) {
       return;
     } else {
       const target = [...blocks].find(
         (el) => el.getAttribute('data-blockid') === blockId,
       ) as HTMLElement;
+      let offset;
+      if (target.textContent === null) {
+        offset = 0;
+      } else {
+        if (target.textContent.length <= nowOffset) {
+          offset = target.textContent.length;
+        } else {
+          offset = nowOffset;
+        }
+      }
       const range = document.createRange();
       const select = window.getSelection();
       if (!target) return;
@@ -497,7 +510,9 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleSetCaretPositionByIndex({ targetBlockIndex: 0, caretOffset: 0 });
+      const setCaret = (page: PageInfo) => {
+        handleSetCaretPositionById({ targetBlockId: page.nextId, caretOffset: 0 });
+      };
       // if (caretPosition === null) {
       //   setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
       //   moveCaret(pageInfo.nextId, 0);
@@ -512,12 +527,29 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       // caretPosition.caretOffset = 0;
       if (e.nativeEvent.isComposing) return;
       if (totalContent.length === offset) {
-        createBlock({ prevBlockId: undefined, index: 0, content: '', type: 'TEXT' });
+        createBlock({
+          prevBlockId: undefined,
+          index: 0,
+          content: '',
+          type: 'TEXT',
+          callBack: setCaret,
+        });
       } else {
         pageInfo.title = preText;
-        elem.textContent = preText;
-        createBlock({ prevBlockId: undefined, index: 0, content: preText, type: 'TEXT' });
+        elem.textContent = postText;
+        createBlock({
+          prevBlockId: undefined,
+          index: 0,
+          content: postText,
+          type: 'TEXT',
+          callBack: setCaret,
+        });
       }
+    } else if (e.code === 'ArrowDown') {
+      e.preventDefault();
+      const targetBlock = pageInfo.blocks.find((e) => e.index === 0);
+      if (!targetBlock) return;
+      moveCaret(targetBlock.blockId, offset);
     }
   };
 
@@ -601,7 +633,9 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       return;
     } else {
       if (e.code === 'ArrowUp') {
-        if (index === 1) {
+        if (index === 0) {
+          e.preventDefault();
+          moveCaret('titleBlock', offset);
           return;
         }
         onFocusIndex(e, String(index - 1), offset);
@@ -662,6 +696,8 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   return (
     <>
       <PageTitle
+        className="title"
+        data-blockid="titleBlock"
         contentEditable
         onInput={handleOnInput}
         onKeyDown={handleOnKeyDown}
