@@ -144,9 +144,10 @@ const PageListHeader = styled.div`
   flex-direction: row;
   width: 100%;
   height: auto;
-  padding: 4px;
+  padding: 8px;
   align-items: center;
   justify-content: space-between;
+  border-top: 1.2px rgba(225, 225, 225, 0.4) solid;
 `;
 
 const PageListHeaderSpan = styled.b`

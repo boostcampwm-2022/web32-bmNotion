@@ -170,6 +170,7 @@ const AddWorkspaceButton = styled.button<WorkspaceContentsProps>`
   width: 100%;
   height: 26px;
   background-color: rgba(225, 225, 225, 0.3);
+  border-top: 1.2px rgba(225, 225, 225, 0.6) solid;
 
   &:hover {
     background-color: rgba(55, 53, 47, 0.1);

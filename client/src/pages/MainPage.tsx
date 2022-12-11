@@ -182,7 +182,7 @@ export default function MainPage(): ReactElement {
           {topBarModalOpen && (
             <>
               <DimdLayer onClick={handleTopBarModal}></DimdLayer>
-              <Modal width={'230px'} height={'500px'} position={['', '12px', '', '']}>
+              <Modal width={'230px'} height={'500px'} position={['60px', '12px', '', '']}>
                 <TopBarModalContent
                   readerMode={readerModeButtonClick}
                   isReaderMode={isReaderMode}
@@ -309,6 +309,7 @@ const TopBarLeft = styled.div`
 const TopBarRight = styled.div`
   display: flex;
   flex-direction: row;
+  align-items: center;
   padding: 12px;
   position: relative;
 `;
@@ -417,8 +418,12 @@ const SpaceSettingButton = styled.button`
   display: flex;
   flex-direction: row;
   align-items: center;
+  font-size: 14px;
   width: 100%;
   height: 24px;
+  padding-left: 2px;
+  margin-bottom: 8px;
+  border-radius: 4px;
   &:hover {
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 2px;
