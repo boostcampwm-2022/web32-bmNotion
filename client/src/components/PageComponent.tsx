@@ -427,14 +427,12 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         (el) => el.getAttribute('data-blockid') === blockId,
       ) as HTMLElement;
       let offset;
-      if(target.textContent === null) {
+      if (target.textContent === null) {
         offset = 0;
-      }
-      else {
-        if(target.textContent.length <= nowOffset) {
+      } else {
+        if (target.textContent.length <= nowOffset) {
           offset = target.textContent.length;
-        }
-        else {
+        } else {
           offset = nowOffset;
         }
       }
@@ -513,8 +511,8 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     if (e.key === 'Enter') {
       e.preventDefault();
       const setCaret = (page: PageInfo) => {
-        handleSetCaretPositionById({targetBlockId: page.nextId, caretOffset: 0});
-      }
+        handleSetCaretPositionById({ targetBlockId: page.nextId, caretOffset: 0 });
+      };
       // if (caretPosition === null) {
       //   setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
       //   moveCaret(pageInfo.nextId, 0);
@@ -529,18 +527,29 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       // caretPosition.caretOffset = 0;
       if (e.nativeEvent.isComposing) return;
       if (totalContent.length === offset) {
-        createBlock({ prevBlockId: undefined, index: 0, content: '', type: 'TEXT', callBack: setCaret });
+        createBlock({
+          prevBlockId: undefined,
+          index: 0,
+          content: '',
+          type: 'TEXT',
+          callBack: setCaret,
+        });
       } else {
         pageInfo.title = preText;
         elem.textContent = postText;
-        createBlock({ prevBlockId: undefined, index: 0, content: postText, type: 'TEXT', callBack: setCaret });
+        createBlock({
+          prevBlockId: undefined,
+          index: 0,
+          content: postText,
+          type: 'TEXT',
+          callBack: setCaret,
+        });
       }
-    }
-    else if(e.code === 'ArrowDown') {
+    } else if (e.code === 'ArrowDown') {
       e.preventDefault();
       const targetBlock = pageInfo.blocks.find((e) => e.index === 0);
-      if(!targetBlock) return;
-      moveCaret(targetBlock.blockId,offset);
+      if (!targetBlock) return;
+      moveCaret(targetBlock.blockId, offset);
     }
   };
 
@@ -626,7 +635,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       if (e.code === 'ArrowUp') {
         if (index === 0) {
           e.preventDefault();
-          moveCaret("titleBlock", offset);
+          moveCaret('titleBlock', offset);
           return;
         }
         onFocusIndex(e, String(index - 1), offset);

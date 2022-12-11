@@ -219,9 +219,21 @@ export default function BlockContent({
         callBack: handleCaret,
       });
     } else {
-      if (index === 1) {
+      if (index === 0) {
+        e.preventDefault();
+        const titleDomBlock = document.querySelector('div.title') as HTMLElement;
+        const text = pageInfo.title + elem.textContent;
+        if (!titleDomBlock) return;
+        titleDomBlock.textContent = text;
+        handleSetCaretPositionById({
+          targetBlockId: 'titleBlock',
+          caretOffset: pageInfo.title.length,
+        });
+        pageInfo.title = text;
+        deleteBlock({ blockId });
         return;
       }
+
       const blocks = document.querySelectorAll('div.content');
       const prevDomBlock = [...blocks].find(
         (el) => el.getAttribute('data-index') === (index - 1).toString(),
