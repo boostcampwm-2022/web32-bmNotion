@@ -345,6 +345,14 @@ export default function BlockContent({
           headers,
         );
       }
+    } else if (clipboardData.getData('text') !== '') {
+      createBlock({
+        prevBlockId: blockId,
+        index: index + 1,
+        type: 'TEXT',
+        content: (e.target as HTMLElement).textContent || '' + clipboardData.getData('text'),
+      });
+      // focus 여부 확인 필
     }
   };
 
