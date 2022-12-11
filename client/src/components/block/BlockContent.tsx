@@ -325,7 +325,7 @@ export default function BlockContent({
             createBlock({
               prevBlockId: page.nextId,
               index: index + 2,
-              type: 'Text',
+              type: 'TEXT',
               content: '',
             });
           };
