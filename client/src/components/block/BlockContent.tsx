@@ -346,13 +346,12 @@ export default function BlockContent({
         );
       }
     } else if (clipboardData.getData('text') !== '') {
-      createBlock({
-        prevBlockId: blockId,
-        index: index + 1,
-        type: 'TEXT',
-        content: (e.target as HTMLElement).textContent || '' + clipboardData.getData('text'),
+      changeBlock({
+        block: {
+          ...block,
+          content: (e.target as HTMLElement).textContent || '' + clipboardData.getData('text'),
+        },
       });
-      // focus 여부 확인 필
     }
   };
 
