@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import NodePolyfillPlugin from 'node-polyfill-webpack-plugin';
 import RefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 // const dirname = path.resolve();
 const dirname = path.resolve(fileURLToPath(import.meta.url));
 
@@ -14,6 +15,7 @@ const config = {
       template: path.resolve(dirname, '../src', 'Index.html'),
     }),
     new NodePolyfillPlugin(),
+    new CopyWebpackPlugin({ patterns: [{ from: './public/assets', to: './assets' }] }),
     new RefreshWebpackPlugin(),
   ],
 
