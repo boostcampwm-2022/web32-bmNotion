@@ -224,8 +224,8 @@ const Validation = styled.div`
 `;
 
 const LogoDiv = styled.div`
-  width: 80px;
-  height: 80px;
+  width: 180px;
+  height: 180px;
   overflow: hidden;
 `;
 
@@ -241,16 +241,14 @@ const LogoBox = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 20px;
 `;
 
 function Logo() {
   return (
     <LogoBox>
       <LogoDiv>
-        <LogoImg src={'/assets/icons/BM_logo.png'} alt="BM Nver Break Mind" />
+        <LogoImg src={'/assets/icons/BM_logo.png'} alt="BM Never Break Mind" />
       </LogoDiv>
-      <LogoTitle>BM NOTION</LogoTitle>
     </LogoBox>
   );
 }
