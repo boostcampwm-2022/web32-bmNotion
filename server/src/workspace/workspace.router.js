@@ -15,5 +15,6 @@ router.post('/addworkspace', workspaceController.addWorkspace);
 router.post('/invite', workspaceController.inviteUser);
 router.post('/rename', workspaceController.rename);
 router.get('/info/:workspaceid', workspaceController.getInfo);
+router.get('/spaceinfo/:pageid', workspaceController.getWorkspace);
 
 module.exports = router;

@@ -14,4 +14,5 @@ export const API = {
   RENAME_WORKSPACE: `${BASE_URL}/api/workspace/rename`,
   GET_USER_NICKNAME: `${BASE_URL}/api/user/`,
   CONNECT_SSE: `${BASE_URL}/sse`,
+  GET_SPACE: `${BASE_URL}/api/workspace/spaceinfo/`,
 };
