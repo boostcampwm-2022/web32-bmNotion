@@ -184,24 +184,20 @@ export default function BlockContent({
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     /* 현재 카렛 위치 기준으로 text 분리 */
     const elem = e.target as HTMLElement;
-    // console.log('텍스트 비교', block.content, ' vs ', elem.textContent);
     const totalContent = elem.textContent || '';
     const offset = (window.getSelection() as Selection).focusOffset;
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
-    // console.log('🚀 ~ file: BlockContent.tsx ~ line 111 ~ handleOnSpace ~ preText', preText);
     /* 마크다운 문법과 일치 => 해당 타입으로 변경 */
     const toType = checkMarkDownGrammer(preText);
     if (toType !== '') {
       /* toType으로 타입변경 */
       e.preventDefault();
       elem.textContent = postText;
-      // console.log(`toType => ${toType}, content: ${postText}`);
       const handleCaret = () => {
         handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: 0 });
       };
       changeBlock({ block: { ...block, type: toType, content: postText }, callBack: handleCaret });
     }
-    // console.log('스페이스 눌린 타이밍에서 컨텐츠의 값음', `|${(e.target as any).textContent}|`);
   };
 
   const handleOnArrow = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -210,12 +206,9 @@ export default function BlockContent({
 
   const handleOnBackspace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const elem = e.target as HTMLElement;
-    // console.log('🚀 ~ file: BlockContent.tsx ~ line 136 ~ handleOnBackspace ~ elem', elem);
-    // console.log(elem.textContent, type);
     if ((window.getSelection() as Selection).focusOffset !== 0) return;
     if (type !== 'TEXT') {
       e.preventDefault();
-      // console.log('블록 TEXT로 변경');
       const toType = 'TEXT';
       const handleCaret = () => {
         handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: 0 });
@@ -302,7 +295,6 @@ export default function BlockContent({
     const target = e.target as HTMLElement;
     target.normalize();
     const newContent = target.textContent;
-    // console.log('🚀 ~ file: BlockContent.tsx ~ line 134 ~ handleOnInput ~ newContent', newContent);
     if (newContent !== null) {
       block.content = newContent;
       task.push({ blockId: block.blockId, task: 'edit' });

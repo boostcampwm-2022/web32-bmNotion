@@ -22,9 +22,7 @@ export const axiosGetRequest = (
           failCallback(res);
         }
       })
-      .catch((error) => {
-        console.log(error);
-      });
+      .catch((error) => {});
   };
   request();
 };
@@ -51,9 +49,7 @@ export const axiosDeleteRequest = (
           failCallback(res);
         }
       })
-      .catch((error) => {
-        console.log(error);
-      });
+      .catch((error) => {});
   };
   request();
 };
@@ -81,9 +77,7 @@ export const axiosPostRequest = (
           failCallback(res);
         }
       })
-      .catch((error) => {
-        console.log(error);
-      });
+      .catch((error) => {});
   };
   request();
 };
