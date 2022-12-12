@@ -2,7 +2,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import NodePolyfillPlugin from 'node-polyfill-webpack-plugin';
-
+import RefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 // const dirname = path.resolve();
 const dirname = path.resolve(fileURLToPath(import.meta.url));
 
@@ -12,8 +13,11 @@ const config = {
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(dirname, '../src', 'Index.html'),
+      favicon: './public/assets/favicon/favicon-16x16.png',
     }),
     new NodePolyfillPlugin(),
+    new CopyWebpackPlugin({ patterns: [{ from: './public/assets', to: './assets' }] }),
+    new RefreshWebpackPlugin(),
   ],
 
   module: {
@@ -36,6 +40,7 @@ const config = {
   output: {
     filename: 'bundle.js',
     path: path.resolve(dirname, '../dist'),
+    publicPath: '/',
   },
 
   stats: {

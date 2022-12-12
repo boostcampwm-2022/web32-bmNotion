@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const createDocument = async (collectionName, object) => {
   let mongoClient;
+  let result;
 
   try {
     mongoClient = await connectToCluster();
@@ -10,10 +11,12 @@ const createDocument = async (collectionName, object) => {
     const db = mongoClient.db(process.env.DB_NAME);
     const collection = db.collection(collectionName);
 
-    await collection.insertOne(object);
+    result = await collection.insertOne(object);
   } finally {
     mongoClient.close();
   }
+
+  return result;
 };
 
 const findAllDocument = async (collection, queryCriteria) => {
@@ -60,6 +63,21 @@ const readOneDocument = async (collectionName, queryCriteria) => {
   return result;
 };
 
+const updateOneDocument = async (collectionName, queryCriteria, queryInDocument) => {
+  let mongoClient;
+
+  try {
+    mongoClient = await connectToCluster();
+
+    const db = mongoClient.db(process.env.DB_NAME);
+    const collection = db.collection(collectionName);
+
+    await collection.updateOne(queryCriteria, queryInDocument);
+  } finally {
+    mongoClient.close();
+  }
+};
+
 const deleteOneDocument = async (collectionName, queryCriteria) => {
   let mongoClient;
 
@@ -75,9 +93,26 @@ const deleteOneDocument = async (collectionName, queryCriteria) => {
   }
 };
 
+const writeBulk = async (collectionName, bulks) => {
+  let mongoClient;
+
+  try {
+    mongoClient = await connectToCluster();
+
+    const db = mongoClient.db(process.env.DB_NAME);
+    const collection = db.collection(collectionName);
+
+    await collection.bulkWrite(bulks);
+  } finally {
+    mongoClient.close();
+  }
+};
+
 module.exports = {
   createDocument,
   readAllDocument,
   readOneDocument,
   deleteOneDocument,
+  updateOneDocument,
+  writeBulk,
 };

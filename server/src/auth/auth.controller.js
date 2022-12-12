@@ -2,21 +2,17 @@ const multer = require('multer');
 const {
   signInPipeline,
   signUpPipeline,
-  isValidAccesstoken,
-  isValidRefreshtoken,
   createNewAccesstokenByRefreshtoken,
 } = require('./auth.service');
+const createResponse = require('../utils/response.util');
+const responseMessage = require('../response.message.json');
+const { isValidAccesstoken, isValidRefreshtoken } = require('../utils/jwt.util');
 
 const signInController = {
   signIn: async (req, res) => {
     const { id, password } = req.body;
-    const token = await signInPipeline(id, password);
-    if (token.response.code === 202) {
-      const { accessToken, refreshToken } = token;
-      res.cookie('refreshToken', refreshToken);
-      token.response.authorize = accessToken;
-    }
-    res.json(token.response);
+    const { refreshToken, response: resJson } = await signInPipeline(id, password);
+    res.cookie('refreshToken', refreshToken).json(resJson);
   },
 };
 
@@ -32,37 +28,31 @@ const signUpController = {
 
 const authController = {
   verifyAccesstoken: (req, res, next) => {
-    const bearerHeader = req.headers.Authorization;
+    const bearerHeader = req.headers.authorization;
+    if (bearerHeader === undefined) return res.json(createResponse(responseMessage.NEED_SIGNIN));
     const accessToken = bearerHeader.replace('Bearer', '').trim();
-
-    res.local.verifyAccessTokenMessage = isValidAccesstoken(accessToken);
-
+    res.locals.verifyAccessTokenMessage = isValidAccesstoken(accessToken);
     return next();
   },
-
   verifyRefreshtoken: (req, res, next) => {
-    switch (res.local.verifyAccessTokenMessage) {
+    switch (res.locals.verifyAccessTokenMessage) {
       case 'success':
         return next();
-
       case 'TokenExpiredError':
-        res.local.verifyRefreshTokenMessage = isValidRefreshtoken(req.cookies.refreshToken);
+        res.locals.verifyRefreshTokenMessage = isValidRefreshtoken(req.cookies.refreshToken);
         return next();
-
       default:
-        return res.json({ auth: 'fail' });
+        return res.json(createResponse(responseMessage.AUTH_FAIL));
     }
   },
-
   requestAccessToken: async (req, res, next) => {
-    if (res.local.verifyAccessTokenMessage === 'success') return next();
-
-    switch (res.local.verifyRefreshTokenMessage) {
-      case 'success':
-        return res.json(await createNewAccesstokenByRefreshtoken(req.cookies.refreshToken));
-      default:
-        return res.json({ auth: 'fail' });
+    if (res.locals.verifyAccessTokenMessage === 'success') return next();
+    if (res.locals.verifyRefreshTokenMessage === 'success') {
+      const resJson = createResponse(responseMessage.RENEWAL_TOKEN);
+      resJson.accessToken = await createNewAccesstokenByRefreshtoken(req.cookies.refreshToken);
+      return res.json(resJson);
     }
+    return res.json(createResponse(responseMessage.AUTH_FAIL));
   },
 };
 

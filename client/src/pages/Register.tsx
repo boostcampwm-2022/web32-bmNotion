@@ -1,7 +1,9 @@
 import React, { useState, useRef, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { AxiosResponse } from 'axios';
+import { axiosPostRequest } from '@/utils/axios.request';
+import { API } from '@/config/config';
 
 export default function Register(): ReactElement {
   const [inputNickName, setInputNickName] = useState('');
@@ -59,26 +61,21 @@ export default function Register(): ReactElement {
       if (selectedFile) {
         formData.append('profileimage', selectedFile);
       }
-      axios
-        .post('http://localhost:8080/auth/signup', formData)
-        .then((res) => {
-          if (res.data.code === 404) {
-            if (res.data.message.id) {
-              setIdValidateMessage(res.data.message.id);
-              setIdValidation(false);
-            }
-            if (res.data.message.nickname) {
-              setNickNameValidateMessage(res.data.message.nickname);
-              setNickNameValidation(false);
-            }
-          } else {
-            alert('회원가입이 완료되었습니다.');
-            navigate('/');
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      const onSuccess = (res: AxiosResponse) => {
+        alert('회원가입이 완료되었습니다.');
+        navigate('/');
+      };
+      const onFail = (res: AxiosResponse) => {
+        if (res.data.message.id) {
+          setIdValidateMessage(res.data.message.id);
+          setIdValidation(false);
+        }
+        if (res.data.message.nickname) {
+          setNickNameValidateMessage(res.data.message.nickname);
+          setNickNameValidation(false);
+        }
+      };
+      axiosPostRequest(API.SIGNUP, onSuccess, onFail, formData);
     }
   };
 
@@ -142,7 +139,9 @@ export default function Register(): ReactElement {
       return false;
     }
     if (!/^[\w]{3,20}$/.test(nickName)) {
-      setNickNameValidateMessage("닉네임은 알파벳, 숫자 혹은 '_'로 이루어진 3 ~ 20 글자여야 합니다.");
+      setNickNameValidateMessage(
+        "닉네임은 알파벳, 숫자 혹은 '_'로 이루어진 3 ~ 20 글자여야 합니다.",
+      );
       return false;
     }
     return true;
@@ -178,7 +177,7 @@ export default function Register(): ReactElement {
               <input
                 type="file"
                 style={{ display: 'none' }}
-                accept="image/jpg,impge/png,image/jpeg"
+                // accept="image/jpg,impge/png,image/jpeg"
                 name="profile_img"
                 ref={fileInput}
                 onChange={handleInputImage}
@@ -187,7 +186,12 @@ export default function Register(): ReactElement {
           </ProfileImage>
           <InputContainer>
             <InputHeader>닉네임</InputHeader>
-            <Input name="asd" placeholder="닉네임을 입력하세요" value={inputNickName} onChange={handleInputNickName} />
+            <Input
+              name="asd"
+              placeholder="닉네임을 입력하세요"
+              value={inputNickName}
+              onChange={handleInputNickName}
+            />
           </InputContainer>
           <ValidationContainer>
             {nickNameValidation ? null : <Validation>{nickNameValidateMessage}</Validation>}

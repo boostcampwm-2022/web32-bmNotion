@@ -3,9 +3,19 @@ import styled from 'styled-components';
 import bmLogo from '@/assets/icons/BM_logo.png';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { AxiosResponse } from 'axios';
+import { API } from '@/config/config';
+import jwt from 'jsonwebtoken';
+import { axiosPostRequest } from '@/utils/axios.request';
+import { useAtom } from 'jotai';
+import { workSpaceNameAtom, workSpaceIdAtom } from '@/store/workSpaceAtom';
+import { userNickNameAtom, userIdAtom } from '@/store/userAtom';
 
 export default function Login(): ReactElement {
+  const [, setWorkSpaceName] = useAtom(workSpaceNameAtom);
+  const [, setWorkSpaceId] = useAtom(workSpaceIdAtom);
+  const [, setUserNickName] = useAtom(userNickNameAtom);
+  const [, setUserId] = useAtom(userIdAtom);
   const [inputID, setInputID] = useState('');
   const [inputPassWord, setInputPassWord] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
@@ -33,23 +43,22 @@ export default function Login(): ReactElement {
   }, [inputID, inputPassWord]);
 
   const onClickRegisterBtn = () => {
-    const formData = new FormData();
-    formData.append('id', inputID);
-    formData.append('password', inputPassWord);
-    axios
-      .post('http://localhost:8080/auth/signin', formData, { withCredentials: true })
-      .then((res) => {
-        if (res.data.code === 404) {
-          setAlertMessage(res.data.message || '아이디나 패스워드가 올바르지 않습니다.');
-        } else {
-          // res.data.authorize 가  토큰
-          alert('로그인 되었습니다.');
-          navigate('/mainpage');
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const requestBody = { id: inputID, password: inputPassWord };
+    const onSuccess = (res: AxiosResponse) => {
+      const { nickname, id } = jwt.decode(res.data.authorize) as any;
+      const { authorize, workspace, spacename } = res.data;
+      localStorage.setItem('jwt', authorize);
+      setWorkSpaceName(spacename);
+      setWorkSpaceId(workspace);
+      setUserNickName(nickname);
+      setUserId(id);
+      alert('로그인 되었습니다.');
+      navigate(`/page/${res.data.pageid}`);
+    };
+    const onFail = (res: AxiosResponse) => {
+      setAlertMessage(res.data.message || '아이디나 패스워드가 올바르지 않습니다.');
+    };
+    axiosPostRequest(API.LOGIN, onSuccess, onFail, requestBody, {});
   };
 
   return (
@@ -111,9 +120,17 @@ function InputDiv({
   return (
     <>
       <InputContainer>
-        <Input type={type} name={name} placeholder={placeholder} value={inputValue} onChange={onChange} />
+        <Input
+          type={type}
+          name={name}
+          placeholder={placeholder}
+          value={inputValue}
+          onChange={onChange}
+        />
       </InputContainer>
-      <ValidationContainer>{alertMessage === '' ? null : <Validation>{alertMessage}</Validation>}</ValidationContainer>
+      <ValidationContainer>
+        {alertMessage === '' ? null : <Validation>{alertMessage}</Validation>}
+      </ValidationContainer>
     </>
   );
 }
@@ -207,8 +224,8 @@ const Validation = styled.div`
 `;
 
 const LogoDiv = styled.div`
-  width: 80px;
-  height: 80px;
+  width: 180px;
+  height: 180px;
   overflow: hidden;
 `;
 
@@ -224,16 +241,14 @@ const LogoBox = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 20px;
 `;
 
 function Logo() {
   return (
     <LogoBox>
       <LogoDiv>
-        <LogoImg src={'/assets/icons/BM_logo.png'} alt="BM Nver Break Mind" />
+        <LogoImg src={'/assets/logo/BM_logo.png'} alt="BM Never Break Mind" />
       </LogoDiv>
-      <LogoTitle>BM NOTION</LogoTitle>
     </LogoBox>
   );
 }

@@ -1,4 +1,6 @@
 {
   "COLLECTION_USER": "user",
-  "COLLECTION_TOKEN": "token"
+  "COLLECTION_TOKEN": "token",
+  "COLLECTION_PAGE": "page",
+  "COLLECTION_WORKSPACE": "workspace"
 }
