@@ -120,7 +120,7 @@ const splitTextContentByCaret = (elem: HTMLElement) => {
   const totalContent = elem.textContent || '';
   const offset = (window.getSelection() as Selection).focusOffset;
   return [totalContent.slice(0, offset), totalContent.slice(offset)];
-}
+};
 
 export default function BlockContent({
   block,
@@ -365,15 +365,16 @@ export default function BlockContent({
       }
     } else if (clipboardData.getData('text') !== '') {
       const elem = e.target as HTMLElement;
-      const [preText, postText] = splitTextContentByCaret(elem)
+      const [preText, postText] = splitTextContentByCaret(elem);
       const newTextContent = preText + clipboardData.getData('text') + postText;
       elem.normalize();
       changeBlock({
         block: { ...block, content: newTextContent },
-        callBack: () => handleSetCaretPositionById({
+        callBack: () =>
+          handleSetCaretPositionById({
             targetBlockId: blockId,
-            caretOffset: newTextContent.length - postText.length
-          })
+            caretOffset: newTextContent.length - postText.length,
+          }),
       });
     }
   };
