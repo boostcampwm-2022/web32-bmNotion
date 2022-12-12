@@ -5,6 +5,7 @@ const {
   inviteUserPipeline,
   addWorkspacePipeline,
   getWorkspaceInfoPipeline,
+  getWorkspaceIdByPage,
 } = require('./workspace.service');
 
 const workspaceController = {
@@ -41,6 +42,13 @@ const workspaceController = {
     const { id: userid } = jwt.decode(req.headers.authorization);
     const { workspaceid } = req.params;
     const resJson = await getWorkspaceInfoPipeline(userid, workspaceid);
+    res.json(resJson);
+  },
+
+  getWorkspace: async (req, res) => {
+    const { id: userid } = jwt.decode(req.headers.authorization);
+    const { pageid } = req.params;
+    const resJson = await getWorkspaceIdByPage(pageid, userid);
     res.json(resJson);
   },
 };

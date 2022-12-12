@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import StyledBlockContent from '@/components/block/StyledBlockContent';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
@@ -96,6 +96,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   const [editTasks, setEditTasks] = useState<BlockTask[]>([]);
   const [selectedBlocks, setSelectedBlocks] = useState<BlockInfo[]>([]);
 
+  const navigate = useNavigate();
   const [clientId] = useAtom(userIdAtom);
   const { pageid } = useParams();
   let isUploading = false;
@@ -468,8 +469,13 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   }, [pageid, pageInfo]);
 
   useEffect(() => {
+    const accessToken = localStorage.getItem('jwt');
+    if (accessToken === null) {
+      navigate('/');
+      return;
+    }
     const requestHeader = {
-      authorization: localStorage.getItem('jwt'),
+      authorization: accessToken,
     };
     const onSuccess = (res: AxiosResponse) => {
       setPageInfo({
@@ -666,7 +672,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       return { ...prev, blocks: arrayedBlocks };
     });
   };
-  if (pageInfo === null) return <div>로딩중</div>;
   return (
     <>
       <PageTitle

@@ -1,6 +1,7 @@
 import React, { useState, ReactElement, useEffect } from 'react';
 import styled from 'styled-components';
 import BlockContent from '@/components/block/BlockContent';
+import { useParams, useNavigate } from 'react-router-dom';
 import PageComponent from '@/components/PageComponent';
 import Modal from '@/components/modal/Modal';
 import TopBarModalContent from '@/components/modal/TopBarModalContent';
@@ -14,7 +15,7 @@ import WorkspaceList from '@/components/WorkspaceList';
 import PageList from '@/components/PageList';
 import { useAtom } from 'jotai';
 import { userNickNameAtom, userIdAtom } from '@/store/userAtom';
-import { workSpaceNameAtom } from '@/store/workSpaceAtom';
+import { workSpaceIdAtom, workSpaceNameAtom } from '@/store/workSpaceAtom';
 interface SideBarButtonProps {
   isClicked: boolean;
   sideBarButton: string;
@@ -50,8 +51,6 @@ export default function MainPage(): ReactElement {
     positionX: null,
     positionY: null,
   });
-  const [userNickName] = useAtom(userNickNameAtom);
-  const [userId] = useAtom(userIdAtom);
 
   const [sideBarButtonClicked, setSideBarButtonClicked] = useState(false);
   const [isReaderMode, setIsReaderMode] = useState(false);
@@ -60,8 +59,16 @@ export default function MainPage(): ReactElement {
   const [spaceSettingModalOpen, setSpaceSettingModalOpen] = useState(false);
   const [topBarModalOpen, setTopBarModalOpen] = useState(false);
   const [selectedBlockId, setSelectedBlockId] = useState<string[]>([]);
-  const [workSpaceName, setWorkSpaceName] = useAtom(workSpaceNameAtom);
   const [listButtonCilcked, setListButtonCilcked] = useState(false);
+
+  const [workSpaceName, setWorkSpaceName] = useAtom(workSpaceNameAtom);
+  const [workSpaceId, setWorkSpaceId] = useAtom(workSpaceIdAtom);
+  const [userNickName, setUserNickName] = useAtom(userNickNameAtom);
+  const [userId, setUserId] = useAtom(userIdAtom);
+  const { pageid } = useParams();
+
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
 
   const moveNextBlock = () => {};
   const sideBarButtonClick = () => {
@@ -83,7 +90,39 @@ export default function MainPage(): ReactElement {
     setListButtonCilcked(!listButtonCilcked);
   };
 
+  const setWorkspace = () => {
+    const accessToken = localStorage.getItem('jwt');
+    const requestHeader = {
+      authorization: accessToken,
+    };
+    const onSuccess = (res: AxiosResponse) => {
+      const { spacename, workspace } = res.data;
+      if (accessToken === null) {
+        navigate('/');
+        return;
+      }
+      const { nickname, id } = jwt.decode(accessToken) as any;
+      setUserNickName(nickname);
+      setUserId(id);
+      setWorkSpaceName(spacename);
+      setWorkSpaceId(workspace);
+      setIsLoading(false);
+    };
+    const onFail = () => {};
+    axiosGetRequest(API.GET_SPACE + pageid, onSuccess, onFail, requestHeader);
+  };
+
   useEffect(() => {
+    if (workSpaceName === '' || workSpaceId === '') {
+      setWorkspace();
+    } else {
+      setIsLoading(false);
+    }
+  }, [workSpaceName, workSpaceId]);
+
+  useEffect(() => {
+    console.log('user', userId);
+    if (userId === '') return;
     const onSuccess = (res: AxiosResponse) => {
       setProfileImageUrl(res.data.url);
     };
@@ -101,6 +140,7 @@ export default function MainPage(): ReactElement {
 
   const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
   const dragRangeStyle = 'red';
+  if (isLoading === true) return <div>로딩중</div>;
   return (
     <Wrapper
       onMouseUp={(e) => {

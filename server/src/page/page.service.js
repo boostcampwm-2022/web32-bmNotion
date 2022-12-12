@@ -97,6 +97,9 @@ const pageCrud = {
     return result;
   },
   readPageById: async (pageid) => {
+    if (pageid === ('' || 'list' || 'delete'))
+      return createResponse(responseMessage.PAGE_NOT_FOUND);
+    console.log(pageid);
     const page = await readOneDocument(dbConfig.COLLECTION_PAGE, { _id: ObjectId(pageid) });
     return page;
   },
