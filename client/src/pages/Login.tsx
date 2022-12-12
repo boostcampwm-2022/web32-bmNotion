@@ -247,7 +247,7 @@ function Logo() {
   return (
     <LogoBox>
       <LogoDiv>
-        <LogoImg src={'/assets/icons/BM_logo.png'} alt="BM Never Break Mind" />
+        <LogoImg src={'/assets/logo/BM_logo.png'} alt="BM Never Break Mind" />
       </LogoDiv>
     </LogoBox>
   );
