@@ -116,6 +116,12 @@ const checkMarkDownGrammer = (text: string) => {
   return matched === undefined ? '' : matched.getType(text);
 };
 
+const splitTextContentByCaret = (elem: HTMLElement) => {
+  const totalContent = elem.textContent || '';
+  const offset = (window.getSelection() as Selection).focusOffset;
+  return [totalContent.slice(0, offset), totalContent.slice(offset)];
+};
+
 export default function BlockContent({
   block,
   createBlock,
@@ -358,11 +364,17 @@ export default function BlockContent({
         );
       }
     } else if (clipboardData.getData('text') !== '') {
+      const elem = e.target as HTMLElement;
+      const [preText, postText] = splitTextContentByCaret(elem);
+      const newTextContent = preText + clipboardData.getData('text') + postText;
+      elem.normalize();
       changeBlock({
-        block: {
-          ...block,
-          content: (e.target as HTMLElement).textContent || '' + clipboardData.getData('text'),
-        },
+        block: { ...block, content: newTextContent },
+        callBack: () =>
+          handleSetCaretPositionById({
+            targetBlockId: blockId,
+            caretOffset: newTextContent.length - postText.length,
+          }),
       });
     }
   };
