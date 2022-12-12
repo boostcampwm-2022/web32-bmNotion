@@ -221,8 +221,8 @@ export default function BlockContent({
       if (index === 0) {
         e.preventDefault();
         const titleDomBlock = document.querySelector('div.title') as HTMLElement;
-        const text = pageInfo.title + elem.textContent;
         if (!titleDomBlock) return;
+        const text = titleDomBlock.textContent || '' + elem.textContent || '';
         titleDomBlock.textContent = text;
         handleSetCaretPositionById({
           targetBlockId: 'titleBlock',
@@ -237,9 +237,10 @@ export default function BlockContent({
       const prevDomBlock = [...blocks].find(
         (el) => el.getAttribute('data-index') === (index - 1).toString(),
       ) as HTMLElement;
+      if (!prevDomBlock) return;
       const prevBlock = allBlocks.find((e) => e.index === index - 1);
       e.preventDefault();
-      const text = (prevDomBlock.textContent as string) + elem.textContent;
+      const text = (prevDomBlock.textContent as string) + elem.textContent || '';
       prevDomBlock.textContent = text;
       const handleCaret = () => {
         handleSetCaretPositionById({
@@ -293,6 +294,7 @@ export default function BlockContent({
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
+    if (!target) return;
     target.normalize();
     const newContent = target.textContent;
     if (newContent !== null) {

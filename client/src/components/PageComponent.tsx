@@ -416,6 +416,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       const target = [...blocks].find(
         (el) => el.getAttribute('data-blockid') === blockId,
       ) as HTMLElement;
+      if (!target) return;
       let offset;
       if (target.textContent === null) {
         offset = 0;
@@ -445,9 +446,9 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     }
   };
   useEffect(() => {
-    if (pageInfo.blocks.length === 0) {
-      return;
-    }
+    // if (pageInfo.blocks.length === 0) {
+    //   return;
+    // }
     if (caretPosition === null) return;
     moveCaret(caretPosition.targetBlockId, caretPosition.caretOffset);
   }, [pageInfo]);
@@ -484,6 +485,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   }, [pageid]);
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
+    if (!e.target) return;
     const newContent = (e.target as HTMLDivElement).textContent;
     if (newContent) {
       pageInfo.title = newContent;
@@ -492,6 +494,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
 
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const elem = e.target as HTMLElement;
+    if (!elem) return;
     const totalContent = elem.textContent || '';
     const offset = (window.getSelection() as Selection).focusOffset;
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
@@ -549,6 +552,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const target = [...blocks].find(
       (el) => el.getAttribute('data-index') === targetIndex,
     ) as HTMLElement;
+    if (!target) return;
     if (target.childNodes.length === 0) {
       target.focus();
       return;
@@ -600,6 +604,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   }) => {
     const offset = (window.getSelection() as Selection).anchorOffset;
     const target = e.target as HTMLElement;
+    if (!target) return;
     const lastLineLength = target.innerHTML.split('\n').slice(-1).join('').length;
     const firstLineLength = target.innerHTML.split('\n')[0].length;
     const baseLength = target.innerHTML.length - lastLineLength;
