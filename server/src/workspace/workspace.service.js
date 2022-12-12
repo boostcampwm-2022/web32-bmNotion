@@ -46,6 +46,23 @@ const workspaceCrud = {
       { $addToSet: { members: userId } },
     );
   },
+  readWorkSpaceByPage: async (pageId) => {
+    const workspace = await readOneDocument(dbConfig.COLLECTION_WORKSPACE, {
+      pages: ObjectId(pageId),
+    });
+    return workspace;
+  },
+};
+
+const getWorkspaceIdByPage = async (pageId, userId) => {
+  const workspace = await workspaceCrud.readWorkSpaceByPage(pageId);
+  if (workspace === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
+  if (workspace.members.includes(ObjectId(userId)))
+    return createResponse(responseMessage.AUTH_FAIL);
+  const response = createResponse(responseMessage.PROCESS_SUCCESS);
+  response.spacename = workspace._id;
+  response.workspace = workspace._id;
+  return response;
 };
 
 const getWorkspacesPipeline = async (userId) => {
@@ -130,4 +147,5 @@ module.exports = {
   workspaceCrud,
   getWorkspaceInfoPipeline,
   isWorkspaceMember,
+  getWorkspaceIdByPage,
 };
