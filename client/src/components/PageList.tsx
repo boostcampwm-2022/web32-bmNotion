@@ -26,9 +26,7 @@ export default function PageList() {
       setPageList(res.data.list);
       setIsLoading(true);
     };
-    const onFail = (res: AxiosResponse) => {
-      console.log(res.data);
-    };
+    const onFail = (res: AxiosResponse) => {};
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
@@ -64,9 +62,7 @@ export default function PageList() {
       requestPageList();
       navigate(`/page/${pageid}`);
     };
-    const onFail = (res: AxiosResponse) => {
-      console.log(res.data);
-    };
+    const onFail = (res: AxiosResponse) => {};
     const requestBody = {
       workspace: workspaceId,
     };
@@ -85,9 +81,7 @@ export default function PageList() {
     const onSuccess = (res: AxiosResponse) => {
       requestPageList();
     };
-    const onFail = (res: AxiosResponse) => {
-      console.log(res.data);
-    };
+    const onFail = (res: AxiosResponse) => {};
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };

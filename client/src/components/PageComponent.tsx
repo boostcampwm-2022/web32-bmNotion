@@ -268,7 +268,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     targetBlockIndex: number;
     caretOffset: number;
   }) => {
-    console.log('targetBlockIndex :', targetBlockIndex);
     if (caretPosition === null) {
       setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
       return;
@@ -324,14 +323,11 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   };
 
   const storePage = () => {
-    console.log('페이지 블록', pageInfo.blocks);
-    console.log('카렛', caretPosition);
     isUploading = true;
     const editTasksTemp = editTasks.slice(0);
     editTasks.splice(0);
     const filteredTasks = filterTask(editTasksTemp);
     const tasks = taskRequest(filteredTasks, pageInfo.blocks);
-    console.log('테스크', tasks);
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
@@ -370,10 +366,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const source = new EventSource(API.CONNECT_SSE, {
       withCredentials: true,
     });
-    const onServerConnect = (e: Event) => {
-      //console.log('sse connection');
-      // console.log(e);
-    };
+    const onServerConnect = (e: Event) => {};
     const onServerMsg = (e: MessageEvent) => {
       const { edits, userId, title } = JSON.parse(e.data) as {
         edits: EditInfo[];
@@ -402,10 +395,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         }
       });
     };
-    const onServerError = (e: Event) => {
-      // console.log('sse error');
-      // console.log(e);
-    };
+    const onServerError = (e: Event) => {};
     source.addEventListener('open', onServerConnect);
     source.addEventListener('message', onServerMsg);
     source.addEventListener('error', onServerError);
@@ -455,7 +445,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     }
   };
   useEffect(() => {
-    console.log('리렌더링');
     if (pageInfo.blocks.length === 0) {
       return;
     }
@@ -490,9 +479,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         blocks: res.data.blocks.sort((a: BlockInfo, b: BlockInfo) => a.index - b.index),
       });
     };
-    const onFail = (res: AxiosResponse) => {
-      // console.log(res.data);
-    };
+    const onFail = (res: AxiosResponse) => {};
     axiosGetRequest(API.GET_PAGE + pageid, onSuccess, onFail, requestHeader);
   }, [pageid]);
 
@@ -653,25 +640,13 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   useEffect(() => {
     const onFocus = (targetBlockId: string) => {
       const contents = document.querySelectorAll('div.content');
-      // console.log('🚀 ~ file: PageComponent.tsx ~ line 90 ~ onFocus ~ contents', contents);
-      // console.log(
-      //   'attr test => ',
-      //   [...contents][0].getAttribute('data-blockid'),
-      //   typeof [...contents][0].getAttribute('data-blockid'),
-      // );
       const target = [...contents].find((el) => el.getAttribute('data-blockid') === targetBlockId);
       if (target) {
-        // console.log('🚀 ~ file: PageComponent.tsx ~ line 122 ~ onFocus ~ target', target);
         (target as any).tabIndex = -1;
         (target as any).focus();
         (target as any).tabIndex = 0;
       }
     };
-
-    // console.log(
-    //   '🚀 ~ file: PageComponent.tsx ~ line 87 ~ useLayoutEffect ~ focusBlockId',
-    //   focusBlockId,
-    // );
 
     focusBlockId && onFocus(String(focusBlockId));
     // setFocusBlockId(null);
@@ -679,7 +654,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    // console.log('res = ', result);
 
     setPageInfo((prev) => {
       const blocks = [...prev.blocks];

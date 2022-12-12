@@ -48,7 +48,6 @@ export default function BlockOptionModalContent({
       handleBlockOptionButtonModal();
     }
   };
-  console.log(selectedBlocks);
   return (
     <OptionModalContainer>
       <OptionContainer onClick={handleChangeTypeModal}>
@@ -62,10 +61,8 @@ export default function BlockOptionModalContent({
           if (selectedBlocks.length !== 0) {
             selectedBlocks.forEach((e) => {
               deleteBlock({ blockId: e.blockId });
-              console.log('여러개 삭제 : ', e);
             });
           } else {
-            console.log('한개 삭제 : ', block);
             deleteBlock({ blockId: block.blockId });
           }
         }}

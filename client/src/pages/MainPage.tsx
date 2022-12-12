@@ -87,9 +87,7 @@ export default function MainPage(): ReactElement {
     const onSuccess = (res: AxiosResponse) => {
       setProfileImageUrl(res.data.url);
     };
-    const onFail = (res: AxiosResponse) => {
-      console.log(res.data);
-    };
+    const onFail = (res: AxiosResponse) => {};
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };

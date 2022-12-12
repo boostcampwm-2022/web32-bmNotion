@@ -33,9 +33,7 @@ export default function WorkspaceList({ listButtonCilcked }: WorkspaceProps) {
       setWorkspaceList(res.data.workspaceList);
       setIsLoading(true);
     };
-    const onFail = (res: AxiosResponse) => {
-      // console.log(res.data);
-    };
+    const onFail = (res: AxiosResponse) => {};
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
@@ -46,9 +44,7 @@ export default function WorkspaceList({ listButtonCilcked }: WorkspaceProps) {
     const onSuccess = (res: AxiosResponse) => {
       requestSpaceList();
     };
-    const onFail = (res: AxiosResponse) => {
-      // console.log(res.data);
-    };
+    const onFail = (res: AxiosResponse) => {};
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
@@ -75,9 +71,7 @@ export default function WorkspaceList({ listButtonCilcked }: WorkspaceProps) {
       setWorkSpaceName(spacename);
       navigate(`/page/${pageid}`);
     };
-    const onFail = (res: AxiosResponse) => {
-      // console.log(res.data);
-    };
+    const onFail = (res: AxiosResponse) => {};
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };

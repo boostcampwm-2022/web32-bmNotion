@@ -16,7 +16,7 @@ const port = process.env.PORT || '8080';
 const app = express();
 
 const server = app.listen(port, () => {
-  console.log('http://localhost:8080');
+  console.log('연결 성공');
 });
 
 const sse = sseConnect(server, app);

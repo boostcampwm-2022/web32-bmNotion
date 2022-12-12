@@ -31,10 +31,8 @@ export default function TypeChangeModalContentType({
       onClick={() => {
         if (selectedBlocks.length !== 0) {
           selectedBlocks.forEach((e) => handleType(e, type));
-          console.log('여러 개');
         } else {
           handleType(block, type);
-          console.log('한 개');
         }
       }}
     >
