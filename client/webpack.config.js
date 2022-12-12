@@ -13,6 +13,7 @@ const config = {
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(dirname, '../src', 'Index.html'),
+      favicon: './public/assets/favicon/favicon-16x16.png',
     }),
     new NodePolyfillPlugin(),
     new CopyWebpackPlugin({ patterns: [{ from: './public/assets', to: './assets' }] }),
