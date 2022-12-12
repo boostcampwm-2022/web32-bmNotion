@@ -111,7 +111,7 @@ export default function SettingModalContent() {
           placeholder={workSpaceName}
           name="name"
         ></SpaceNameInput>
-        <SubmitButton onClick={() => submitSpaceName}>확인</SubmitButton>
+        <SubmitButton>확인</SubmitButton>
       </SetSpaceNameForm>
       <h3>사용자 초대</h3>
       <InviteUserForm onSubmit={submitInviteUser}>
@@ -168,7 +168,12 @@ const SpaceNameInput = styled.input`
   font-size: 14px;
   border: none;
   border-bottom: 1.2px rgba(225, 225, 225, 0.6) solid;
+
+  &:focus {
+    outline: none;
+  }
 `;
+
 const InviteUserForm = styled.form`
   display: flex;
   align-items: center;
@@ -182,6 +187,10 @@ const UserNameInput = styled.input`
   font-size: 14px;
   border: none;
   border-bottom: 1.2px rgba(225, 225, 225, 0.6) solid;
+
+  &:focus {
+    outline: none;
+  }
 `;
 const SearchResults = styled.div`
   display: flex;
@@ -233,14 +242,14 @@ const SettingIcon = styled.div`
 `;
 
 const SubmitButton = styled.button`
-  width: 60px;
+  width: 48px;
   height: 30px;
   border-radius: 6px;
   color: rgba(0, 0, 0, 0.7);
   border: 1.2px solid rgba(225, 225, 225, 1);
 
   font-weight: 500;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 20px;
   transition: all 0.1s linear;
   margin-left: 4px;
