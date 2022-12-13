@@ -169,8 +169,7 @@ export default function BlockContent({
         /* 한글 입력시 isComposing이 false일때만 실행 */
         const elem = e.target as HTMLElement;
         const totalContent = elem.textContent || '';
-        const offset = (window.getSelection() as Selection).focusOffset;
-        const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
+        const [preText, selectedText, postText] = splitTextContentBySelection(elem);
         elem.textContent = preText;
         block.content = preText;
         const handleCaret = (page: PageInfo) => {
@@ -192,7 +191,6 @@ export default function BlockContent({
     /* 현재 카렛 위치 기준으로 text 분리 */
     const elem = e.target as HTMLElement;
     const [preText, selectedText, postText] = splitTextContentBySelection(elem);
-    /* 마크다운 문법과 일치 => 해당 타입으로 변경 */
     const toType = checkMarkDownGrammer(preText);
     if (toType === '') {
       /* 기본동작 활용 */
@@ -232,16 +230,16 @@ export default function BlockContent({
     } else if (index === 0) {
       const titleDomBlock = document.querySelector('div.title');
       if (titleDomBlock === null) return;
-        const text = pageInfo.title + elem.textContent;
-        if (!titleDomBlock) return;
-        titleDomBlock.textContent = text;
-        handleSetCaretPositionById({
-          targetBlockId: 'titleBlock',
-          caretOffset: pageInfo.title.length,
-        });
-        pageInfo.title = text;
-        deleteBlock({ blockId });
-        return;
+      const text = pageInfo.title + elem.textContent;
+      if (!titleDomBlock) return;
+      titleDomBlock.textContent = text;
+      handleSetCaretPositionById({
+        targetBlockId: 'titleBlock',
+        caretOffset: pageInfo.title.length,
+      });
+      pageInfo.title = text;
+      deleteBlock({ blockId });
+      return;
     } else {
       const blocks = document.querySelectorAll('div.content');
       const prevDomBlock = [...blocks].find(
@@ -369,7 +367,7 @@ export default function BlockContent({
       }
     } else if (clipboardData.getData('text') !== '') {
       const elem = e.target as HTMLElement;
-      const [preText, postText] = splitTextContentByCaret(elem);
+      const [preText, selectedText, postText] = splitTextContentBySelection(elem);
       const newTextContent = preText + clipboardData.getData('text') + postText;
       elem.normalize();
       changeBlock({
@@ -398,7 +396,8 @@ export default function BlockContent({
       {beforeContent !== '' && <BeforeContentBox beforeContent={beforeContent} />}
       <BlockContentBox
         // type => css
-        contentEditable={type === 'IMG' ? false : true}
+        contentEditable
+        // contentEditable={type === 'IMG' ? false : true}
         suppressContentEditableWarning={true}
         className="content"
         onKeyDown={handleOnKeyDown}
