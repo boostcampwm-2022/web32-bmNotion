@@ -312,8 +312,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
 
   const storePage = () => {
     isUploading = true;
-    const editTasksTemp = editTasks.slice(0);
-    editTasks.splice(0);
+    const editTasksTemp = editTasks.splice(0);
     const filteredTasks = filterTask(editTasksTemp);
     const tasks = taskRequest(filteredTasks, pageInfo.blocks);
     const requestHeader = {

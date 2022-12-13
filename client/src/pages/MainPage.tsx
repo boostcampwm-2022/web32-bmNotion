@@ -121,7 +121,6 @@ export default function MainPage(): ReactElement {
   }, [workSpaceName, workSpaceId]);
 
   useEffect(() => {
-    console.log('user', userId);
     if (userId === '') return;
     const onSuccess = (res: AxiosResponse) => {
       setProfileImageUrl(res.data.url);
