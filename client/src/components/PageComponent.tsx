@@ -431,6 +431,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
 
       select?.removeAllRanges();
       select?.addRange(range);
+      handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: offset });
     }
   };
   useEffect(() => {
@@ -490,26 +491,24 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   };
 
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.code === 'ShiftLeft') {
+      console.log(window.getSelection() as Selection);
+    }
     const elem = e.target as HTMLElement;
     if (!elem) return;
     const totalContent = elem.textContent || '';
-    const offset = (window.getSelection() as Selection).focusOffset;
+    const selection = window.getSelection() as Selection;
+    const offset = selection.focusOffset;
+    const [startOffset, endOffset] = isCollapsed(selection);
+
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
+
+    const targetBlock = pageInfo.blocks.find((e) => e.index === 0);
+    if (!targetBlock) return;
+
     if (e.key === 'Enter') {
       e.preventDefault();
       handleSetCaretPositionById({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
-      // if (caretPosition === null) {
-      //   setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
-      //   moveCaret(pageInfo.nextId, 0);
-      //   return;
-      // }
-      // caretPosition.targetBlockId = pageInfo.nextId;
-      // caretPosition.caretOffset = 0;
-
-      // if(caretPosition === null) return ;
-      // handleSetCaretPositionByIndex({targetBlockIndex: 1, caretOffset: 0});
-      // caretPosition.targetBlockId = 1;
-      // caretPosition.caretOffset = 0;
       if (e.nativeEvent.isComposing) return;
       if (totalContent.length === offset) {
         createBlock({
@@ -530,9 +529,48 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
       }
     } else if (e.code === 'ArrowDown') {
       e.preventDefault();
-      const targetBlock = pageInfo.blocks.find((e) => e.index === 0);
-      if (!targetBlock) return;
       moveCaret(targetBlock.blockId, offset);
+    } else if (e.code === 'ArrowRight') {
+      e.preventDefault();
+      if (startOffset === endOffset) {
+        //드래그 x
+        if (totalContent.length === endOffset) {
+          //제목의 끝
+          moveCaret(targetBlock.blockId, 0);
+          return;
+        }
+        //제목 끝 x
+        moveCaret('titleBlock', offset + 1);
+      } else {
+        //드래그 o
+        console.log('드래그 o');
+        moveCaret('titleBlock', endOffset);
+      }
+    } else if (e.code === 'ArrowLeft') {
+      e.preventDefault();
+      if (startOffset === endOffset) {
+        //드래그 x
+        if (startOffset === 0) {
+          //제목의 끝
+          moveCaret('titleBlock', 0);
+          return;
+        }
+        //제목 끝 x
+        moveCaret('titleBlock', offset - 1);
+      } else {
+        //드래그 o
+        moveCaret('titleBlock', startOffset);
+      }
+    }
+  };
+
+  const isCollapsed = (selection: Selection) => {
+    const anchorOffset = selection.anchorOffset;
+    const focusOffset = selection.focusOffset;
+    if (!selection.isCollapsed) {
+      return [Math.min(anchorOffset, focusOffset), Math.max(anchorOffset, focusOffset)];
+    } else {
+      return [anchorOffset, focusOffset];
     }
   };
 
