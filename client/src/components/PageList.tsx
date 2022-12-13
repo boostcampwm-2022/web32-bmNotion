@@ -23,7 +23,7 @@ export default function PageList() {
   const requestPageList = () => {
     const workspaceId = workSpaceId;
     const onSuccess = (res: AxiosResponse) => {
-      setPageList(res.data.list);
+      setPageList(res.data.list.filter((page: Page) => page.deleted !== true));
       setIsLoading(true);
     };
     const onFail = (res: AxiosResponse) => {};
@@ -53,13 +53,15 @@ export default function PageList() {
 
   useEffect(() => {
     requestPageList();
-  }, [setPageList, pageid]);
+  }, [workSpaceId]);
 
-  const onClickAddPage = (e: React.MouseEvent) => {
+  const addPage = () => {
     const workspaceId = workSpaceId;
     const onSuccess = (res: AxiosResponse) => {
       const pageid = res.data.pageid;
-      requestPageList();
+      setPageList((prev) => {
+        return [...prev, { id: pageid, title: '', deleted: undefined }];
+      });
       navigate(`/page/${pageid}`);
     };
     const onFail = (res: AxiosResponse) => {};
@@ -77,16 +79,20 @@ export default function PageList() {
   };
 
   const onClickDeleteButton = (pageid: string) => {
-    const workspaceId = workSpaceId;
     const onSuccess = (res: AxiosResponse) => {
-      requestPageList();
+      setPageList((prev) => {
+        const filteredList = prev.filter((page) => page.id !== pageid);
+        if (filteredList.length === 0) addPage();
+        else navigate(`/page/${filteredList[0].id}`);
+        return filteredList;
+      });
     };
     const onFail = (res: AxiosResponse) => {};
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
     axiosDeleteRequest(
-      API.DELETE_PAGE + workspaceId + '/' + pageid,
+      API.DELETE_PAGE + workSpaceId + '/' + pageid,
       onSuccess,
       onFail,
       requestHeader,
@@ -98,32 +104,26 @@ export default function PageList() {
     <PageListWrapper>
       <PageListHeader>
         <PageListHeaderSpan>공유 페이지</PageListHeaderSpan>
-        <PageListHeaderButton onClick={onClickAddPage}>+</PageListHeaderButton>
+        <PageListHeaderButton onClick={addPage}>+</PageListHeaderButton>
       </PageListHeader>
-      {pageList.map((page, index) =>
-        page.deleted === true ? (
-          <></>
-        ) : (
-          <PageListContentWrapper
+      {pageList.map((page, index) => (
+        <PageListContentWrapper
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation();
+            onClickPageContent(page.id);
+          }}
+          key={page.id + page.title}
+        >
+          <PageListContentSpan>{page.title === '' ? '제목 없음' : page.title}</PageListContentSpan>
+          <PageListContentDeleteButton
             onClick={(e: React.MouseEvent) => {
-              e.stopPropagation();
-              onClickPageContent(page.id);
+              onClickDeleteButton(page.id);
             }}
-            key={index}
           >
-            <PageListContentSpan>
-              {page.title === '' ? '제목 없음' : page.title}
-            </PageListContentSpan>
-            <PageListContentDeleteButton
-              onClick={(e: React.MouseEvent) => {
-                onClickDeleteButton(page.id);
-              }}
-            >
-              <DeleteIcon></DeleteIcon>
-            </PageListContentDeleteButton>
-          </PageListContentWrapper>
-        ),
-      )}
+            <DeleteIcon></DeleteIcon>
+          </PageListContentDeleteButton>
+        </PageListContentWrapper>
+      ))}
     </PageListWrapper>
   );
 }
