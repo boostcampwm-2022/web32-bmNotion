@@ -189,10 +189,9 @@ const UserNameInput = styled.input`
 const SearchResults = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 8px;
-  height: 200px;
-  padding-top: 20px;
+  padding-top: 2px;
+  height: 240px;
   overflow-y: auto;
 
   &::-webkit-scrollbar {
