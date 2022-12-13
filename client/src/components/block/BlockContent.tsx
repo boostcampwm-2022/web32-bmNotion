@@ -191,13 +191,14 @@ export default function BlockContent({
   const handleOnSpace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     /* 현재 카렛 위치 기준으로 text 분리 */
     const elem = e.target as HTMLElement;
-    const totalContent = elem.textContent || '';
-    const offset = (window.getSelection() as Selection).focusOffset;
-    const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
+    const [preText, selectedText, postText] = splitTextContentBySelection(elem);
     /* 마크다운 문법과 일치 => 해당 타입으로 변경 */
     const toType = checkMarkDownGrammer(preText);
-    if (toType !== '') {
-      /* toType으로 타입변경 */
+    if (toType === '') {
+      /* 기본동작 활용 */
+      handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: preText.length + 1 });
+    } else {
+      /* preText가 마크다운 문법과 일치. */
       e.preventDefault();
       elem.textContent = postText;
       const handleCaret = () => {
