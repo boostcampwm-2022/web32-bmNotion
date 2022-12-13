@@ -17,4 +17,5 @@ export const API = {
   CONNECT_SSE: `${BASE_URL}/sse`,
   GET_SPACE: `${BASE_URL}/api/workspace/spaceinfo/`,
   GET_WORKSPACE: `${BASE_URL}/api/workspace/info/`,
+  GET_PROFILE: `${BASE_URL}/api/user/profile/`,
 };
