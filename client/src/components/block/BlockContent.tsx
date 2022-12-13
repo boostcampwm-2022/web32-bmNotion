@@ -116,10 +116,17 @@ const checkMarkDownGrammer = (text: string) => {
   return matched === undefined ? '' : matched.getType(text);
 };
 
-const splitTextContentByCaret = (elem: HTMLElement) => {
+const getMinMax = (numbers: number[]) => [Math.min(...numbers), Math.max(...numbers)]
+
+const splitTextContentBySelection = (elem: HTMLElement) => {
   const totalContent = elem.textContent || '';
-  const offset = (window.getSelection() as Selection).focusOffset;
-  return [totalContent.slice(0, offset), totalContent.slice(offset)];
+  const selection = window.getSelection() as Selection;
+  const offset = getMinMax([selection.focusOffset, selection.anchorOffset]);
+  return [
+    totalContent.slice(0, offset[0]),
+    totalContent.slice(offset[0], offset[1]),
+    totalContent.slice(offset[1])
+  ];
 };
 
 export default function BlockContent({
