@@ -161,7 +161,7 @@ const H3BlockContentBox = styled.div`
 `;
 
 const IMGBlockContentBox = styled.div`
-  overflow: hidden;
+  object-fit: cover;
   cursor: pointer;
   width: 100%;
 `;
