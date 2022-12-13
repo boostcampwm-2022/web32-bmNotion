@@ -81,17 +81,17 @@ interface BlockTask {
 }
 
 interface CaretPosition {
-  targetBlockId: string;
-  caretOffset: number;
+  targetBlockId: string | null;
+  caretOffset: number | null;
 }
 
 const emptyPage = { title: '', nextId: '', pageId: '', blocks: [] } as PageInfo;
+const caretPosition: CaretPosition = { targetBlockId: null, caretOffset: null };
 
 export default function PageComponent({ selectedBlockId }: PageComponentProps): React.ReactElement {
   const [pageInfo, setPageInfo] = useState<PageInfo>(emptyPage);
 
   const [focusBlockId, setFocusBlockId] = useState<string | null>(null);
-  const [caretPosition, setCaretPosition] = useState<CaretPosition | null>(null);
 
   const [editTasks, setEditTasks] = useState<BlockTask[]>([]);
   const [selectedBlocks, setSelectedBlocks] = useState<BlockInfo[]>([]);
@@ -255,10 +255,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     targetBlockId: string;
     caretOffset: number;
   }) => {
-    if (caretPosition === null) {
-      setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
-      return;
-    }
     caretPosition.targetBlockId = targetBlockId;
     caretPosition.caretOffset = caretOffset;
   };
@@ -269,17 +265,8 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     targetBlockIndex: number;
     caretOffset: number;
   }) => {
-    if (caretPosition === null) {
-      setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
-      return;
-    }
-
     const targetBlock = pageInfo.blocks.find((e) => e.index === targetBlockIndex);
     if (targetBlock === undefined) return;
-    if (caretPosition === null) {
-      setCaretPosition({ targetBlockId: targetBlock.blockId, caretOffset: caretOffset });
-      return;
-    }
     caretPosition.targetBlockId = targetBlock.blockId;
     caretPosition.caretOffset = caretOffset;
   };
@@ -450,7 +437,9 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     // if (pageInfo.blocks.length === 0) {
     //   return;
     // }
-    if (caretPosition === null) return;
+    if (caretPosition.targetBlockId === null || caretPosition.caretOffset === null) {
+      return;
+    }
     moveCaret(caretPosition.targetBlockId, caretPosition.caretOffset);
   }, [pageInfo]);
 
@@ -508,9 +497,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
     if (e.key === 'Enter') {
       e.preventDefault();
-      const setCaret = (page: PageInfo) => {
-        handleSetCaretPositionById({ targetBlockId: page.nextId, caretOffset: 0 });
-      };
+      handleSetCaretPositionById({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
       // if (caretPosition === null) {
       //   setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
       //   moveCaret(pageInfo.nextId, 0);
@@ -530,7 +517,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
           index: 0,
           content: '',
           type: 'TEXT',
-          callBack: setCaret,
         });
       } else {
         pageInfo.title = preText;
@@ -540,7 +526,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
           index: 0,
           content: postText,
           type: 'TEXT',
-          callBack: setCaret,
         });
       }
     } else if (e.code === 'ArrowDown') {
