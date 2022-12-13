@@ -94,8 +94,8 @@ export default function WorkspaceList({ listButtonCilcked }: WorkspaceProps) {
             </WorkspaceContentWrapper>
           ))}
       </WorkspaceContents>
-      <AddWorkspaceButton listButtonCilcked={listButtonCilcked}>
-        <AddWorkspaceSpan onClick={requestAddSpace}>+</AddWorkspaceSpan>
+      <AddWorkspaceButton listButtonCilcked={listButtonCilcked} onClick={requestAddSpace}>
+        <AddWorkspaceSpan>+</AddWorkspaceSpan>
       </AddWorkspaceButton>
     </WorkspaceListWrapper>
   );
