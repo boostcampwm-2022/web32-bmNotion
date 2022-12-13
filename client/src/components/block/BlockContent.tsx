@@ -294,6 +294,8 @@ export default function BlockContent({
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
+    const offset = (window.getSelection() as Selection).focusOffset;
+    handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: offset });
     if (!target) return;
     target.normalize();
     const newContent = target.textContent;
