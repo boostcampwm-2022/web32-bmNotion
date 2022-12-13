@@ -491,6 +491,8 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   }, [pageid]);
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
+    const offset = (window.getSelection() as Selection).focusOffset;
+    handleSetCaretPositionById({ targetBlockId: 'titleBlock', caretOffset: offset });
     if (!e.target) return;
     const newContent = (e.target as HTMLDivElement).textContent;
     if (newContent) {
