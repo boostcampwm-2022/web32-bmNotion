@@ -214,9 +214,13 @@ export default function BlockContent({
 
   const handleOnBackspace = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const elem = e.target as HTMLElement;
-    if ((window.getSelection() as Selection).focusOffset !== 0) return;
+    const [preText, selectedText, proText] = splitTextContentBySelection(elem);
+    if (preText !== '' || selectedText !== '') {
+      handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: preText.length });
+      return;
+    }
+    e.preventDefault();
     if (type !== 'TEXT') {
-      e.preventDefault();
       const toType = 'TEXT';
       const handleCaret = () => {
         handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: 0 });
@@ -225,10 +229,9 @@ export default function BlockContent({
         block: { ...block, type: toType, content: elem.textContent || '' },
         callBack: handleCaret,
       });
-    } else {
-      if (index === 0) {
-        e.preventDefault();
-        const titleDomBlock = document.querySelector('div.title') as HTMLElement;
+    } else if (index === 0) {
+      const titleDomBlock = document.querySelector('div.title');
+      if (titleDomBlock === null) return;
         const text = pageInfo.title + elem.textContent;
         if (!titleDomBlock) return;
         titleDomBlock.textContent = text;
@@ -239,15 +242,16 @@ export default function BlockContent({
         pageInfo.title = text;
         deleteBlock({ blockId });
         return;
-      }
-
+    } else {
       const blocks = document.querySelectorAll('div.content');
       const prevDomBlock = [...blocks].find(
         (el) => el.getAttribute('data-index') === (index - 1).toString(),
-      ) as HTMLElement;
+      );
+      if (prevDomBlock === undefined) {
+        return;
+      }
       const prevBlock = allBlocks.find((e) => e.index === index - 1);
-      e.preventDefault();
-      const text = (prevDomBlock.textContent as string) + elem.textContent;
+      const text = (prevDomBlock.textContent || '') + elem.textContent;
       prevDomBlock.textContent = text;
       const handleCaret = () => {
         handleSetCaretPositionById({
