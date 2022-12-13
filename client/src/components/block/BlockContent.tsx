@@ -261,8 +261,11 @@ export default function BlockContent({
 
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const selection = window.getSelection();
-    if (selection !== null && (e.key === 'Enter' || e.code === 'Space' || e.code === 'Backspace') &&
-      selection.focusOffset !== selection.anchorOffset) {
+    if (
+      selection !== null &&
+      (e.key === 'Enter' || e.code === 'Space' || e.code === 'Backspace') &&
+      selection.focusOffset !== selection.anchorOffset
+    ) {
       /* 아직 핸들링하기 어려운 부분에 대해서는 아예 동작을 안하는 것으로 한다. */
       e.preventDefault();
       return;
