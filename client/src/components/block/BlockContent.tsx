@@ -122,6 +122,8 @@ const splitTextContentByCaret = (elem: HTMLElement) => {
   return [totalContent.slice(0, offset), totalContent.slice(offset)];
 };
 
+const preventDefaultEvent = (e: any) => e.preventDefault();
+
 export default function BlockContent({
   block,
   createBlock,
@@ -410,6 +412,7 @@ export default function BlockContent({
         onMouseDown={(e) => {
           e.stopPropagation();
         }}
+        onDrop={preventDefaultEvent}
       >
         {block.type === 'IMG' ? (
           <img
