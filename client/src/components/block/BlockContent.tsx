@@ -122,6 +122,8 @@ const splitTextContentByCaret = (elem: HTMLElement) => {
   return [totalContent.slice(0, offset), totalContent.slice(offset)];
 };
 
+const preventDefaultEvent = (e: any) => e.preventDefault();
+
 export default function BlockContent({
   block,
   createBlock,
@@ -258,6 +260,16 @@ export default function BlockContent({
   };
 
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const selection = window.getSelection();
+    if (
+      selection !== null &&
+      (e.key === 'Enter' || e.code === 'Space' || e.code === 'Backspace') &&
+      selection.focusOffset !== selection.anchorOffset
+    ) {
+      /* 아직 핸들링하기 어려운 부분에 대해서는 아예 동작을 안하는 것으로 한다. */
+      e.preventDefault();
+      return;
+    }
     if (e.key === 'Enter') {
       handleOnEnter(e);
     } else if (e.code === 'Space') {
@@ -414,6 +426,7 @@ export default function BlockContent({
           const offset = selection.focusOffset;
           handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: offset });
         }}
+        onDrop={preventDefaultEvent}
       >
         {block.type === 'IMG' ? (
           <img

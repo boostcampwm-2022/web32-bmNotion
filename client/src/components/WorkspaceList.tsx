@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { useAtom } from 'jotai';
 import { workSpaceNameAtom, workSpaceIdAtom } from '@/store/workSpaceAtom';
+import { userIdAtom } from '@/store/userAtom';
 interface Workspace {
   title: string;
   id: string;
@@ -22,6 +23,7 @@ interface WorkspaceProps {
 export default function WorkspaceList({ listButtonCilcked }: WorkspaceProps) {
   const [workSpaceName, setWorkSpaceName] = useAtom(workSpaceNameAtom);
   const [workSpaceId, setWorkSpaceId] = useAtom(workSpaceIdAtom);
+  const [userId] = useAtom(userIdAtom);
   const [isLoading, setIsLoading] = useState(false);
   const [workspaceList, setWorkspaceList] = useState<Workspace[]>([]);
   const { pageid } = useParams();
@@ -37,12 +39,16 @@ export default function WorkspaceList({ listButtonCilcked }: WorkspaceProps) {
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
-    axiosGetRequest('http://localhost:8080/api/workspace/list', onSuccess, onFail, requestHeader);
+    axiosGetRequest(API.GET_WORKSPACE_LIST, onSuccess, onFail, requestHeader);
   };
 
   const requestAddSpace = () => {
     const onSuccess = (res: AxiosResponse) => {
-      requestSpaceList();
+      const { workspaceid } = res.data;
+      if (workspaceid === undefined) return;
+      setWorkspaceList((prev) => {
+        return [...prev, { id: workspaceid, title: `${userId}'s Notion` }];
+      });
     };
     const onFail = (res: AxiosResponse) => {};
     const requestHeader = {
@@ -51,17 +57,9 @@ export default function WorkspaceList({ listButtonCilcked }: WorkspaceProps) {
     axiosPostRequest(API.ADD_WORKSPACE, onSuccess, onFail, {}, requestHeader);
   };
 
-  // useEffect(() => {
-  //   setSpacename(localStorage.getItem('spacename') as string);
-  // }, [localStorage.getItem('spacename')]);
-
   useEffect(() => {
     requestSpaceList();
   }, [pageid]);
-
-  const onClickAddSpace = () => {
-    requestAddSpace();
-  };
 
   const onClickWorkspace = (workspaceId: string) => {
     if (isLoading === false) return;
@@ -75,36 +73,29 @@ export default function WorkspaceList({ listButtonCilcked }: WorkspaceProps) {
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
-    axiosGetRequest(
-      `http://localhost:8080/api/workspace/info/${workspaceId}`,
-      onSuccess,
-      onFail,
-      requestHeader,
-    );
+    axiosGetRequest(API.GET_WORKSPACE + workspaceId, onSuccess, onFail, requestHeader);
   };
 
   if (isLoading === false) return <></>;
   return (
     <WorkspaceListWrapper listButtonCilcked={listButtonCilcked}>
       <WorkspaceContents>
-        {workspaceList.map((workspace, index) =>
-          workspace.id === workSpaceId ? (
-            <></>
-          ) : (
+        {workspaceList
+          .filter((workspace) => workspace.id !== workSpaceId)
+          .map((workspace) => (
             <WorkspaceContentWrapper
               onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
                 onClickWorkspace(workspace.id);
               }}
-              key={index}
+              key={workspace.id + workspace.title}
             >
               <WorkspaceContentSpan>{workspace.title}</WorkspaceContentSpan>
             </WorkspaceContentWrapper>
-          ),
-        )}
+          ))}
       </WorkspaceContents>
-      <AddWorkspaceButton listButtonCilcked={listButtonCilcked}>
-        <AddWorkspaceSpan onClick={onClickAddSpace}>+</AddWorkspaceSpan>
+      <AddWorkspaceButton listButtonCilcked={listButtonCilcked} onClick={requestAddSpace}>
+        <AddWorkspaceSpan>+</AddWorkspaceSpan>
       </AddWorkspaceButton>
     </WorkspaceListWrapper>
   );
