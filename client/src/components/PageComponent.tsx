@@ -494,7 +494,10 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
 
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const elem = e.target as HTMLElement;
-    if (!elem) return;
+    if (!elem){
+      console.log("elem 때문에 종료");
+      return;
+    }
     const totalContent = elem.textContent || '';
     const selection = window.getSelection() as Selection;
     const offset = selection.focusOffset;
@@ -503,8 +506,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
 
     if (e.key === 'Enter') {
-      const targetBlock = pageInfo.blocks.find((e) => e.index === 0);
-      if (!targetBlock) return;
       e.preventDefault();
       handleSetCaretPositionById({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
       if (e.nativeEvent.isComposing) return;
