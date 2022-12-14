@@ -203,7 +203,7 @@ export default function BlockContent({
   };
 
   const handleOnArrow = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    moveBlock({ e, content: '', index: index });
+    moveBlock({ e, content: '', index: index, blockId: blockId });
   };
 
   const handleOnBackspace = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -274,7 +274,13 @@ export default function BlockContent({
       handleOnEnter(e);
     } else if (e.code === 'Space') {
       handleOnSpace(e);
-    } else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+    } else if (
+      e.code === 'ArrowUp' ||
+      e.code === 'ArrowDown' ||
+      e.code === 'ArrowLeft' ||
+      e.code === 'ArrowRight' ||
+      e.code === 'ShiftLeft'
+    ) {
       handleOnArrow(e);
     } else if (e.code == 'Backspace') {
       handleOnBackspace(e);
@@ -414,6 +420,11 @@ export default function BlockContent({
         ref={refBlock}
         onMouseDown={(e) => {
           e.stopPropagation();
+        }}
+        onClick={() => {
+          const selection = window.getSelection() as Selection;
+          const offset = selection.focusOffset;
+          handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: offset });
         }}
         onDrop={preventDefaultEvent}
       >

@@ -430,6 +430,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
 
       select?.removeAllRanges();
       select?.addRange(range);
+      handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: offset });
     }
   };
   useEffect(() => {
@@ -492,23 +493,15 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const elem = e.target as HTMLElement;
     if (!elem) return;
     const totalContent = elem.textContent || '';
-    const offset = (window.getSelection() as Selection).focusOffset;
+    const selection = window.getSelection() as Selection;
+    const offset = selection.focusOffset;
+    const [startOffset, endOffset] = isCollapsed(selection);
+
     const [preText, postText] = [totalContent.slice(0, offset), totalContent.slice(offset)];
+
     if (e.key === 'Enter') {
       e.preventDefault();
       handleSetCaretPositionById({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
-      // if (caretPosition === null) {
-      //   setCaretPosition({ targetBlockId: pageInfo.nextId, caretOffset: 0 });
-      //   moveCaret(pageInfo.nextId, 0);
-      //   return;
-      // }
-      // caretPosition.targetBlockId = pageInfo.nextId;
-      // caretPosition.caretOffset = 0;
-
-      // if(caretPosition === null) return ;
-      // handleSetCaretPositionByIndex({targetBlockIndex: 1, caretOffset: 0});
-      // caretPosition.targetBlockId = 1;
-      // caretPosition.caretOffset = 0;
       if (e.nativeEvent.isComposing) return;
       if (totalContent.length === offset) {
         createBlock({
@@ -528,10 +521,52 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         });
       }
     } else if (e.code === 'ArrowDown') {
-      e.preventDefault();
       const targetBlock = pageInfo.blocks.find((e) => e.index === 0);
       if (!targetBlock) return;
+      e.preventDefault();
       moveCaret(targetBlock.blockId, offset);
+    } else if (e.code === 'ArrowRight') {
+      const targetBlock = pageInfo.blocks.find((e) => e.index === 0);
+      if (!targetBlock) return;
+      e.preventDefault();
+      if (startOffset === endOffset) {
+        //드래그 x
+        if (totalContent.length === endOffset) {
+          //제목의 끝
+          moveCaret(targetBlock.blockId, 0);
+          return;
+        }
+        //제목 끝 x
+        moveCaret('titleBlock', offset + 1);
+      } else {
+        //드래그 o
+        moveCaret('titleBlock', endOffset);
+      }
+    } else if (e.code === 'ArrowLeft') {
+      e.preventDefault();
+      if (startOffset === endOffset) {
+        //드래그 x
+        if (startOffset === 0) {
+          //제목의 시작
+          moveCaret('titleBlock', 0);
+          return;
+        }
+        //제목 끝 x
+        moveCaret('titleBlock', offset - 1);
+      } else {
+        //드래그 o
+        moveCaret('titleBlock', startOffset);
+      }
+    }
+  };
+
+  const isCollapsed = (selection: Selection) => {
+    const anchorOffset = selection.anchorOffset;
+    const focusOffset = selection.focusOffset;
+    if (!selection.isCollapsed) {
+      return [Math.min(anchorOffset, focusOffset), Math.max(anchorOffset, focusOffset)];
+    } else {
+      return [anchorOffset, focusOffset];
     }
   };
 
@@ -588,50 +623,261 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     // type,
     content,
     index,
+    blockId,
   }: {
     e: React.KeyboardEvent<HTMLDivElement>;
     // type: string;
     content: string;
     index: number;
+    blockId: string;
   }) => {
-    const offset = (window.getSelection() as Selection).anchorOffset;
+    const selection = window.getSelection() as Selection;
+    const offset = selection.focusOffset;
+    const [startOffset, endOffset] = isCollapsed(selection);
     const target = e.target as HTMLElement;
     if (!target) return;
     const lastLineLength = target.innerHTML.split('\n').slice(-1).join('').length;
     const firstLineLength = target.innerHTML.split('\n')[0].length;
     const baseLength = target.innerHTML.length - lastLineLength;
+    const [nowLineOffset, prevLineOffset, nextLineOffset]: (number | null)[] = getLinesByOffset(
+      target.innerHTML,
+      offset,
+    );
     if (target.innerHTML.includes('\n')) {
-      if (e.code === 'ArrowUp' && offset <= firstLineLength) {
+      //여러줄 block
+      if (offset <= firstLineLength) {
         //여러 line을 가진 block의 첫번쨰 줄일 경우
-        onFocusIndex(e, String(index - 1), offset);
-        return;
+        e.preventDefault();
+        if (e.code === 'ArrowUp') {
+          if (index === 0) {
+            moveCaret('titleBlock', offset);
+            return;
+          }
+          const targetBlock = pageInfo.blocks.find((e) => e.index === index - 1);
+          if (targetBlock === undefined) return;
+          moveCaret(targetBlock.blockId, offset);
+          return;
+        } else if (e.code === 'ArrowLeft') {
+          if (index === 0) {
+            if (startOffset === endOffset) {
+              //드래그 x
+              if (startOffset === 0) {
+                //블럭 시작
+                moveCaret('titleBlock', pageInfo.title.length);
+                return;
+              }
+              //블럭 시작 x
+              moveCaret(blockId, offset - 1);
+              return;
+            } else {
+              //드래그 o
+              moveCaret(blockId, startOffset);
+              return;
+            }
+          }
+          /// 여러줄 block이 index 0이 아닐 때 left
+          const targetBlock = pageInfo.blocks.find((e) => e.index === index - 1);
+          if (targetBlock === undefined) return;
+          if (startOffset === endOffset) {
+            //드래그 x
+            if (startOffset === 0) {
+              //블록 시작
+              moveCaret(targetBlock.blockId, targetBlock.content.length);
+              return;
+            }
+            //블록 시작 x
+            moveCaret(blockId, offset - 1);
+          } else {
+            //드래그 o
+            moveCaret(blockId, startOffset);
+            return;
+          }
+        } else if (e.code === 'ArrowRight') {
+          if (startOffset === endOffset) {
+            //드래그 x
+            moveCaret(blockId, offset + 1);
+          } else {
+            //드래그 o
+            moveCaret(blockId, endOffset);
+            return;
+          }
+        } else if (e.code === 'ArrowDown') {
+          moveCaret(blockId, firstLineLength + offset + 1);
+          return;
+        }
       } else if (
         //여러 line을 가진 block의 마지막 줄일 경우
-        e.code === 'ArrowDown' &&
-        baseLength < offset &&
+        baseLength <= offset &&
         offset <= target.innerHTML.length
       ) {
-        onFocusIndex(e, String(index + 1), offset - baseLength);
-        return;
+        e.preventDefault();
+        if (e.code === 'ArrowDown') {
+          const targetBlock = pageInfo.blocks.find((e) => e.index === index + 1);
+          if (targetBlock === undefined) return;
+          moveCaret(targetBlock.blockId, offset - baseLength);
+          return;
+        } else if (e.code === 'ArrowUp') {
+          if (prevLineOffset === null) return;
+          moveCaret(blockId, prevLineOffset);
+          return;
+        } else if (e.code === 'ArrowLeft') {
+          // if(nowLineOffset === 0) {
+          //   moveCaret(blockId, offset - 2);
+          // }
+          // else {
+          //   moveCaret(blockId, offset - 1);
+          // }
+          moveCaret(blockId, offset - 1);
+          return;
+        } else if (e.code === 'ArrowRight') {
+          if (target.innerHTML.length === offset) {
+            const targetBlock = pageInfo.blocks.find((e) => e.index === index + 1);
+            if (targetBlock === undefined) return;
+            moveCaret(targetBlock.blockId, 0);
+            return;
+          } else {
+            moveCaret(blockId, offset + 1);
+            return;
+          }
+        }
+      } else {
+        //첫줄, 끝줄을 제외한 나머지줄
+        e.preventDefault();
+        if (e.code === 'ArrowUp') {
+          if (prevLineOffset === null) return;
+          moveCaret(blockId, prevLineOffset);
+          return;
+        } else if (e.code === 'ArrowDown') {
+          if (nextLineOffset === null) return;
+          moveCaret(blockId, nextLineOffset);
+          return;
+        } else if (e.code === 'ArrowRight') {
+          moveCaret(blockId, offset + 1);
+        } else if (e.code === 'ArrowLeft') {
+          moveCaret(blockId, offset - 1);
+        }
       }
-      return;
     } else {
+      e.preventDefault();
+      //한줄짜리 블록
       if (e.code === 'ArrowUp') {
         if (index === 0) {
-          e.preventDefault();
           moveCaret('titleBlock', offset);
           return;
         }
-        onFocusIndex(e, String(index - 1), offset);
+        const blocks = document.querySelectorAll('div.content');
+        const targetDomBlock = [...blocks].find(
+          (el) => el.getAttribute('data-index') === String(index - 1),
+        );
+        if (!targetDomBlock) return;
+        const targetBlock = pageInfo.blocks.find((e) => e.index === index - 1);
+        if (targetBlock === undefined) return;
+        if (targetDomBlock.innerHTML.includes('\n')) {
+          const targetLastLineLength = targetDomBlock.innerHTML
+            .split('\n')
+            .slice(-1)
+            .join('').length;
+          const targetBaseLength = targetDomBlock.innerHTML.length - targetLastLineLength;
+          if (targetLastLineLength <= offset) {
+            moveCaret(targetBlock.blockId, targetBaseLength + targetLastLineLength);
+          }
+          moveCaret(targetBlock.blockId, targetBaseLength + offset);
+          return;
+        }
+        moveCaret(targetBlock.blockId, offset);
         return;
       } else if (e.code === 'ArrowDown') {
         if (index === pageInfo.blocks[pageInfo.blocks.length - 1].index) {
           return;
         }
-        onFocusIndex(e, String(index + 1), offset);
+        const targetBlock = pageInfo.blocks.find((e) => e.index === index + 1);
+        if (targetBlock === undefined) return;
+        moveCaret(targetBlock.blockId, offset);
+        return;
+      } else if (e.code === 'ArrowRight') {
+        if (startOffset !== endOffset) {
+          moveCaret(blockId, endOffset);
+          return;
+        }
+        if (offset === target.innerHTML.length) {
+          const targetBlock = pageInfo.blocks.find((e) => e.index === index + 1);
+          if (targetBlock === undefined) return;
+          moveCaret(targetBlock.blockId, 0);
+          return;
+        }
+        moveCaret(blockId, offset + 1);
+        return;
+      } else if (e.code === 'ArrowLeft') {
+        if (startOffset !== endOffset) {
+          moveCaret(blockId, startOffset);
+          return;
+        }
+        if (offset === 0) {
+          if (index === 0) {
+            moveCaret('titleBlock', pageInfo.title.length);
+            return;
+          } else {
+            const targetBlock = pageInfo.blocks.find((e) => e.index === index - 1);
+            if (targetBlock === undefined) return;
+            moveCaret(targetBlock.blockId, targetBlock.content.length);
+            return;
+          }
+        }
+        moveCaret(blockId, offset - 1);
         return;
       }
     }
+  };
+
+  const getLinesByOffset = (fullString: string, offset: number) => {
+    const lineArr = fullString.split('\n');
+    let sum = 0;
+    let offsetIndex = -1;
+    let nowLineOffset;
+    let prevLineLength = 0;
+    let nextLineLength;
+    let prevLineOffset;
+    let nextLineOffset;
+    for (let i = 0; i < lineArr.length; i++) {
+      sum = sum + lineArr[i].length + 1;
+      offsetIndex++;
+      if (offset < sum) {
+        break;
+      }
+      prevLineLength = sum;
+    }
+    nowLineOffset = offset - prevLineLength;
+
+    if (offsetIndex + 1 === lineArr.length) {
+      nextLineOffset = null;
+    } else {
+      nextLineLength = lineArr[offsetIndex + 1].length;
+      if (nextLineLength < nowLineOffset) {
+        nextLineOffset = sum + nextLineLength;
+      } else {
+        nextLineOffset = sum + nowLineOffset;
+      }
+    }
+
+    if (offsetIndex === 0) {
+      prevLineOffset = null;
+    } else {
+      if (offsetIndex === 1) {
+        if (lineArr[0].length < nowLineOffset) {
+          prevLineOffset = lineArr[0].length;
+        } else {
+          prevLineOffset = nowLineOffset;
+        }
+      } else {
+        const prevPrevLineLength = prevLineLength - lineArr[offsetIndex - 1].length - 1;
+        if (lineArr[offsetIndex - 1].length < nowLineOffset) {
+          prevLineOffset = prevPrevLineLength + lineArr[offsetIndex - 1].length;
+        } else {
+          prevLineOffset = prevPrevLineLength + nowLineOffset;
+        }
+      }
+    }
+    return [nowLineOffset, prevLineOffset, nextLineOffset];
   };
 
   useEffect(() => {
@@ -673,6 +919,11 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         onKeyDown={handleOnKeyDown}
         suppressContentEditableWarning={true}
         onMouseDown={(e) => e.stopPropagation()}
+        onClick={() => {
+          const selection = window.getSelection() as Selection;
+          const offset = selection.focusOffset;
+          handleSetCaretPositionById({ targetBlockId: 'titleBlock', caretOffset: offset });
+        }}
       >
         {pageInfo.title}
       </PageTitle>
