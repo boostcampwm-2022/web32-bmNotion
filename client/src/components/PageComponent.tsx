@@ -140,7 +140,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     notSaveOption,
     callBack,
   }: CreateBlockParam) => {
-    console.log("create");
     setPageInfo((prevPage) => {
       const targetIndex =
         prevBlockId === undefined
@@ -398,7 +397,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   }, [pageid, pageInfo]);
 
   const moveCaret = (blockId: string, nowOffset: number) => {
-    console.log("move caret 실행됨");
     const blocks = document.querySelectorAll('div.content, div.title') as NodeListOf<HTMLElement>;
     if (!blocks) {
       return;
@@ -494,10 +492,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
 
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const elem = e.target as HTMLElement;
-    if (!elem){
-      console.log("elem 때문에 종료");
-      return;
-    }
+    if (!elem) return;
     const totalContent = elem.textContent || '';
     const selection = window.getSelection() as Selection;
     const offset = selection.focusOffset;
@@ -546,7 +541,6 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         moveCaret('titleBlock', offset + 1);
       } else {
         //드래그 o
-        console.log('드래그 o');
         moveCaret('titleBlock', endOffset);
       }
     } else if (e.code === 'ArrowLeft') {
@@ -646,26 +640,25 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const lastLineLength = target.innerHTML.split('\n').slice(-1).join('').length;
     const firstLineLength = target.innerHTML.split('\n')[0].length;
     const baseLength = target.innerHTML.length - lastLineLength;
-    const [nowLineOffset, prevLineOffset, nextLineOffset] : (number|null)[] = getLinesByOffset(target.innerHTML, offset);
-    if(e.code === "ShiftLeft") {
-      console.log("caretOffset : ", caretPosition.caretOffset);
-    }
+    const [nowLineOffset, prevLineOffset, nextLineOffset]: (number | null)[] = getLinesByOffset(
+      target.innerHTML,
+      offset,
+    );
     if (target.innerHTML.includes('\n')) {
       //여러줄 block
       if (offset <= firstLineLength) {
         //여러 line을 가진 block의 첫번쨰 줄일 경우
         e.preventDefault();
-        if(e.code === 'ArrowUp') {
+        if (e.code === 'ArrowUp') {
           if (index === 0) {
             moveCaret('titleBlock', offset);
             return;
           }
-          const targetBlock = pageInfo.blocks.find((e) => e.index === index-1);
+          const targetBlock = pageInfo.blocks.find((e) => e.index === index - 1);
           if (targetBlock === undefined) return;
           moveCaret(targetBlock.blockId, offset);
           return;
-        }
-        else if (e.code === 'ArrowLeft') {
+        } else if (e.code === 'ArrowLeft') {
           if (index === 0) {
             if (startOffset === endOffset) {
               //드래그 x
@@ -684,7 +677,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
             }
           }
           /// 여러줄 block이 index 0이 아닐 때 left
-          const targetBlock = pageInfo.blocks.find((e) => e.index === index-1);
+          const targetBlock = pageInfo.blocks.find((e) => e.index === index - 1);
           if (targetBlock === undefined) return;
           if (startOffset === endOffset) {
             //드래그 x
@@ -700,40 +693,35 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
             moveCaret(blockId, startOffset);
             return;
           }
-        }
-        else if (e.code === 'ArrowRight') {
-            if (startOffset === endOffset) {
-              //드래그 x
-              moveCaret(blockId, offset + 1);
-            } else {
-              //드래그 o
-              moveCaret(blockId, endOffset);
-              return;
-            }
-        }
-        else if (e.code === 'ArrowDown') {
-            moveCaret(blockId, firstLineLength + offset + 1);
+        } else if (e.code === 'ArrowRight') {
+          if (startOffset === endOffset) {
+            //드래그 x
+            moveCaret(blockId, offset + 1);
+          } else {
+            //드래그 o
+            moveCaret(blockId, endOffset);
             return;
+          }
+        } else if (e.code === 'ArrowDown') {
+          moveCaret(blockId, firstLineLength + offset + 1);
+          return;
         }
-      } 
-      else if (
+      } else if (
         //여러 line을 가진 block의 마지막 줄일 경우
         baseLength <= offset &&
         offset <= target.innerHTML.length
       ) {
         e.preventDefault();
-        if(e.code === 'ArrowDown') {
-          const targetBlock = pageInfo.blocks.find((e) => e.index === index+1);
+        if (e.code === 'ArrowDown') {
+          const targetBlock = pageInfo.blocks.find((e) => e.index === index + 1);
           if (targetBlock === undefined) return;
-          moveCaret(targetBlock.blockId, offset - baseLength)
+          moveCaret(targetBlock.blockId, offset - baseLength);
           return;
-        }
-        else if(e.code === 'ArrowUp') {
-          if(prevLineOffset === null) return ;
-          moveCaret(blockId, prevLineOffset)
+        } else if (e.code === 'ArrowUp') {
+          if (prevLineOffset === null) return;
+          moveCaret(blockId, prevLineOffset);
           return;
-        }
-        else if(e.code === 'ArrowLeft') {
+        } else if (e.code === 'ArrowLeft') {
           // if(nowLineOffset === 0) {
           //   moveCaret(blockId, offset - 2);
           // }
@@ -742,40 +730,33 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
           // }
           moveCaret(blockId, offset - 1);
           return;
-        }
-        else if(e.code === 'ArrowRight') {
-          if(target.innerHTML.length === offset) {
-            const targetBlock = pageInfo.blocks.find((e) => e.index === index+1);
+        } else if (e.code === 'ArrowRight') {
+          if (target.innerHTML.length === offset) {
+            const targetBlock = pageInfo.blocks.find((e) => e.index === index + 1);
             if (targetBlock === undefined) return;
-            moveCaret(targetBlock.blockId, 0)
+            moveCaret(targetBlock.blockId, 0);
+            return;
+          } else {
+            moveCaret(blockId, offset + 1);
             return;
           }
-          else {
-            moveCaret(blockId, offset+1);
-            return ;
-          }
         }
-      }
-      else {
-      //첫줄, 끝줄을 제외한 나머지줄
-      e.preventDefault();
-      if (e.code === 'ArrowUp') {
-        console.log("나머지 위");
-        if(prevLineOffset === null) return ;
-        moveCaret(blockId, prevLineOffset)
-        return;
-      } 
-      else if (e.code === 'ArrowDown') {
-        if(nextLineOffset === null) return ;
-        moveCaret(blockId, nextLineOffset)
-        return;
-      } 
-      else if (e.code === 'ArrowRight') {
-        moveCaret(blockId, offset + 1);
-      }
-      else if (e.code === 'ArrowLeft') {
-        moveCaret(blockId, offset - 1);
-      }
+      } else {
+        //첫줄, 끝줄을 제외한 나머지줄
+        e.preventDefault();
+        if (e.code === 'ArrowUp') {
+          if (prevLineOffset === null) return;
+          moveCaret(blockId, prevLineOffset);
+          return;
+        } else if (e.code === 'ArrowDown') {
+          if (nextLineOffset === null) return;
+          moveCaret(blockId, nextLineOffset);
+          return;
+        } else if (e.code === 'ArrowRight') {
+          moveCaret(blockId, offset + 1);
+        } else if (e.code === 'ArrowLeft') {
+          moveCaret(blockId, offset - 1);
+        }
       }
     } else {
       e.preventDefault();
@@ -786,18 +767,23 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
           return;
         }
         const blocks = document.querySelectorAll('div.content');
-        const targetDomBlock = [...blocks].find((el) => el.getAttribute('data-index') === String(index-1));
-        if(!targetDomBlock) return ;
-        const targetBlock = pageInfo.blocks.find((e) => e.index === index-1);
+        const targetDomBlock = [...blocks].find(
+          (el) => el.getAttribute('data-index') === String(index - 1),
+        );
+        if (!targetDomBlock) return;
+        const targetBlock = pageInfo.blocks.find((e) => e.index === index - 1);
         if (targetBlock === undefined) return;
         if (targetDomBlock.innerHTML.includes('\n')) {
-          const targetLastLineLength = targetDomBlock.innerHTML.split('\n').slice(-1).join('').length;
+          const targetLastLineLength = targetDomBlock.innerHTML
+            .split('\n')
+            .slice(-1)
+            .join('').length;
           const targetBaseLength = targetDomBlock.innerHTML.length - targetLastLineLength;
-          if(targetLastLineLength <= offset) {
+          if (targetLastLineLength <= offset) {
             moveCaret(targetBlock.blockId, targetBaseLength + targetLastLineLength);
           }
           moveCaret(targetBlock.blockId, targetBaseLength + offset);
-          return ;
+          return;
         }
         moveCaret(targetBlock.blockId, offset);
         return;
@@ -805,43 +791,41 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         if (index === pageInfo.blocks[pageInfo.blocks.length - 1].index) {
           return;
         }
-        const targetBlock = pageInfo.blocks.find((e) => e.index === index+1);
+        const targetBlock = pageInfo.blocks.find((e) => e.index === index + 1);
         if (targetBlock === undefined) return;
         moveCaret(targetBlock.blockId, offset);
         return;
       } else if (e.code === 'ArrowRight') {
         if (startOffset !== endOffset) {
           moveCaret(blockId, endOffset);
-          return ;
+          return;
         }
         if (offset === target.innerHTML.length) {
-          const targetBlock = pageInfo.blocks.find((e) => e.index === index+1);
+          const targetBlock = pageInfo.blocks.find((e) => e.index === index + 1);
           if (targetBlock === undefined) return;
           moveCaret(targetBlock.blockId, 0);
-          return ;
+          return;
         }
-        moveCaret(blockId, offset+1);
-        return ;
-      }
-      else if (e.code === 'ArrowLeft') {
+        moveCaret(blockId, offset + 1);
+        return;
+      } else if (e.code === 'ArrowLeft') {
         if (startOffset !== endOffset) {
           moveCaret(blockId, startOffset);
-          return ;
+          return;
         }
-        if(offset === 0) {
-          if(index === 0) {
+        if (offset === 0) {
+          if (index === 0) {
             moveCaret('titleBlock', pageInfo.title.length);
-            return ;
-          }
-          else {
-            const targetBlock = pageInfo.blocks.find((e) => e.index === index-1);
+            return;
+          } else {
+            const targetBlock = pageInfo.blocks.find((e) => e.index === index - 1);
             if (targetBlock === undefined) return;
             moveCaret(targetBlock.blockId, targetBlock.content.length);
-            return ;
+            return;
           }
         }
-          moveCaret(blockId, offset-1);
-          return ;
+        moveCaret(blockId, offset - 1);
+        return;
       }
     }
   };
@@ -855,59 +839,47 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     let nextLineLength;
     let prevLineOffset;
     let nextLineOffset;
-    for(let i = 0; i<lineArr.length; i++) {
+    for (let i = 0; i < lineArr.length; i++) {
       sum = sum + lineArr[i].length + 1;
       offsetIndex++;
-      if(offset < sum) {
+      if (offset < sum) {
         break;
       }
       prevLineLength = sum;
     }
     nowLineOffset = offset - prevLineLength;
 
-    if(offsetIndex + 1 === lineArr.length) {
+    if (offsetIndex + 1 === lineArr.length) {
       nextLineOffset = null;
-    }
-    else {
+    } else {
       nextLineLength = lineArr[offsetIndex + 1].length;
-      if(nextLineLength < nowLineOffset) {
+      if (nextLineLength < nowLineOffset) {
         nextLineOffset = sum + nextLineLength;
       } else {
         nextLineOffset = sum + nowLineOffset;
       }
     }
 
-    if(offsetIndex === 0) {
+    if (offsetIndex === 0) {
       prevLineOffset = null;
-    }
-    else {
-      if(offsetIndex === 1) {
-        if(lineArr[0].length < nowLineOffset) {
+    } else {
+      if (offsetIndex === 1) {
+        if (lineArr[0].length < nowLineOffset) {
           prevLineOffset = lineArr[0].length;
-        }
-        else {
+        } else {
           prevLineOffset = nowLineOffset;
         }
-      }
-      else {
-        const prevPrevLineLength = prevLineLength - lineArr[offsetIndex - 1].length -1;
-        if(lineArr[offsetIndex - 1].length < nowLineOffset) {
+      } else {
+        const prevPrevLineLength = prevLineLength - lineArr[offsetIndex - 1].length - 1;
+        if (lineArr[offsetIndex - 1].length < nowLineOffset) {
           prevLineOffset = prevPrevLineLength + lineArr[offsetIndex - 1].length;
-        }
-        else {
+        } else {
           prevLineOffset = prevPrevLineLength + nowLineOffset;
         }
       }
     }
-    // console.log("@@@@@@@@@@@@@@");
-    // console.log("nowOffset : ", nowLineOffset);
-    // console.log("prevLine", prevLineLength);
-    // console.log("prevLineOffset : ", prevLineOffset);
-    // console.log("nextLine", nextLineLength);
-    // console.log("nextLineOffset : ", nextLineOffset);
-    // console.log("@@@@@@@@@@@@@@");
     return [nowLineOffset, prevLineOffset, nextLineOffset];
-  }
+  };
 
   useEffect(() => {
     const onFocus = (targetBlockId: string) => {
@@ -948,10 +920,10 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         onKeyDown={handleOnKeyDown}
         suppressContentEditableWarning={true}
         onMouseDown={(e) => e.stopPropagation()}
-        onClick={()=>{
+        onClick={() => {
           const selection = window.getSelection() as Selection;
           const offset = selection.focusOffset;
-          handleSetCaretPositionById({ targetBlockId: "titleBlock", caretOffset: offset });
+          handleSetCaretPositionById({ targetBlockId: 'titleBlock', caretOffset: offset });
         }}
       >
         {pageInfo.title}
