@@ -648,9 +648,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
     const baseLength = target.innerHTML.length - lastLineLength;
     const [nowLineOffset, prevLineOffset, nextLineOffset] : (number|null)[] = getLinesByOffset(target.innerHTML, offset);
     if(e.code === "ShiftLeft") {
-      console.log(caretPosition.caretOffset);
-      console.log("offset : ", offset);
-      getLinesByOffset(target.innerHTML, offset);
+      console.log("caretOffset : ", caretPosition.caretOffset);
     }
     if (target.innerHTML.includes('\n')) {
       //여러줄 block
@@ -950,6 +948,11 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         onKeyDown={handleOnKeyDown}
         suppressContentEditableWarning={true}
         onMouseDown={(e) => e.stopPropagation()}
+        onClick={()=>{
+          const selection = window.getSelection() as Selection;
+          const offset = selection.focusOffset;
+          handleSetCaretPositionById({ targetBlockId: "titleBlock", caretOffset: offset });
+        }}
       >
         {pageInfo.title}
       </PageTitle>

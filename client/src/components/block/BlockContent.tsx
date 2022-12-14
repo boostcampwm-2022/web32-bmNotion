@@ -403,6 +403,11 @@ export default function BlockContent({
         onMouseDown={(e) => {
           e.stopPropagation();
         }}
+        onClick={()=>{
+          const selection = window.getSelection() as Selection;
+          const offset = selection.focusOffset;
+          handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: offset });
+        }}
       >
         {block.type === 'IMG' ? (
           <img
