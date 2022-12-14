@@ -278,8 +278,7 @@ export default function BlockContent({
       e.code === 'ArrowUp' ||
       e.code === 'ArrowDown' ||
       e.code === 'ArrowLeft' ||
-      e.code === 'ArrowRight' ||
-      e.code === 'ShiftLeft'
+      e.code === 'ArrowRight'
     ) {
       handleOnArrow(e);
     } else if (e.code == 'Backspace') {
@@ -541,6 +540,8 @@ const BlockContentBox = styled.div`
   /* caret-color: red; // 커서 색깔,요하면 원하는 색깔로 바꾸기 */
   border-radius: 3px;
   transition: all 0.1s linear;
+  white-space: pre-wrap;
+  word-break: break-word;
 
   &.selected {
     background-color: rgba(35, 131, 226, 0.15);
@@ -549,15 +550,17 @@ const BlockContentBox = styled.div`
   &:focus {
     outline: none;
   }
-
-  white-space: pre-wrap;
-  word-break: break-word;
 `;
 
 const BeforeContentBox = styled.div<{ beforeContent: string }>`
   display: flex;
-  align-content: center;
-  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: -4px;
+  width: 24px;
+  height: 100%;
+  padding-top: 2px;
+  overflow-y: hidden;
   &::before {
     content: '${(props) => props.beforeContent}';
   }
