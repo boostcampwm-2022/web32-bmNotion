@@ -44,6 +44,12 @@ export default function BlockModalContent({
       image: '/assets/typeImages/h3.png',
       type: 'H3',
     },
+    {
+      title: '글 머리 기호 목록',
+      contents: '간단한 글머리 기호 목록을 생성하세요',
+      image: '/assets/typeImages/ul.png',
+      type: 'UL',
+    },
   ];
 
   const renderContentType = () => {

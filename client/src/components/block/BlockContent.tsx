@@ -266,8 +266,7 @@ export default function BlockContent({
       e.code === 'ArrowUp' ||
       e.code === 'ArrowDown' ||
       e.code === 'ArrowLeft' ||
-      e.code === 'ArrowRight' ||
-      e.code === 'ShiftLeft'
+      e.code === 'ArrowRight'
     ) {
       handleOnArrow(e);
     } else if (e.code == 'Backspace') {
@@ -381,7 +380,7 @@ export default function BlockContent({
     }
   };
 
-  const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : '';
+  const beforeContent = block.type === 'UL' ? ' •' : block.type === 'OL' ? '4242.' : '';
 
   return (
     <BlockContainer
