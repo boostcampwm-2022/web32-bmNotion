@@ -42,6 +42,11 @@ export default function TypeChangeModalContent({
       image: '/assets/typeImages/h3.png',
       type: 'H3',
     },
+    {
+      text: '글 머리 기호 목록',
+      image: '/assets/typeImages/ul.png',
+      type: 'UL',
+    },
   ];
 
   const renderContentType = () => {
