@@ -57,7 +57,6 @@ const workspaceCrud = {
 const getWorkspaceIdByPage = async (pageId, userId) => {
   const workspace = await workspaceCrud.readWorkSpaceByPage(pageId);
   if (workspace === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
-
   if (workspace.members.includes(userId)) return createResponse(responseMessage.AUTH_FAIL);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
   response.spacename = workspace._id;
