@@ -403,11 +403,7 @@ export default function BlockContent({
   const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : '';
 
   return (
-    <BlockContainer
-      ref={provided.innerRef}
-      {...provided.draggableProps}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
+    <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
       <BlockButtonBox>
         <BlockPlusButton onClick={handleBlockPlusButtonModal} />
         <BlockOptionButton {...provided.dragHandleProps} onClick={handleBlockOptionButtonModal} />
@@ -426,9 +422,6 @@ export default function BlockContent({
         data-tab={1}
         ref={refBlock}
         isDragging={snapshot.isDragging}
-        onMouseDown={(e) => {
-          e.stopPropagation();
-        }}
         onClick={() => {
           const selection = window.getSelection() as Selection;
           const offset = selection.focusOffset;
