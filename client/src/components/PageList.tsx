@@ -198,8 +198,8 @@ const PageListContentDeleteButton = styled.button`
 `;
 const DeleteIcon = styled.div`
   display: none;
-  width: 8px;
-  height: 8px;
-  background-image: url('/assets/icons/x-solid.svg');
-  background-size: 8px 8px;
+  width: 14px;
+  height: 14px;
+  background-image: url('/assets/icons/x_thin_icon.png');
+  background-size: 14px 14px;
 `;
