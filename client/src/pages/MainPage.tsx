@@ -516,7 +516,7 @@ const ProfileImage = styled.img`
 const SettingIcon = styled.div`
   width: 12px;
   height: 12px;
-  background-image: url('/assets/icons/gear.svg');
+  background-image: url('/assets/icons/gear.png');
   background-size: 12px 12px;
   margin: 8px;
 `;
