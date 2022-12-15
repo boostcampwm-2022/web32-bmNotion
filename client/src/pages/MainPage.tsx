@@ -168,9 +168,13 @@ export default function MainPage(): ReactElement {
             const right = left + width;
             const bottom = top + height;
             blocks.forEach((e, i) => {
-              if (!e.offsetTop) {
-                return;
-              }
+              if (!e.offsetTop) return;
+              if (!e.offsetLeft) return;
+              if (!e.offsetHeight) return;
+              if (!e.offsetWidth) return;
+              if (!e.offsetParent) return;
+              if (!(e.offsetParent as HTMLElement).offsetTop) return;
+              if (!(e.offsetParent as HTMLElement).offsetLeft) return;
               const boxTop =
                 e.offsetTop +
                 (e.offsetParent as HTMLElement).offsetTop +
