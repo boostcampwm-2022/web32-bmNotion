@@ -11,11 +11,13 @@ const userRouter = require('./user/user.router');
 const blockRouter = require('./block/block.router');
 const workspaceRouter = require('./workspace/workspace.router');
 const sseConnect = require('./sse/sse.connect');
+const { readQueue } = require('./db/db.crud');
 
 const port = process.env.PORT || '8080';
 const app = express();
 
 const server = app.listen(port, () => {
+  readQueue();
   console.log('연결 성공');
 });
 
