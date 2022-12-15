@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = '';
 
 export const API = {
   LOGIN: `${BASE_URL}/api/auth/signin`,
@@ -14,8 +14,9 @@ export const API = {
   ADD_WORKSPACE_MEMBER: `${BASE_URL}/api/workspace/invite`,
   RENAME_WORKSPACE: `${BASE_URL}/api/workspace/rename`,
   GET_USER_NICKNAME: `${BASE_URL}/api/user/`,
-  CONNECT_SSE: `${BASE_URL}/sse`,
+  CONNECT_SSE: '/sse',
   GET_SPACE: `${BASE_URL}/api/workspace/spaceinfo/`,
   GET_WORKSPACE: `${BASE_URL}/api/workspace/info/`,
   GET_PROFILE: `${BASE_URL}/api/user/profile/`,
+  GET_SEARCH: `${BASE_URL}/api/user/search/`
 };
