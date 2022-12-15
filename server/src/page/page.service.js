@@ -1,6 +1,12 @@
 /* eslint no-underscore-dangle: 0 */
 const { ObjectId } = require('mongodb');
-const { createDocument, updateOneDocument, readOneDocument, writeBulk, saveTaskBulk } = require('../db/db.crud');
+const {
+  createDocument,
+  updateOneDocument,
+  readOneDocument,
+  writeBulk,
+  saveTaskBulk,
+} = require('../db/db.crud');
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
 const dbConfig = require('../db.config.json');
@@ -51,7 +57,7 @@ const createSetQuery = (pageid, edits, title) => {
       arrayFilters: [],
     },
   };
-  edits.forEach((edit, idx) => {
+  editTasks.forEach((edit, idx) => {
     const { blockId, content, index, type } = edit;
     const arrayFilter = {};
     const filterFieldName = getAscii(idx);
@@ -79,7 +85,7 @@ const createPullQuery = (pageid, edits, title) => {
       },
     },
   };
-  edits.forEach((edit) => {
+  deleteTasks.forEach((edit) => {
     const { blockId } = edit;
     query.updateOne.update.$pull.blocks.blockId.$in.push(blockId);
   });
@@ -162,7 +168,7 @@ const editPagePipeline = async (userid, title, pageid, tasks) => {
   // const isParticipant = checkPageAuthority(page, userid);
   // if (!isParticipant) return createResponse(responseMessage.AUTH_FAIL);
   if (tasks.length > 0) await pageCrud.updateTasks(pageid, tasks, title);
-  await pageCrud.updatePageInfo(pageid, userid)
+  await pageCrud.updatePageInfo(pageid, userid);
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
 
