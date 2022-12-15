@@ -21,6 +21,7 @@ interface StyledBlockContentProps {
   handleSetCaretPositionById: Function;
   handleSetCaretPositionByIndex: Function;
   pageInfo: PageInfo;
+  resetMouseEvent: Function;
 }
 
 export default function StyledBlockContent({
@@ -38,6 +39,7 @@ export default function StyledBlockContent({
   handleSetCaretPositionByIndex,
   task,
   pageInfo,
+  resetMouseEvent,
 }: StyledBlockContentProps): ReactElement {
   const StyleBox =
     {
@@ -68,6 +70,7 @@ export default function StyledBlockContent({
           handleSetCaretPositionById={handleSetCaretPositionById}
           handleSetCaretPositionByIndex={handleSetCaretPositionByIndex}
           pageInfo={pageInfo}
+          resetMouseEvent={resetMouseEvent}
         />
       </StyleBox>
     );

@@ -1,6 +1,12 @@
 /* eslint no-underscore-dangle: 0 */
 const { ObjectId } = require('mongodb');
-const { createDocument, updateOneDocument, readOneDocument, writeBulk, saveTaskBulk } = require('../db/db.crud');
+const {
+  createDocument,
+  updateOneDocument,
+  readOneDocument,
+  writeBulk,
+  saveTaskBulk,
+} = require('../db/db.crud');
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
 const dbConfig = require('../db.config.json');
@@ -148,7 +154,7 @@ const pageCrud = {
   updateTasks: async (pageid, tasks, title, userid, sse) => {
     const query = createQueryBulk(pageid, tasks, title);
     // const bulks = createBulk(pageid, tasks, title);
-    const queueData = {pageid, tasks, query, userid, sse, title};
+    const queueData = { pageid, tasks, query, userid, sse, title };
     saveTaskBulk(queueData);
   },
 };

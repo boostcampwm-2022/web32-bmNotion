@@ -120,7 +120,7 @@ const readQueue = () => {
   setInterval(async () => {
     if (taskQueue.length === 0) return;
     const taskQueueCopy = taskQueue.splice(0);
-    const queries = taskQueueCopy.reduce((pre, cur)=>{
+    const queries = taskQueueCopy.reduce((pre, cur) => {
       const now = new Date().toUTCString();
       const setInfoBulk = {
         updateOne: {
@@ -137,11 +137,11 @@ const readQueue = () => {
     }, []);
     await writeBulk(dbConfig.COLLECTION_PAGE, queries);
     taskQueueCopy.forEach((task) => {
-      task.sse.emit(task.pageid, task.tasks, task.userid, task.title)
+      task.sse.emit(task.pageid, task.tasks, task.userid, task.title);
     });
     console.log(taskQueueCopy);
-  },1000);
-} ;
+  }, 1000);
+};
 
 module.exports = {
   createDocument,
