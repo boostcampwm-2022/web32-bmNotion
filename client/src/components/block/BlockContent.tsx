@@ -268,6 +268,10 @@ export default function BlockContent({
   };
 
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.nativeEvent.isComposing) {
+      e.preventDefault();
+      return;
+    }
     const selection = window.getSelection();
     if (
       selection !== null &&
