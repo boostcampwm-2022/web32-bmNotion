@@ -182,11 +182,7 @@ export default function MainPage(): ReactElement {
               const boxBottom = boxTop + e.offsetHeight;
               const boxLeft = e.offsetLeft + (e.offsetParent as HTMLElement).offsetLeft;
               const boxRight = boxLeft + e.offsetWidth;
-              if (
-                ((top <= boxTop && boxTop <= bottom) ||
-                  (top <= boxBottom && boxBottom <= bottom)) &&
-                ((boxLeft <= left && left <= boxRight) || (boxLeft <= right && right <= boxRight))
-              ) {
+              if (top <= boxBottom && boxTop <= bottom && left <= boxRight && boxLeft <= right) {
                 e.classList.add('selected');
               } else {
                 e.classList.remove('selected');

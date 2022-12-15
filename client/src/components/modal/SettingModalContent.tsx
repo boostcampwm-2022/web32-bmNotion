@@ -41,7 +41,7 @@ export default function SettingModalContent() {
       inputSpacenameRef.current.placeholder = name;
       alert('성공적으로 변경되었습니다.');
     };
-    const onFail = (res: AxiosResponse) => {};
+    const onFail = (res: AxiosResponse) => { };
     axiosPostRequest(API.RENAME_WORKSPACE, onSuccess, onFail, requestBody, requestHeader);
   };
   const submitInviteUser = (e: React.FormEvent<HTMLFormElement>) => {
@@ -56,9 +56,9 @@ export default function SettingModalContent() {
     const onSuccess = (res: AxiosResponse) => {
       alert('성공적으로 초대되었습니다.');
     };
-    const onFail = (res: AxiosResponse) => {};
+    const onFail = (res: AxiosResponse) => { };
     axiosPostRequest(
-      'http://localhost:8080/api/workspace/invite',
+      API.ADD_WORKSPACE_MEMBER,
       onSuccess,
       onFail,
       requestBody,
@@ -81,12 +81,12 @@ export default function SettingModalContent() {
     const onSuccess = (res: AxiosResponse) => {
       setSearchResult(res.data.users);
     };
-    const onFail = (res: AxiosResponse) => {};
+    const onFail = (res: AxiosResponse) => { };
     const requestHeader = {
       Authorization: localStorage.getItem('jwt'),
     };
     axiosGetRequest(
-      `http://localhost:8080/api/user/search/${nickname}`,
+      `${API.GET_SEARCH}/${nickname}`,
       onSuccess,
       onFail,
       requestHeader,
