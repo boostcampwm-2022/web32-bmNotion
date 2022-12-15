@@ -16,10 +16,14 @@ module.exports = (server) => {
   const sse = new SSE(server);
   sse.on('connection', (client) => {
     const pageId = parseHeader(client.req.rawHeaders);
-    sse.on(pageId, (tasks, userId, title) => {
+    const onSave = (tasks, userId, title) => {
       client.send(JSON.stringify({ edits: tasks, userId, title }));
+    };
+    sse.on(pageId, onSave);
+    client.on('close', () => {
+      sse.off(pageId, onSave);
+      console.log('disconnect!');
     });
-    client.on('close', () => {});
   });
   return sse;
 };

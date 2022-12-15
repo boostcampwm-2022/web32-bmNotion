@@ -203,9 +203,8 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
         block,
         blocks: prevPage.blocks,
       });
-      if (targetIndex === undefined) return prevPage;
-      block.index = targetIndex;
-      const newBlocks = prevPage.blocks.map(updateIndex(1, targetIndex));
+      block.index = targetIndex === undefined ? block.index : targetIndex;
+      const newBlocks = prevPage.blocks.map(updateIndex(1, block.index));
       newBlocks.push(block);
       newBlocks.sort((a, b) => a.index - b.index);
       if (callBack !== undefined) callBack(prevPage);

@@ -5,6 +5,93 @@ const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
 const dbConfig = require('../db.config.json');
 
+const createAddQuery = (pageid, edits, title) => {
+  const createTasks = edits.filter((edit) => edit.task === 'create');
+  if (createTasks.length === 0) return [];
+  const query = {
+    updateOne: {
+      filter: {
+        _id: ObjectId(pageid),
+      },
+      update: {
+        $set: { title },
+        $addToSet: {
+          blocks: {
+            $each: [],
+          },
+        },
+      },
+    },
+  };
+  createTasks.forEach((edit) => {
+    const { blockId, content, createdAt, index, type } = edit;
+    const block = { blockId, content, createdAt, index, type };
+    query.updateOne.update.$addToSet.blocks.$each.push(block);
+  });
+  return [query];
+};
+
+const getAscii = (idx) => {
+  const charCount = idx / 26;
+  const charIdx = idx % 26;
+  return String.fromCharCode(97 + charIdx).repeat(charCount + 1);
+};
+
+const createSetQuery = (pageid, edits, title) => {
+  const editTasks = edits.filter((edit) => edit.task === 'edit');
+  if (editTasks.length === 0) return [];
+  const query = {
+    updateOne: {
+      filter: {
+        _id: ObjectId(pageid),
+      },
+      update: {
+        $set: { title },
+      },
+      arrayFilters: [],
+    },
+  };
+  edits.forEach((edit, idx) => {
+    const { blockId, content, index, type } = edit;
+    const arrayFilter = {};
+    const filterFieldName = getAscii(idx);
+    const filterName = `${filterFieldName}.blockId`;
+    arrayFilter[filterName] = blockId;
+    query.updateOne.arrayFilters.push(arrayFilter);
+    query.updateOne.update.$set[`blocks.$[${filterFieldName}].content`] = content;
+    query.updateOne.update.$set[`blocks.$[${filterFieldName}].index`] = index;
+    query.updateOne.update.$set[`blocks.$[${filterFieldName}].type`] = type;
+  });
+  return [query];
+};
+
+const createPullQuery = (pageid, edits, title) => {
+  const deleteTasks = edits.filter((edit) => edit.task === 'delete');
+  if (deleteTasks.length === 0) return [];
+  const query = {
+    updateOne: {
+      filter: {
+        _id: ObjectId(pageid),
+      },
+      update: {
+        $set: { title },
+        $pull: { blocks: { blockId: { $in: [] } } },
+      },
+    },
+  };
+  edits.forEach((edit) => {
+    const { blockId } = edit;
+    query.updateOne.update.$pull.blocks.blockId.$in.push(blockId);
+  });
+  return [query];
+};
+
+const createQueryBulk = (pageid, edits, title) => [
+  ...createAddQuery(pageid, edits, title),
+  ...createSetQuery(pageid, edits, title),
+  ...createPullQuery(pageid, edits, title),
+];
+
 const createBulk = (pageid, editInfos, title) => {
   const updateTitle = {
     updateOne: {
@@ -57,20 +144,16 @@ const createBulk = (pageid, editInfos, title) => {
         updateOne: {
           filter: {
             _id: ObjectId(pageid),
-            blocks: {
-              $elemMatch: {
-                blockId,
-              },
-            },
           },
           update: {
             $set: {
-              'blocks.$.blockId': blockId,
-              'blocks.$.content': content,
-              'blocks.$.index': index,
-              'blocks.$.type': type,
+              'blocks.$[e].blockId': blockId,
+              'blocks.$[e].content': content,
+              'blocks.$[e].index': index,
+              'blocks.$[e].type': type,
             },
           },
+          arrayFilters: [{ 'e.blockId': blockId }],
         },
       };
     }
@@ -133,8 +216,9 @@ const pageCrud = {
     );
   },
   updateTasks: async (pageid, tasks, title) => {
-    const bulks = createBulk(pageid, tasks, title);
-    await writeBulk(dbConfig.COLLECTION_PAGE, bulks);
+    const query = createQueryBulk(pageid, tasks, title);
+    //const bulks = createBulk(pageid, tasks, title);
+    await writeBulk(dbConfig.COLLECTION_PAGE, query);
   },
 };
 
