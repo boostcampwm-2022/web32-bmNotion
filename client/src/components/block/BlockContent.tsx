@@ -351,6 +351,10 @@ export default function BlockContent({
       });
     }
   };
+  useEffect(() => {
+    console.log('A');
+    if (snapshot.isDragging) resetMouseEvent();
+  }, [snapshot.isDragging]);
 
   const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : '';
 
