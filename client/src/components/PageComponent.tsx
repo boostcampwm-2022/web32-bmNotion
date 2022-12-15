@@ -446,6 +446,10 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
   };
 
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.nativeEvent.isComposing) {
+      e.preventDefault();
+      return;
+    }
     const elem = e.target as HTMLElement;
     if (!elem) return;
     const totalContent = elem.textContent || '';
@@ -894,7 +898,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
                     draggableId={block.blockId.toString()}
                     index={idx + 1}
                   >
-                    {(provided) => (
+                    {(provided, snapshot) => (
                       <StyledBlockContent
                         key={block.blockId}
                         block={block}
@@ -906,6 +910,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
                         index={block.index}
                         type={block.type}
                         provided={provided}
+                        snapshot={snapshot}
                         selectedBlocks={selectedBlocks}
                         allBlocks={pageInfo.blocks}
                         task={editTasks}

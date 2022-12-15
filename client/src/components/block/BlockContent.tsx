@@ -17,6 +17,7 @@ interface BlockContentProps {
   createBlock: (param: CreateBlockParam) => string;
   changeBlock: (param: ChangeBlockParam) => string;
   provided: any;
+  snapshot: any;
   moveBlock: Function;
   deleteBlock: (param: DeleteBlockParam) => string;
   selectedBlocks: BlockInfo[];
@@ -34,6 +35,10 @@ interface MarkdownGrammers {
 interface MarkdownGrammer {
   regExp: RegExp;
   getType: (text: string) => string;
+}
+
+interface DraggableProps {
+  isDragging: boolean;
 }
 
 const markdownGrammer: MarkdownGrammers = {
@@ -77,6 +82,7 @@ export default function BlockContent({
   deleteBlock,
   type,
   provided,
+  snapshot,
   moveBlock,
   selectedBlocks,
   allBlocks,
@@ -93,10 +99,12 @@ export default function BlockContent({
   const handleBlockPlusButtonModal = () => {
     setBlockPlusModalOpen(!blockPlusModalOpen);
     setBlockOptionModalOpen(false);
+    handleSetCaretPositionById({ targetBlockId: null, caretOffset: null });
   };
   const handleBlockOptionButtonModal = () => {
     setBlockOptionModalOpen(!blockOptionModalOpen);
     setBlockPlusModalOpen(false);
+    handleSetCaretPositionById({ targetBlockId: null, caretOffset: null });
   };
 
   const handleOnEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -206,6 +214,10 @@ export default function BlockContent({
   };
 
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.nativeEvent.isComposing) {
+      e.preventDefault();
+      return;
+    }
     const selection = window.getSelection();
     if (
       selection !== null &&
@@ -363,6 +375,7 @@ export default function BlockContent({
         data-index={index}
         data-tab={1}
         ref={refBlock}
+        isDragging={snapshot.isDragging}
         onMouseDown={(e) => {
           e.stopPropagation();
         }}
@@ -478,7 +491,7 @@ const BlockContainer = styled.div`
 `;
 
 // const BlockContentBox = styled.div<{ 'data-before-content': string }>`
-const BlockContentBox = styled.div`
+const BlockContentBox = styled.div<DraggableProps>`
   height: auto;
   flex: 1;
   margin: 1px 2px;
@@ -488,6 +501,8 @@ const BlockContentBox = styled.div`
   transition: all 0.1s linear;
   white-space: pre-wrap;
   word-break: break-word;
+  background-color: ${(props) => (props.isDragging ? 'rgba(35, 131, 226, 0.15)' : '')};
+  color: ${(props) => (props.isDragging ? 'rgba(0, 0, 0, 0.4)' : 'black')};
 
   &.selected {
     background-color: rgba(35, 131, 226, 0.15);
