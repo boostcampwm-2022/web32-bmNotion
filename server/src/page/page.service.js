@@ -1,6 +1,6 @@
 /* eslint no-underscore-dangle: 0 */
 const { ObjectId } = require('mongodb');
-const { createDocument, updateOneDocument, readOneDocument, writeBulk } = require('../db/db.crud');
+const { createDocument, updateOneDocument, readOneDocument, writeBulk, saveTaskBulk } = require('../db/db.crud');
 const createResponse = require('../utils/response.util');
 const responseMessage = require('../response.message.json');
 const dbConfig = require('../db.config.json');
@@ -92,76 +92,6 @@ const createQueryBulk = (pageid, edits, title) => [
   ...createPullQuery(pageid, edits, title),
 ];
 
-const createBulk = (pageid, editInfos, title) => {
-  const updateTitle = {
-    updateOne: {
-      filter: {
-        _id: ObjectId(pageid),
-      },
-      update: {
-        $set: { title },
-      },
-    },
-  };
-  const bulks = editInfos.map((editInfo) => {
-    if (editInfo === null) return undefined;
-    const { task, blockId } = editInfo;
-    if (task === 'delete') {
-      return {
-        updateOne: {
-          filter: {
-            _id: ObjectId(pageid),
-          },
-          update: {
-            $pull: { blocks: { blockId } },
-          },
-        },
-      };
-    }
-    const { content, index, type, createdAt } = editInfo;
-    if (task === 'create') {
-      return {
-        updateOne: {
-          filter: {
-            _id: ObjectId(pageid),
-          },
-          update: {
-            $addToSet: {
-              blocks: {
-                blockId,
-                content,
-                createdAt,
-                index,
-                type,
-              },
-            },
-          },
-        },
-      };
-    }
-    if (task === 'edit') {
-      return {
-        updateOne: {
-          filter: {
-            _id: ObjectId(pageid),
-          },
-          update: {
-            $set: {
-              'blocks.$[e].blockId': blockId,
-              'blocks.$[e].content': content,
-              'blocks.$[e].index': index,
-              'blocks.$[e].type': type,
-            },
-          },
-          arrayFilters: [{ 'e.blockId': blockId }],
-        },
-      };
-    }
-    return {};
-  });
-  return [updateTitle, ...bulks];
-};
-
 const pageCrud = {
   createPage: async (userid) => {
     const now = new Date().toUTCString();
@@ -215,23 +145,22 @@ const pageCrud = {
       { $set: { deleted: true } },
     );
   },
-  updateTasks: async (pageid, tasks, title) => {
+  updateTasks: async (pageid, tasks, title, userid, sse) => {
     const query = createQueryBulk(pageid, tasks, title);
-    //const bulks = createBulk(pageid, tasks, title);
-    await writeBulk(dbConfig.COLLECTION_PAGE, query);
+    // const bulks = createBulk(pageid, tasks, title);
+    const queueData = {pageid, tasks, query, userid, sse, title};
+    saveTaskBulk(queueData);
   },
 };
 
 const checkPageAuthority = (page, userid) => page.participants.includes(userid);
 
-const editPagePipeline = async (userid, title, pageid, tasks) => {
+const editPagePipeline = async (userid, title, pageid, tasks, sse) => {
   const page = await pageCrud.readPageById(pageid);
   if (page === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
   // const isParticipant = checkPageAuthority(page, userid);
   // if (!isParticipant) return createResponse(responseMessage.AUTH_FAIL);
-  if (tasks.length > 0) await pageCrud.updateTasks(pageid, tasks, title);
-  await pageCrud.updatePageInfo(pageid, userid);
-  // await pageCrud.updatePage(pageid, title, blocks);
+  if (tasks.length > 0) await pageCrud.updateTasks(pageid, tasks, title, userid, sse);
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
 
