@@ -18,5 +18,5 @@ export const API = {
   GET_SPACE: `${BASE_URL}/api/workspace/spaceinfo/`,
   GET_WORKSPACE: `${BASE_URL}/api/workspace/info/`,
   GET_PROFILE: `${BASE_URL}/api/user/profile/`,
-  GET_SEARCH: `${BASE_URL}/api/user/search/`
+  GET_SEARCH: `${BASE_URL}/api/user/search/`,
 };

@@ -1,9 +1,5 @@
 const connectToCluster = require('./db.server');
-const dbConfig = require('../db.config.json');
-const { ObjectId } = require('mongodb');
 require('dotenv').config();
-
-const taskQueue = [];
 
 const createDocument = async (collectionName, object) => {
   let mongoClient;
@@ -97,10 +93,6 @@ const deleteOneDocument = async (collectionName, queryCriteria) => {
   }
 };
 
-const saveTaskBulk = (task) => {
-  taskQueue.push(task);
-};
-
 const writeBulk = async (collectionName, bulks) => {
   let mongoClient;
 
@@ -116,33 +108,6 @@ const writeBulk = async (collectionName, bulks) => {
   }
 };
 
-const readQueue = () => {
-  setInterval(async () => {
-    if (taskQueue.length === 0) return;
-    const taskQueueCopy = taskQueue.splice(0);
-    const queries = taskQueueCopy.reduce((pre, cur)=>{
-      const now = new Date().toUTCString();
-      const setInfoBulk = {
-        updateOne: {
-          filter: {
-            _id: ObjectId(cur.pageid),
-          },
-          update: {
-            $set: { lasteditedtime: now },
-            $addToSet: { participants: cur.userid },
-          },
-        },
-      };
-      return [...pre, setInfoBulk, ...cur.query];
-    }, []);
-    await writeBulk(dbConfig.COLLECTION_PAGE, queries);
-    taskQueueCopy.forEach((task) => {
-      task.sse.emit(task.pageid, task.tasks, task.userid, task.title)
-    });
-    console.log(taskQueueCopy);
-  },1000);
-} ;
-
 module.exports = {
   createDocument,
   readAllDocument,
@@ -150,6 +115,4 @@ module.exports = {
   deleteOneDocument,
   updateOneDocument,
   writeBulk,
-  saveTaskBulk,
-  readQueue,
 };

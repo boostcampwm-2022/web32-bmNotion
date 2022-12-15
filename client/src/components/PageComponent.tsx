@@ -12,6 +12,7 @@ import { v4 as uuid } from 'uuid';
 
 interface PageComponentProps {
   selectedBlockId: string[];
+  resetMouseEvent: Function;
 }
 
 interface AddBlockParam {
@@ -44,7 +45,10 @@ interface CaretPosition {
 const emptyPage = { title: '', nextId: '', pageId: '', blocks: [] } as PageInfo;
 const caretPosition: CaretPosition = { targetBlockId: null, caretOffset: null };
 
-export default function PageComponent({ selectedBlockId }: PageComponentProps): React.ReactElement {
+export default function PageComponent({
+  selectedBlockId,
+  resetMouseEvent,
+}: PageComponentProps): React.ReactElement {
   const [pageInfo, setPageInfo] = useState<PageInfo>(emptyPage);
 
   const [focusBlockId, setFocusBlockId] = useState<string | null>(null);
@@ -916,6 +920,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
                         pageInfo={pageInfo}
                         handleSetCaretPositionById={handleSetCaretPositionById}
                         handleSetCaretPositionByIndex={handleSetCaretPositionByIndex}
+                        resetMouseEvent={resetMouseEvent}
                       />
                     )}
                   </Draggable>
