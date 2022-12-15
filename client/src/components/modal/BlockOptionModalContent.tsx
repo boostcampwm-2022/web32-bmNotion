@@ -4,27 +4,6 @@ import Modal from '@/components/modal/Modal';
 import styled from 'styled-components';
 import DimdLayer from '@/components/modal/DimdLayer';
 
-interface BlockInfo {
-  blockId: string;
-  content: string;
-  index: number;
-  type: string;
-  createdAt: string;
-}
-
-interface PageInfo {
-  title: string;
-  nextId: string;
-  pageId: string;
-  blocks: BlockInfo[];
-}
-
-interface DeleteBlockParam {
-  blockId: string;
-  notSaveOption?: boolean;
-  callBack?: (page: PageInfo) => void;
-}
-
 interface BlockOptionModalProps {
   handleType: Function;
   deleteBlock: (param: DeleteBlockParam) => string;
