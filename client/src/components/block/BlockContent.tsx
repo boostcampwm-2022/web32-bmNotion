@@ -373,6 +373,8 @@ export default function BlockContent({
           {...provided.dragHandleProps}
           onClick={() => {
             handleBlockOptionButtonModal();
+          }}
+          onMouseDown={() => {
             if (!selectedBlocks.includes(block)) {
               resetMouseEvent();
               return;
