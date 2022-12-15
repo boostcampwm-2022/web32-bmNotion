@@ -70,6 +70,15 @@ export default function MainPage(): ReactElement {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
+  const resetMouseEvent = () => {
+    setMouseStartPosition({ ...mouseStartPosition, positionX: null, positionY: null });
+    setMousePosition({ ...mousePosition, positionX: null, positionY: null });
+    blocks.forEach((e) => {
+      e.classList.remove('selected');
+    });
+    setSelectedBlockId([]);
+  };
+
   const moveNextBlock = () => {};
   const sideBarButtonClick = () => {
     setSideBarButtonClicked(!sideBarButtonClicked);
@@ -134,17 +143,20 @@ export default function MainPage(): ReactElement {
 
   const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
   const dragRangeStyle = 'red';
+  const handleMouseUp = () => {
+    setMouseStartPosition({ ...mouseStartPosition, positionX: null, positionY: null });
+    setMousePosition({ ...mousePosition, positionX: null, positionY: null });
+    setSelectedBlockId(
+      Array.from(document.querySelectorAll('div.selected')).map(
+        (e) => e.getAttribute('data-blockid') as string,
+      ),
+    );
+  };
   if (isLoading === true) return <div>로딩중</div>;
   return (
     <Wrapper
       onMouseUp={(e) => {
-        setMouseStartPosition({ ...mouseStartPosition, positionX: null, positionY: null });
-        setMousePosition({ ...mousePosition, positionX: null, positionY: null });
-        setSelectedBlockId(
-          Array.from(document.querySelectorAll('div.selected')).map(
-            (e) => e.getAttribute('data-blockid') as string,
-          ),
-        );
+        handleMouseUp();
       }}
       onMouseMove={(e) => {
         if (mouseStartPosition.positionX && mouseStartPosition.positionY) {
@@ -267,11 +279,16 @@ export default function MainPage(): ReactElement {
               positionX: e.pageX,
               positionY: e.pageY,
             });
+            if (!(e.target as HTMLElement).classList.contains('content')) {
+              e.preventDefault();
+              const select = window.getSelection();
+              select?.removeAllRanges();
+            }
             blocks.forEach((e) => e.classList.remove('selected'));
           }}
         >
           <PageContainer maxWidth={isReaderMode ? '100%' : '900px'}>
-            <PageComponent selectedBlockId={selectedBlockId} />
+            <PageComponent selectedBlockId={selectedBlockId} resetMouseEvent={resetMouseEvent} />
           </PageContainer>
         </MainContainerBody>
       </MainContainer>

@@ -26,6 +26,7 @@ interface BlockContentProps {
   handleSetCaretPositionById: Function;
   handleSetCaretPositionByIndex: Function;
   pageInfo: PageInfo;
+  resetMouseEvent: Function;
 }
 
 interface MarkdownGrammers {
@@ -90,6 +91,7 @@ export default function BlockContent({
   handleSetCaretPositionById,
   handleSetCaretPositionByIndex,
   task,
+  resetMouseEvent,
 }: BlockContentProps): ReactElement {
   const { blockId, content, index } = block;
   const [blockPlusModalOpen, setBlockPlusModalOpen] = useState(false);
@@ -353,10 +355,30 @@ export default function BlockContent({
   const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : '';
 
   return (
-    <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
+    <BlockContainer
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      onMouseDown={(e) => {
+        e.stopPropagation();
+      }}
+    >
       <BlockButtonBox>
-        <BlockPlusButton onClick={handleBlockPlusButtonModal} />
-        <BlockOptionButton {...provided.dragHandleProps} onClick={handleBlockOptionButtonModal} />
+        <BlockPlusButton
+          onClick={() => {
+            handleBlockPlusButtonModal();
+            resetMouseEvent();
+          }}
+        />
+        <BlockOptionButton
+          {...provided.dragHandleProps}
+          onClick={() => {
+            handleBlockOptionButtonModal();
+            if (!selectedBlocks.includes(block)) {
+              resetMouseEvent();
+              return;
+            }
+          }}
+        />
       </BlockButtonBox>
       {beforeContent !== '' && <BeforeContentBox beforeContent={beforeContent} />}
       <BlockContentBox
@@ -376,6 +398,7 @@ export default function BlockContent({
           const selection = window.getSelection() as Selection;
           const offset = selection.focusOffset;
           handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: offset });
+          resetMouseEvent();
         }}
         onDrop={preventDefaultEvent}
       >
