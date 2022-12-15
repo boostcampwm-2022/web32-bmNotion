@@ -55,6 +55,7 @@ interface StyledBlockContentProps {
   createBlock: (param: CreateBlockParam) => string;
   changeBlock: (param: ChangeBlockParam) => string;
   provided: any;
+  snapshot: any;
   moveBlock: Function;
   deleteBlock: (param: DeleteBlockParam) => string;
   selectedBlocks: BlockInfo[];
@@ -72,6 +73,7 @@ export default function StyledBlockContent({
   deleteBlock,
   type,
   provided,
+  snapshot,
   moveBlock,
   selectedBlocks,
   allBlocks,
@@ -102,6 +104,7 @@ export default function StyledBlockContent({
           index={block.index}
           type={block.type}
           provided={provided}
+          snapshot={snapshot}
           selectedBlocks={selectedBlocks}
           task={task}
           allBlocks={allBlocks}

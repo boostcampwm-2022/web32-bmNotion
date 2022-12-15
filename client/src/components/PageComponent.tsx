@@ -938,7 +938,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
                     draggableId={block.blockId.toString()}
                     index={idx + 1}
                   >
-                    {(provided) => (
+                    {(provided, snapshot) => (
                       <StyledBlockContent
                         key={block.blockId}
                         block={block}
@@ -950,6 +950,7 @@ export default function PageComponent({ selectedBlockId }: PageComponentProps): 
                         index={block.index}
                         type={block.type}
                         provided={provided}
+                        snapshot={snapshot}
                         selectedBlocks={selectedBlocks}
                         allBlocks={pageInfo.blocks}
                         task={editTasks}
