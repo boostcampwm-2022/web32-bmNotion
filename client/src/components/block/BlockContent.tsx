@@ -153,10 +153,12 @@ export default function BlockContent({
   const handleBlockPlusButtonModal = () => {
     setBlockPlusModalOpen(!blockPlusModalOpen);
     setBlockOptionModalOpen(false);
+    handleSetCaretPositionById({ targetBlockId: null, caretOffset: null });
   };
   const handleBlockOptionButtonModal = () => {
     setBlockOptionModalOpen(!blockOptionModalOpen);
     setBlockPlusModalOpen(false);
+    handleSetCaretPositionById({ targetBlockId: null, caretOffset: null });
   };
 
   const handleOnEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
