@@ -7,49 +7,6 @@ import DimdLayer from '@/components/modal/DimdLayer';
 import { AxiosResponse } from 'axios';
 import { axiosPostRequest } from '@/utils/axios.request';
 
-interface BlockInfo {
-  blockId: string;
-  content: string;
-  index: number;
-  type: string;
-  createdAt: string;
-}
-interface PageInfo {
-  title: string;
-  nextId: string;
-  pageId: string;
-  blocks: BlockInfo[];
-}
-
-interface CreateBlockParam {
-  prevBlockId?: string;
-  index: number;
-  content: string;
-  type: string;
-  notSaveOption?: boolean;
-  callBack?: (page: PageInfo) => void;
-}
-
-interface ChangeBlockInfo {
-  blockId: string;
-  content?: string;
-  index?: number;
-  type?: string;
-  createdAt?: string;
-}
-
-interface ChangeBlockParam {
-  block: ChangeBlockInfo;
-  notSaveOption?: boolean;
-  callBack?: (page: PageInfo) => void;
-}
-
-interface DeleteBlockParam {
-  blockId: string;
-  notSaveOption?: boolean;
-  callBack?: (page: PageInfo) => void;
-}
-
 interface BlockContentProps {
   block: BlockInfo;
   blockId?: string; // page - Id 불변
@@ -70,11 +27,6 @@ interface BlockContentProps {
   pageInfo: PageInfo;
 }
 
-interface BlockContentBoxProps {
-  placeholder: string;
-  blockId: number;
-}
-
 interface MarkdownGrammers {
   [index: string]: MarkdownGrammer;
 }
@@ -83,12 +35,6 @@ interface MarkdownGrammer {
   regExp: RegExp;
   getType: (text: string) => string;
 }
-
-// interface BlockInfo {
-//   blockId: number;
-//   content: string;
-//   index: number;
-// }
 
 const markdownGrammer: MarkdownGrammers = {
   HEADER: {

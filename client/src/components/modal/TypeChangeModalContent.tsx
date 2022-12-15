@@ -2,14 +2,6 @@ import React, { useState, ReactElement, useEffect } from 'react';
 import TypeChangeModalContentType from './TypeChangeModalContentType';
 import styled from 'styled-components';
 
-interface BlockInfo {
-  blockId: string;
-  content: string;
-  index: number;
-  type: string;
-  createdAt: string;
-}
-
 interface TypeChangeModalContentProps {
   handleType: Function;
   block: BlockInfo;
