@@ -7,49 +7,6 @@ import DimdLayer from '@/components/modal/DimdLayer';
 import { AxiosResponse } from 'axios';
 import { axiosPostRequest } from '@/utils/axios.request';
 
-interface BlockInfo {
-  blockId: string;
-  content: string;
-  index: number;
-  type: string;
-  createdAt: string;
-}
-interface PageInfo {
-  title: string;
-  nextId: string;
-  pageId: string;
-  blocks: BlockInfo[];
-}
-
-interface CreateBlockParam {
-  prevBlockId?: string;
-  index: number;
-  content: string;
-  type: string;
-  notSaveOption?: boolean;
-  callBack?: (page: PageInfo) => void;
-}
-
-interface ChangeBlockInfo {
-  blockId: string;
-  content?: string;
-  index?: number;
-  type?: string;
-  createdAt?: string;
-}
-
-interface ChangeBlockParam {
-  block: ChangeBlockInfo;
-  notSaveOption?: boolean;
-  callBack?: (page: PageInfo) => void;
-}
-
-interface DeleteBlockParam {
-  blockId: string;
-  notSaveOption?: boolean;
-  callBack?: (page: PageInfo) => void;
-}
-
 interface BlockContentProps {
   block: BlockInfo;
   blockId?: string; // page - Id 불변
@@ -60,6 +17,7 @@ interface BlockContentProps {
   createBlock: (param: CreateBlockParam) => string;
   changeBlock: (param: ChangeBlockParam) => string;
   provided: any;
+  snapshot: any;
   moveBlock: Function;
   deleteBlock: (param: DeleteBlockParam) => string;
   selectedBlocks: BlockInfo[];
@@ -68,11 +26,6 @@ interface BlockContentProps {
   handleSetCaretPositionById: Function;
   handleSetCaretPositionByIndex: Function;
   pageInfo: PageInfo;
-}
-
-interface BlockContentBoxProps {
-  placeholder: string;
-  blockId: number;
 }
 
 interface MarkdownGrammers {
@@ -84,11 +37,9 @@ interface MarkdownGrammer {
   getType: (text: string) => string;
 }
 
-// interface BlockInfo {
-//   blockId: number;
-//   content: string;
-//   index: number;
-// }
+interface DraggableProps {
+  isDragging: boolean;
+}
 
 const markdownGrammer: MarkdownGrammers = {
   HEADER: {
@@ -122,6 +73,8 @@ const splitTextContentByCaret = (elem: HTMLElement) => {
   return [totalContent.slice(0, offset), totalContent.slice(offset)];
 };
 
+const preventDefaultEvent = (e: any) => e.preventDefault();
+
 export default function BlockContent({
   block,
   createBlock,
@@ -129,6 +82,7 @@ export default function BlockContent({
   deleteBlock,
   type,
   provided,
+  snapshot,
   moveBlock,
   selectedBlocks,
   allBlocks,
@@ -145,10 +99,12 @@ export default function BlockContent({
   const handleBlockPlusButtonModal = () => {
     setBlockPlusModalOpen(!blockPlusModalOpen);
     setBlockOptionModalOpen(false);
+    handleSetCaretPositionById({ targetBlockId: null, caretOffset: null });
   };
   const handleBlockOptionButtonModal = () => {
     setBlockOptionModalOpen(!blockOptionModalOpen);
     setBlockPlusModalOpen(false);
+    handleSetCaretPositionById({ targetBlockId: null, caretOffset: null });
   };
 
   const handleOnEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -201,7 +157,7 @@ export default function BlockContent({
   };
 
   const handleOnArrow = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    moveBlock({ e, content: '', index: index });
+    moveBlock({ e, content: '', index: index, blockId: blockId });
   };
 
   const handleOnBackspace = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -221,8 +177,8 @@ export default function BlockContent({
       if (index === 0) {
         e.preventDefault();
         const titleDomBlock = document.querySelector('div.title') as HTMLElement;
-        const text = pageInfo.title + elem.textContent;
         if (!titleDomBlock) return;
+        const text = titleDomBlock.textContent || '' + elem.textContent || '';
         titleDomBlock.textContent = text;
         handleSetCaretPositionById({
           targetBlockId: 'titleBlock',
@@ -237,9 +193,10 @@ export default function BlockContent({
       const prevDomBlock = [...blocks].find(
         (el) => el.getAttribute('data-index') === (index - 1).toString(),
       ) as HTMLElement;
+      if (!prevDomBlock) return;
       const prevBlock = allBlocks.find((e) => e.index === index - 1);
       e.preventDefault();
-      const text = (prevDomBlock.textContent as string) + elem.textContent;
+      const text = (prevDomBlock.textContent as string) + elem.textContent || '';
       prevDomBlock.textContent = text;
       const handleCaret = () => {
         handleSetCaretPositionById({
@@ -257,11 +214,30 @@ export default function BlockContent({
   };
 
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.nativeEvent.isComposing) {
+      e.preventDefault();
+      return;
+    }
+    const selection = window.getSelection();
+    if (
+      selection !== null &&
+      (e.key === 'Enter' || e.code === 'Space' || e.code === 'Backspace') &&
+      selection.focusOffset !== selection.anchorOffset
+    ) {
+      /* 아직 핸들링하기 어려운 부분에 대해서는 아예 동작을 안하는 것으로 한다. */
+      e.preventDefault();
+      return;
+    }
     if (e.key === 'Enter') {
       handleOnEnter(e);
     } else if (e.code === 'Space') {
       handleOnSpace(e);
-    } else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+    } else if (
+      e.code === 'ArrowUp' ||
+      e.code === 'ArrowDown' ||
+      e.code === 'ArrowLeft' ||
+      e.code === 'ArrowRight'
+    ) {
       handleOnArrow(e);
     } else if (e.code == 'Backspace') {
       handleOnBackspace(e);
@@ -293,6 +269,9 @@ export default function BlockContent({
 
   const handleOnInput = (e: React.FormEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
+    const offset = (window.getSelection() as Selection).focusOffset;
+    handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: offset });
+    if (!target) return;
     target.normalize();
     const newContent = target.textContent;
     if (newContent !== null) {
@@ -374,11 +353,7 @@ export default function BlockContent({
   const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : '';
 
   return (
-    <BlockContainer
-      ref={provided.innerRef}
-      {...provided.draggableProps}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
+    <BlockContainer ref={provided.innerRef} {...provided.draggableProps}>
       <BlockButtonBox>
         <BlockPlusButton onClick={handleBlockPlusButtonModal} />
         <BlockOptionButton {...provided.dragHandleProps} onClick={handleBlockOptionButtonModal} />
@@ -396,9 +371,13 @@ export default function BlockContent({
         data-index={index}
         data-tab={1}
         ref={refBlock}
-        onMouseDown={(e) => {
-          e.stopPropagation();
+        isDragging={snapshot.isDragging}
+        onClick={() => {
+          const selection = window.getSelection() as Selection;
+          const offset = selection.focusOffset;
+          handleSetCaretPositionById({ targetBlockId: blockId, caretOffset: offset });
         }}
+        onDrop={preventDefaultEvent}
       >
         {block.type === 'IMG' ? (
           <img
@@ -505,7 +484,7 @@ const BlockContainer = styled.div`
 `;
 
 // const BlockContentBox = styled.div<{ 'data-before-content': string }>`
-const BlockContentBox = styled.div`
+const BlockContentBox = styled.div<DraggableProps>`
   height: auto;
   flex: 1;
   margin: 1px 2px;
@@ -513,6 +492,10 @@ const BlockContentBox = styled.div`
   /* caret-color: red; // 커서 색깔,요하면 원하는 색깔로 바꾸기 */
   border-radius: 3px;
   transition: all 0.1s linear;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background-color: ${(props) => (props.isDragging ? 'rgba(35, 131, 226, 0.15)' : '')};
+  color: ${(props) => (props.isDragging ? 'rgba(0, 0, 0, 0.4)' : 'black')};
 
   &.selected {
     background-color: rgba(35, 131, 226, 0.15);
@@ -521,15 +504,17 @@ const BlockContentBox = styled.div`
   &:focus {
     outline: none;
   }
-
-  white-space: pre-wrap;
-  word-break: break-word;
 `;
 
 const BeforeContentBox = styled.div<{ beforeContent: string }>`
   display: flex;
-  align-content: center;
-  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: -4px;
+  width: 24px;
+  height: 100%;
+  padding-top: 2px;
+  overflow-y: hidden;
   &::before {
     content: '${(props) => props.beforeContent}';
   }

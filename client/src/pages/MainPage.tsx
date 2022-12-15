@@ -121,7 +121,6 @@ export default function MainPage(): ReactElement {
   }, [workSpaceName, workSpaceId]);
 
   useEffect(() => {
-    console.log('user', userId);
     if (userId === '') return;
     const onSuccess = (res: AxiosResponse) => {
       setProfileImageUrl(res.data.url);
@@ -130,12 +129,7 @@ export default function MainPage(): ReactElement {
     const requestHeader = {
       authorization: localStorage.getItem('jwt'),
     };
-    axiosGetRequest(
-      `http://localhost:8080/api/user/profile/${userId}`,
-      onSuccess,
-      onFail,
-      requestHeader,
-    );
+    axiosGetRequest(API.GET_PROFILE + userId, onSuccess, onFail, requestHeader);
   }, [setProfileImageUrl]);
 
   const blocks = document.querySelectorAll('div.content') as NodeListOf<HTMLElement>;
@@ -174,9 +168,13 @@ export default function MainPage(): ReactElement {
             const right = left + width;
             const bottom = top + height;
             blocks.forEach((e, i) => {
-              if (!e.offsetTop) {
-                return;
-              }
+              if (!e.offsetTop) return;
+              if (!e.offsetLeft) return;
+              if (!e.offsetHeight) return;
+              if (!e.offsetWidth) return;
+              if (!e.offsetParent) return;
+              if (!(e.offsetParent as HTMLElement).offsetTop) return;
+              if (!(e.offsetParent as HTMLElement).offsetLeft) return;
               const boxTop =
                 e.offsetTop +
                 (e.offsetParent as HTMLElement).offsetTop +

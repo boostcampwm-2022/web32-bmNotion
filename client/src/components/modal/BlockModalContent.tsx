@@ -2,14 +2,6 @@ import React, { useState, ReactElement, useEffect } from 'react';
 import BlockModalContentType from './BlockModalContentType';
 import styled from 'styled-components';
 
-interface BlockInfo {
-  blockId: string;
-  content: string;
-  index: number;
-  type: string;
-  createdAt: string;
-}
-
 interface BlockModalContentProps {
   handleType: Function;
   block: BlockInfo;
@@ -43,6 +35,12 @@ export default function BlockModalContent({
       contents: '섹션 제목(소)',
       image: '/assets/typeImages/h3.png',
       type: 'H3',
+    },
+    {
+      title: '글 머리 기호 목록',
+      contents: '간단한 글머리 기호 목록을 생성하세요',
+      image: '/assets/typeImages/ul.png',
+      type: 'UL',
     },
   ];
 

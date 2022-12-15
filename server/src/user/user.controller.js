@@ -6,9 +6,9 @@ const userController = {
     const resJson = await searchUserPipeline(nickname);
     res.json(resJson);
   },
-  getProfileUrl: (req, res) => {
+  getProfileUrl: async (req, res) => {
     const { id } = req.params;
-    const resJson = getProfilePipeline(id);
+    const resJson = await getProfilePipeline(id);
     res.json(resJson);
   },
 };

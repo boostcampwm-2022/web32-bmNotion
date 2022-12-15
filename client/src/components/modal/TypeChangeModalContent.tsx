@@ -2,14 +2,6 @@ import React, { useState, ReactElement, useEffect } from 'react';
 import TypeChangeModalContentType from './TypeChangeModalContentType';
 import styled from 'styled-components';
 
-interface BlockInfo {
-  blockId: string;
-  content: string;
-  index: number;
-  type: string;
-  createdAt: string;
-}
-
 interface TypeChangeModalContentProps {
   handleType: Function;
   block: BlockInfo;
@@ -41,6 +33,11 @@ export default function TypeChangeModalContent({
       text: '제목3',
       image: '/assets/typeImages/h3.png',
       type: 'H3',
+    },
+    {
+      text: '글 머리 기호 목록',
+      image: '/assets/typeImages/ul.png',
+      type: 'UL',
     },
   ];
 

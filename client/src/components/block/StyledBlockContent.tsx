@@ -2,49 +2,6 @@ import React, { Dispatch, ReactElement, useState, useRef, useLayoutEffect, useEf
 import styled, { keyframes } from 'styled-components';
 import BlockContent from '@/components/block/BlockContent';
 
-interface BlockInfo {
-  blockId: string;
-  content: string;
-  index: number;
-  type: string;
-  createdAt: string;
-}
-interface PageInfo {
-  title: string;
-  nextId: string;
-  pageId: string;
-  blocks: BlockInfo[];
-}
-
-interface CreateBlockParam {
-  prevBlockId?: string;
-  index: number;
-  content: string;
-  type: string;
-  notSaveOption?: boolean;
-  callBack?: (page: PageInfo) => void;
-}
-
-interface ChangeBlockInfo {
-  blockId: string;
-  content?: string;
-  index?: number;
-  type?: string;
-  createdAt?: string;
-}
-
-interface ChangeBlockParam {
-  block: ChangeBlockInfo;
-  notSaveOption?: boolean;
-  callBack?: (page: PageInfo) => void;
-}
-
-interface DeleteBlockParam {
-  blockId: string;
-  notSaveOption?: boolean;
-  callBack?: (page: PageInfo) => void;
-}
-
 interface StyledBlockContentProps {
   block: BlockInfo;
   blockId?: string; // page - Id 불변
@@ -55,6 +12,7 @@ interface StyledBlockContentProps {
   createBlock: (param: CreateBlockParam) => string;
   changeBlock: (param: ChangeBlockParam) => string;
   provided: any;
+  snapshot: any;
   moveBlock: Function;
   deleteBlock: (param: DeleteBlockParam) => string;
   selectedBlocks: BlockInfo[];
@@ -72,6 +30,7 @@ export default function StyledBlockContent({
   deleteBlock,
   type,
   provided,
+  snapshot,
   moveBlock,
   selectedBlocks,
   allBlocks,
@@ -102,6 +61,7 @@ export default function StyledBlockContent({
           index={block.index}
           type={block.type}
           provided={provided}
+          snapshot={snapshot}
           selectedBlocks={selectedBlocks}
           task={task}
           allBlocks={allBlocks}
@@ -161,7 +121,7 @@ const H3BlockContentBox = styled.div`
 `;
 
 const IMGBlockContentBox = styled.div`
-  overflow: hidden;
+  object-fit: cover;
   cursor: pointer;
   width: 100%;
 `;
