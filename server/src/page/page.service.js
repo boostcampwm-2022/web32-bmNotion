@@ -145,22 +145,24 @@ const pageCrud = {
       { $set: { deleted: true } },
     );
   },
-  updateTasks: async (pageid, tasks, title, userid, sse) => {
+  updateTasks: async (pageid, tasks, title) => {
     const query = createQueryBulk(pageid, tasks, title);
     // const bulks = createBulk(pageid, tasks, title);
-    const queueData = {pageid, tasks, query, userid, sse, title};
-    saveTaskBulk(queueData);
+    // const queueData = {pageid, tasks, query, userid, sse, title};
+    // saveTaskBulk(queueData);
+    await writeBulk(dbConfig.COLLECTION_PAGE, query);
   },
 };
 
 const checkPageAuthority = (page, userid) => page.participants.includes(userid);
 
-const editPagePipeline = async (userid, title, pageid, tasks, sse) => {
+const editPagePipeline = async (userid, title, pageid, tasks) => {
   const page = await pageCrud.readPageById(pageid);
   if (page === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
   // const isParticipant = checkPageAuthority(page, userid);
   // if (!isParticipant) return createResponse(responseMessage.AUTH_FAIL);
-  if (tasks.length > 0) await pageCrud.updateTasks(pageid, tasks, title, userid, sse);
+  if (tasks.length > 0) await pageCrud.updateTasks(pageid, tasks, title);
+  await pageCrud.updatePageInfo(pageid, userid)
   return createResponse(responseMessage.PROCESS_SUCCESS);
 };
 
