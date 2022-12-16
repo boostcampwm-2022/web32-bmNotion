@@ -59,7 +59,7 @@ const getWorkspaceIdByPage = async (pageId, userId) => {
   if (workspace === null) return createResponse(responseMessage.PAGE_NOT_FOUND);
   if (!workspace.members.includes(userId)) return createResponse(responseMessage.AUTH_FAIL);
   const response = createResponse(responseMessage.PROCESS_SUCCESS);
-  response.spacename = workspace._id;
+  response.spacename = workspace.title;
   response.workspace = workspace._id;
   return response;
 };

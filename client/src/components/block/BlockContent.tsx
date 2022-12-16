@@ -351,6 +351,9 @@ export default function BlockContent({
       });
     }
   };
+  useEffect(() => {
+    if (snapshot.isDragging) resetMouseEvent();
+  }, [snapshot.isDragging]);
 
   const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : '';
 
@@ -373,6 +376,8 @@ export default function BlockContent({
           {...provided.dragHandleProps}
           onClick={() => {
             handleBlockOptionButtonModal();
+          }}
+          onMouseDown={() => {
             if (!selectedBlocks.includes(block)) {
               resetMouseEvent();
               return;

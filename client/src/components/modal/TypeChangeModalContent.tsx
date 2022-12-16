@@ -47,6 +47,7 @@ export default function TypeChangeModalContent({
         {contentTypeArr.map((e) => {
           return (
             <TypeChangeModalContentType
+              key={block.blockId + e.text}
               text={e.text}
               image={e.image}
               handleType={handleType}
