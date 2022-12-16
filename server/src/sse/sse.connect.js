@@ -22,7 +22,6 @@ module.exports = (server) => {
     sse.on(pageId, onSave);
     client.on('close', () => {
       sse.off(pageId, onSave);
-      console.log('disconnect!');
     });
   });
   return sse;

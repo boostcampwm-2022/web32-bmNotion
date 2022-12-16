@@ -352,7 +352,7 @@ export default function PageComponent({
       source.removeEventListener('error', onServerError);
       source.close();
     };
-  }, [pageid, pageInfo]);
+  }, [pageid]);
 
   const moveCaret = (blockId: string, nowOffset: number) => {
     const blocks = document.querySelectorAll('div.content, div.title') as NodeListOf<HTMLElement>;

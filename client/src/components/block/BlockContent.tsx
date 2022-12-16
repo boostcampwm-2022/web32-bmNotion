@@ -352,7 +352,6 @@ export default function BlockContent({
     }
   };
   useEffect(() => {
-    console.log('A');
     if (snapshot.isDragging) resetMouseEvent();
   }, [snapshot.isDragging]);
 
