@@ -380,6 +380,7 @@ const MainContainerBody = styled.div`
   align-items: center;
   margin-top: 45px;
   padding: 0px 96px;
+  padding-bottom: 45px;
 `;
 
 const SideBarButton = styled.button<SideBarButtonProps>`

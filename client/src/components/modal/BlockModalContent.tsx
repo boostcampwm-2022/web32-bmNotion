@@ -50,6 +50,7 @@ export default function BlockModalContent({
         {contentTypeArr.map((e) => {
           return (
             <BlockModalContentType
+              key={block.blockId + e.contents}
               title={e.title}
               contents={e.contents}
               image={e.image}
