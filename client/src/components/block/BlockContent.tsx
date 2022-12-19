@@ -355,7 +355,7 @@ export default function BlockContent({
     if (snapshot.isDragging) resetMouseEvent();
   }, [snapshot.isDragging]);
 
-  const beforeContent = block.type === 'UL' ? '•' : block.type === 'OL' ? '4242.' : '';
+  const beforeContent = block.type === 'UL' ? '•' : '';
 
   return (
     <BlockContainer
